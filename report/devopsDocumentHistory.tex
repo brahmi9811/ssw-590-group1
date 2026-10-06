@@ -1,0 +1,22 @@
+\chapter*{Document History}
+\addcontentsline{toc}{chapter}{Document History}
+\index{document history}
+\section*{How to Use This Chapter}
+Add the newest approved change at the top. Retain every approved entry and
+link each entry to the changed chapter, table, figure, or controlled artifact.
+Author initials: BD = Brahmi Dalvi, SD = Sakshi Deshpande, CC = Claude Code
+(AI assistant; see the AI Prompt Log), DDM = Darian Muresan, CDX = OpenAI Codex.
+
+\begin{tabularx}{\linewidth}{L{3.1cm}L{2.2cm}YL{2.0cm}}
+\caption{Document Update History\label{Table:DocumentHistory}}\\
+\toprule \textbf{Date / Version} & \textbf{Author Initials} & \textbf{Change} & \textbf{Changed At}\\ \midrule
+\endfirsthead
+\multicolumn{4}{l}{\small\itshape Document Update History (continued)}\\
+\toprule \textbf{Date / Version} & \textbf{Author Initials} & \textbf{Change} & \textbf{Changed At}\\ \midrule
+\endhead \bottomrule \endlastfoot
+October 6, 2026 / 2.0 & SD, CC & Created the Group~1 document in the group repository from the individual template. Added the AWS Docker Deployment chapter (AWS EC2 in place of a Digital Ocean Droplet, with Console and CLI steps in \texttt{minted}), the Class-Based Two-Button Website chapter with a UML class diagram and unit tests, the LaTeX Docker chapter (TeX Live container with real build output), and the Project Proposal chapter (TwinTrack: GitHub Actions vs.\ Jenkins, dashboard, modified SWOT charts). Switched the build to the LaTeX container and added AWS, EC2, UML, DORA, and SWOT glossary terms. & \ChapterRef{AWSDockerDeployment}, \ChapterRef{ClassBasedWebsite}, \ChapterRef{LatexDocker}, \ChapterRef{ProjectProposal}, \ChapterRef{DocumentGuide}\\
+October 5, 2026 / 1.5 & SD & (Individual document) Added the Local Docker chapter with the Node.js Hello World and Express two-button sites; adopted \texttt{minted}. & Individual submission\\
+September 21, 2026 / 1.4 & SD & (Individual document) Added the Kanban Setup, Passwords, and Hosts chapters. & Individual submission\\
+September 2, 2026 / 1.0--1.3 & DDM, CDX & Created the reusable SSW 590 DevOps assignment template, the one-file-per-chapter convention, and the authoring guide. & \ChapterRef{DocumentGuide}, \ChapterRef{AIAgentGuide}\\
+\textit{[date / version]} & \textit{[initials]} & \textit{[approved change and rationale]} & \textit{[link]}\\
+\end{tabularx}

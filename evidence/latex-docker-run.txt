@@ -1,0 +1,17 @@
+$ docker run --rm -v "$PWD":/workdir latex-builder hello.tex
+Latexmk: This is Latexmk, John Collins, 9 March 2026. Version 4.88.
+Run number 1 of rule 'pdflatex'
+Running 'pdflatex  -shell-escape -interaction=nonstopmode -halt-on-error -recorder  "hello.tex"'
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex)
+Output written on hello.pdf (1 page, 79481 bytes).
+Run number 2 of rule 'pdflatex'
+Running 'pdflatex  -shell-escape -interaction=nonstopmode -halt-on-error -recorder  "hello.tex"'
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex)
+Output written on hello.pdf (1 page, 81626 bytes).
+Run number 3 of rule 'pdflatex'
+Running 'pdflatex  -shell-escape -interaction=nonstopmode -halt-on-error -recorder  "hello.tex"'
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex)
+Output written on hello.pdf (1 page, 81626 bytes).
+Latexmk: All targets (hello.pdf) are up-to-date
+$ ls -l hello.pdf
+-rw-r--r-- 81626 hello.pdf

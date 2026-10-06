@@ -1,0 +1,147 @@
+% SSW 590 DevOps Assignment Template
+% Developed by Darian Muresan, Ph.D., with OpenAI Codex and Anthropic Claude Code.
+% AI agents: read devopsAIAgentGuide.tex before editing this template.
+\documentclass[12pt]{cornell}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xspace}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{ltablex}
+\keepXColumns
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{tcolorbox}
+\usepackage{makeidx}
+\usepackage{tikz}
+% Symbols printed by the Node.js test runner in captured evidence
+\DeclareUnicodeCharacter{2714}{\ensuremath{\checkmark}}
+\DeclareUnicodeCharacter{2716}{\ensuremath{\times}}
+\DeclareUnicodeCharacter{2139}{\textit{i}}
+\usetikzlibrary{shapes.multipart,arrows.meta,positioning}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage[acronym,toc]{glossaries}
+
+\makeindex
+\makeglossaries
+\input{devopsGlossary.tex}
+
+\definecolor{devopsBlue}{RGB}{31,78,121}
+\definecolor{devopsGreen}{RGB}{46,125,50}
+\definecolor{devopsRed}{RGB}{183,28,28}
+\definecolor{devopsGray}{RGB}{90,90,90}
+\definecolor{devopsLightBlue}{RGB}{232,240,247}
+
+% Replace these values for each assignment.
+\newcommand{\AssignmentTitle}{Cloud Docker Deployment and Project Proposal}
+\newcommand{\AssignmentNumber}{4}
+\newcommand{\DocumentVersion}{2.0}
+\newcommand{\DocumentStatus}{Group 1 Submission}
+\newcommand{\CourseNumber}{SSW 590}
+\newcommand{\CourseName}{DevOps}
+\newcommand{\Instructor}{David Darian Muresan, Ph.D.}
+\newcommand{\StudentName}{Group 1: Brahmi Dalvi and Sakshi Deshpande}
+\newcommand{\Organization}{Stevens Institute of Technology}
+\newcommand{\DocumentDate}{October 6, 2026}
+\newcommand{\DueDate}{[due date from Canvas]}
+\newcommand{\VERSION}{Version \DocumentVersion}
+% Public address of the AWS EC2 web server. Replace after running
+% deploy/aws/launch-ec2.sh (see the AWS Docker Deployment chapter).
+\newcommand{\WebsiteURL}{http://[EC2-PUBLIC-DNS]}
+\newcommand{\RepoURL}{https://github.com/brahmi9811/ssw-590-group1}
+
+\hypersetup{
+  pdftitle={\CourseNumber\ --- Assignment \AssignmentNumber: \AssignmentTitle},
+  pdfauthor={\StudentName},
+  pdfcreator={Darian Muresan, Ph.D., with OpenAI Codex and Anthropic Claude Code},
+  pdfsubject={Reusable DevOps course assignment template},
+  pdfkeywords={DevOps, automation, delivery pipeline, infrastructure as code, evidence}
+}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\LTpre}{6pt}
+\setlength{\LTpost}{6pt}
+
+% Stable IDs make activity, evidence, and artifact references durable.
+\newcommand{\ArtifactLabel}[2]{\phantomsection\label{#1:#2}}
+\newcommand{\ArtifactID}[2]{\texttt{#2}\ArtifactLabel{#1}{#2}\index{#1!#2}}
+\newcommand{\ArtifactRef}[2]{\hyperref[#1:#2]{\texttt{#2}}}
+\newcommand{\ActivityID}[1]{\ArtifactID{Activity}{#1}}
+\newcommand{\ActivityRef}[1]{\ArtifactRef{Activity}{#1}}
+\newcommand{\EvidenceID}[1]{\ArtifactID{Evidence}{#1}}
+\newcommand{\EvidenceRef}[1]{\ArtifactRef{Evidence}{#1}}
+\newcommand{\ChapterLabel}[1]{\label{Chapter:#1}}
+\newcommand{\ChapterRef}[1]{\hyperref[Chapter:#1]{Chapter~\ref*{Chapter:#1}}}
+\newcommand{\StatusPass}{\textbf{\footnotesize\textcolor{devopsGreen}{PASS}}}
+\newcommand{\StatusPending}{\textbf{\footnotesize\textcolor{devopsGray}{PENDING}}}
+\newcommand{\StatusFail}{\textbf{\footnotesize\textcolor{devopsRed}{FAIL}}}
+
+\newtcolorbox{devopsNote}[1][]{
+  colback=devopsLightBlue, colframe=devopsBlue, boxrule=0.6pt, arc=1mm, title=#1
+}
+
+\lstset{
+  backgroundcolor=\color{white}, basicstyle=\ttfamily\footnotesize,
+  breaklines=true, frame=single, keywordstyle=\color{blue},
+  commentstyle=\color{devopsGreen}, numbers=left, numbersep=6pt,
+  numberstyle=\tiny\color{devopsGray}, showstringspaces=false,
+  stringstyle=\color{devopsRed}, tabsize=2
+}
+\setminted{fontsize=\footnotesize, breaklines, breakanywhere, frame=lines, framesep=2mm}
+
+\setlength{\emergencystretch}{3em}
+\changenormalspacing{\singlespacing}
+\begin{document}
+\pagenumbering{roman}
+\singlespacing
+\include{prologue}
+
+\setcounter{page}{1}
+\pagenumbering{arabic}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\lhead{\small Assignment \AssignmentNumber}
+\chead{\small\nouppercase{\leftmark}}
+\rhead{\small\thepage}
+\lfoot{\small\CourseNumber}
+\cfoot{\small\copyright\ \Organization}
+\rfoot{\small\VERSION}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\include{devopsIntroduction}
+\include{devopsAWSDockerDeployment}
+\include{devopsClassBasedWebsite}
+\include{devopsLatexDocker}
+\include{devopsProjectProposal}
+
+\nocite{*}
+\bibliographystyle{IEEEtran}
+\bibliography{devopsReferences}
+
+\appendix
+\include{devopsDocumentGuide}
+\include{devopsAIAgentGuide}
+\include{devopsAIPromptLog}
+
+\glsaddall
+\printglossaries
+\cleardoublepage
+\phantomsection
+\ChapterLabel{Index}
+\addcontentsline{toc}{chapter}{Index}
+\markboth{Index}{Index}
+\printindex
+\end{document}

@@ -1,0 +1,120 @@
+\chapter{Class-Based Two-Button Website}
+\ChapterLabel{ClassBasedWebsite}
+\index{JavaScript!classes}
+\index{UML}
+
+\section{Overview}
+The original website attached two anonymous arrow functions directly to the
+Blue and Red buttons. Each function repeated the same logic with a different
+color. This chapter replaces those inline handlers with three ES2015 classes in
+\texttt{public/js/colorButtons.js}, loaded by the page as a JavaScript module.
+The visible behavior is unchanged.
+
+\section{Original Design}
+\begin{minted}{html}
+<script>
+  document.getElementById("blueBtn").addEventListener("click", () => {
+    document.body.style.backgroundColor = "blue";
+  });
+
+  document.getElementById("redBtn").addEventListener("click", () => {
+    document.body.style.backgroundColor = "red";
+  });
+</script>
+\end{minted}
+
+\section{Class-Based Design}
+\begin{itemize}
+\item \textbf{\texttt{BackgroundChanger}} owns the element whose background
+changes (the page body) and is the only class that touches its style.
+\item \textbf{\texttt{ColorButton}} binds one button element to one color and
+delegates the change to a \texttt{BackgroundChanger}.
+\item \textbf{\texttt{ColorButtonApp}} holds the button configuration,
+creates
+one shared \texttt{BackgroundChanger} and one \texttt{ColorButton} per entry,
+and binds them. Adding a third color is a one-line change to
+\texttt{BUTTONS}.
+\end{itemize}
+
+\subsection{UML Class Diagram}
+Figure~\ref{Figure:ColorButtonsUML} shows the updated design. A filled diamond
+marks composition: the application creates and owns its buttons and its
+background changer. The plain arrow is a directed association: each button
+holds a reference to the shared changer. An underlined attribute is static;
+\texttt{-} marks a field that is private by convention and \texttt{+} a public
+method. The same diagram is kept as Mermaid
+source in \texttt{docs/uml-class-diagram.md}, which GitHub renders directly.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  umlclass/.style={rectangle split, rectangle split parts=3, draw, thick,
+    fill=devopsLightBlue, text width=5.9cm, font=\ttfamily\scriptsize},
+  comp/.style={{Diamond[length=3.2mm,width=2.2mm]}-, thick},
+  lbl/.style={font=\footnotesize}]
+\node[umlclass, anchor=north] (app) at (0,0) {\hfill\textbf{ColorButtonApp}\hfill\null
+  \nodepart{second}
+  \underline{BUTTONS : Array<\{id, color\}>}\\
+  - doc : Document\\
+  - changer : BackgroundChanger\\
+  - buttons : ColorButton[]
+  \nodepart{third}
+  + constructor(doc : Document)\\
+  + init() : ColorButtonApp};
+\node[umlclass, anchor=north] (btn) at (-3.9,-5.0) {\hfill\textbf{ColorButton}\hfill\null
+  \nodepart{second}
+  - element : HTMLElement\\
+  - color : string\\
+  - changer : BackgroundChanger
+  \nodepart{third}
+  + constructor(element, color, changer)\\
+  + bind() : void\\
+  + handleClick() : void};
+\node[umlclass, anchor=north] (chg) at (3.9,-5.0) {\hfill\textbf{BackgroundChanger}\hfill\null
+  \nodepart{second}
+  - target : HTMLElement
+  \nodepart{third}
+  + constructor(target : HTMLElement)\\
+  + setColor(color : string) : void\\
+  + getColor() : string};
+\draw[comp] ([xshift=-1.6cm]app.south) -- (btn.north)
+  node[lbl, pos=0.85, left] {2} node[lbl, midway, left] {buttons};
+\draw[comp] ([xshift=1.6cm]app.south) -- (chg.north)
+  node[lbl, pos=0.85, right] {1} node[lbl, midway, right] {changer};
+\draw[-{Stealth[length=2.5mm]}, thick] ([yshift=-4mm]btn.text split east) -- ([yshift=-4mm]btn.text split east -| chg.west)
+  node[lbl, midway, above] {uses} node[lbl, pos=0.85, below] {1};
+\end{tikzpicture}
+\caption{UML class diagram of the class-based two-button website.}
+\label{Figure:ColorButtonsUML}
+\end{figure}
+
+\section{Implementation}
+\noindent\textbf{public/js/colorButtons.js} --- the three classes, exported as
+an ES module so the browser and the unit tests load the same file:
+\inputminted{javascript}{../website/color-buttons-app/public/js/colorButtons.js}
+
+\medskip\noindent\textbf{public/index.html} --- the page now loads the module
+and creates the application in two lines:
+\inputminted{html}{../website/color-buttons-app/public/index.html}
+
+\medskip\noindent\textbf{server.js} --- unchanged except for a
+\texttt{/health} endpoint used by the deployment checks in
+\ChapterRef{AWSDockerDeployment}:
+\inputminted{javascript}{../website/color-buttons-app/server.js}
+
+\medskip\noindent\textbf{Dockerfile} --- unchanged from the local Docker
+exercise. A new \texttt{.dockerignore} keeps \texttt{node\_modules} and the
+tests out of the image.
+\inputminted{docker}{../website/color-buttons-app/Dockerfile}
+
+\section{Testing}
+Because the classes receive the document and elements through their
+constructors rather than reading globals, they can be tested in Node.js with
+small stand-in objects, without a browser. The tests use Node's built-in
+\texttt{node:test} runner, so no extra dependency is needed.
+\inputminted{javascript}{../website/color-buttons-app/test/colorButtons.test.js}
+Result of \texttt{npm test}:
+\inputminted{console}{../evidence/website-unit-tests.txt}
+The module was also loaded in a real browser from the running container, where
+clicking \emph{Red} then \emph{Blue} set the body background to
+\texttt{red} and then \texttt{blue}.

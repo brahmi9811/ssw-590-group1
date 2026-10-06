@@ -1,0 +1,44 @@
+\chapter{Introduction}
+\ChapterLabel{Introduction}
+\index{introduction}
+\index{DevOps}
+
+\section{Purpose}
+This is the shared Group~1 document for SSW~590. It collects the group's
+deployment work, supporting containers, and project proposal in one place, and
+it is maintained in the group repository alongside the code it describes.
+
+\section{Team and Repository}
+\begin{tabularx}{\linewidth}{L{3.6cm}Y}
+\toprule \textbf{Item} & \textbf{Value}\\ \midrule
+Group & Group 1\\
+Members & Brahmi Dalvi (BD), Sakshi Deshpande (SD)\\
+Repository & \url{\RepoURL}\\
+Cloud provider & \gls{aws} (approved substitute for Digital Ocean)\\
+Due date & \DueDate\\ \bottomrule
+\end{tabularx}
+
+\section{Repository Layout}
+\begin{minted}{text}
+ssw-590-group1/
+  website/color-buttons-app/   two-button site (class-based JS) + Dockerfile
+  deploy/aws/                  EC2 launch, user-data, redeploy, teardown scripts
+  latex-docker/                TeX Live container that compiles LaTeX
+  evidence/                    captured command output from real runs
+  docs/                        UML source (Mermaid) and other notes
+  report/                      this LaTeX document
+\end{minted}
+
+\section{Chapter Map}
+\begin{tabularx}{\linewidth}{L{5.2cm}Y}
+\toprule \textbf{Assignment item} & \textbf{Where it is answered}\\ \midrule
+1--2. Cloud Docker deployment & \ChapterRef{AWSDockerDeployment}\\
+3. Class-based JavaScript and UML & \ChapterRef{ClassBasedWebsite}\\
+4. LaTeX Docker & \ChapterRef{LatexDocker}\\
+5--6. Project proposal and rubric & \ChapterRef{ProjectProposal}\\
+7. Document history & Document History (front matter)\\ \bottomrule
+\end{tabularx}
+
+\section{Use of AI}
+AI assistance is recorded in \ChapterRef{AIPromptLog}. Members reviewed every
+command and result before including it.

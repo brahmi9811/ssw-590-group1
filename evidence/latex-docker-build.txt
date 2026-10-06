@@ -1,0 +1,13 @@
+$ docker build -t latex-builder .
+#1 [internal] load build definition from Dockerfile
+#1 DONE 0.0s
+#2 [internal] load metadata for docker.io/texlive/texlive:latest
+#2 DONE 0.0s
+#3 [internal] load .dockerignore
+#3 DONE 0.0s
+#4 [1/2] FROM docker.io/texlive/texlive:latest@sha256:7334b00bf8e7a0996f7ddd65482363aaf7711d372e569f3ea78509619e3083ff
+#4 DONE 0.0s
+#5 [2/2] WORKDIR /workdir
+#5 DONE 0.0s
+#6 naming to docker.io/library/latex-builder:latest done
+#6 DONE 0.1s

@@ -1,0 +1,27 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{minted}
+
+\title{Hello from a TeX Live Container}
+\author{SSW 590 Group 1}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+This document was compiled inside a Docker container built from the
+\texttt{texlive/texlive} image, the same \TeX{} Live distribution that
+Overleaf uses to compile projects.
+
+\section{Some Math}
+\begin{equation}
+  e^{i\pi} + 1 = 0
+\end{equation}
+
+\section{Some Code}
+\begin{minted}{bash}
+docker run --rm -v "$PWD":/workdir latex-builder hello.tex
+\end{minted}
+
+\end{document}

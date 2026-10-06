@@ -1,0 +1,14 @@
+$ npm test
+> color-buttons-app@2.0.0 test
+> node --test test/*.test.js
+✔ BackgroundChanger sets and reports the color (0.602292ms)
+✔ ColorButton applies its color when clicked (0.068375ms)
+✔ ColorButtonApp wires the Blue and Red buttons (0.081584ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71.673458

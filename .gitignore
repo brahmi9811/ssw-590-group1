@@ -1,0 +1,34 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# LaTeX build products (keep report/devopsAssignment.pdf)
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.out
+*.toc
+*.lof
+*.lot
+*.bbl
+*.blg
+*.idx
+*.ind
+*.ilg
+*.glo
+*.gls
+*.glg
+*.acn
+*.acr
+*.alg
+*.ist
+*.synctex.gz
+_minted*/
+
+# Secrets and keys — never commit
+.env
+*.pem
+.aws/
+
+.DS_Store

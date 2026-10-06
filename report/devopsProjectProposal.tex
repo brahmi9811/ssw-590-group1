@@ -1,0 +1,254 @@
+\chapter{Project Proposal}
+\ChapterLabel{ProjectProposal}
+\index{project proposal}
+\index{DevSecOps}
+\index{SWOT}
+
+\section{Title}
+\begin{center}
+\large\textbf{TwinTrack: A Side-by-Side DevSecOps Comparison of GitHub Actions
+and Jenkins Delivering a Containerized Task Tracker to AWS}
+\end{center}
+
+\section{Project Description}
+Group~1 will build one small but complete web application, \emph{TwinTrack},
+a team task tracker, and deliver it to \gls{aws} through \textbf{two parallel
+DevSecOps pipelines} built with comparable tools: \textbf{GitHub Actions}
+(hosted, YAML-defined) and \textbf{Jenkins} (self-hosted, Groovy
+\texttt{Jenkinsfile}). Both pipelines start from the same commit in the same
+GitHub repository, run the same tests and security scans, build the same Docker
+image, and deploy it to identical AWS environments (``blue'' for GitHub Actions,
+``green'' for Jenkins). Because the application, tests, and target are held
+constant, differences in speed, reliability, security coverage, cost, and
+operator effort can be attributed to the pipeline tool itself.
+
+An operations dashboard will collect metrics from both pipelines and both
+running environments, and the group will finish with a modified \gls{swot}
+chart for each tool and a recommendation for which tool suits which kind of
+team.
+
+\subsection{The Application}
+TwinTrack is deliberately simple so the effort goes into DevOps rather than
+features:
+\begin{itemize}
+\item A REST API (Node.js and Express, the stack from the two-button site) to
+create, list, update, and close tasks, with a \texttt{/health} endpoint and a
+Prometheus \texttt{/metrics} endpoint.
+\item A small browser front end written with class-based JavaScript, following
+the design in \ChapterRef{ClassBasedWebsite}.
+\item A PostgreSQL database for tasks and users.
+\end{itemize}
+
+\subsection{Sample Tasks}
+\begin{tabularx}{\linewidth}{L{1.0cm}YL{3.0cm}}
+\caption{Sample Project Tasks\label{Table:ProposalTasks}}\\
+\toprule \textbf{ID} & \textbf{Task} & \textbf{Area}\\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Task} & \textbf{Area}\\ \midrule
+\endhead \bottomrule \endlastfoot
+T1 & Set up the GitHub repository, branch protection on \texttt{main}, pull-request template, and GitHub Projects Kanban board & Source control\\
+T2 & Build the TwinTrack API and front end with Docker Compose for local development (app + PostgreSQL) & Development\\
+T3 & Write unit, API, and end-to-end tests; enforce a coverage threshold & Testing\\
+T4 & Provision two identical AWS environments (blue and green) with Terraform & Infrastructure as code\\
+T5 & Write the GitHub Actions workflow: lint, test, scan, build, push to Amazon ECR, deploy to blue & CI/CD tool 1\\
+T6 & Run Jenkins in Docker on EC2 and write an equivalent \texttt{Jenkinsfile} that deploys to green & CI/CD tool 2\\
+T7 & Add security gates to both pipelines: secret scanning, dependency audit, container image scanning, and a DAST baseline scan & Security\\
+T8 & Build the operations dashboard in Grafana (pipeline and runtime metrics) and compare with Amazon CloudWatch & Monitoring\\
+T9 & Run the planted-fault experiment (Section~\ref{Section:Unique}) against both pipelines & Experiment\\
+T10 & Write SWOT charts, comparison tables, and the final report; build the report with the LaTeX container from \ChapterRef{LatexDocker} & Documentation\\
+\end{tabularx}
+
+\section{DevSecOps Tools}
+At this stage the list is intentionally broad; tools may be swapped as the
+group learns more. Pairs marked ``vs.'' are candidates for head-to-head
+comparison.
+
+\begin{tabularx}{\linewidth}{L{2.8cm}YL{3.0cm}}
+\caption{Planned DevSecOps Tool Chain\label{Table:ProposalTools}}\\
+\toprule \textbf{Category} & \textbf{Tool(s)} & \textbf{Role}\\ \midrule
+\endfirsthead
+\toprule \textbf{Category} & \textbf{Tool(s)} & \textbf{Role}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Source control & Git, GitHub (branch protection, pull requests, CODEOWNERS) & Single source of truth for both pipelines\\
+Planning & GitHub Projects Kanban board & Track tasks T1--T10\\
+CI/CD (\textbf{primary comparison}) & \textbf{GitHub Actions vs.\ Jenkins} & Build, test, scan, deploy\\
+Containers & Docker, Docker Compose & Package and run app and database\\
+Image registry & Amazon ECR & Store versioned images\\
+Infrastructure as code & Terraform & Create identical blue and green environments\\
+Hosting & AWS EC2 (Docker on Amazon Linux 2023); possible stretch to ECS Fargate & Run the application\\
+Database & PostgreSQL (container locally, Amazon RDS in AWS) & Persist tasks\\
+Unit and API testing & Node \texttt{node:test} or Jest, Supertest & Fast feedback on every commit\\
+End-to-end testing & Playwright & Test the UI in a real browser\\
+Load testing & k6 & Measure latency under load\\
+Secret scanning & Gitleaks & Block committed secrets\\
+Dependency scanning & \texttt{npm audit}, GitHub Dependabot & Find vulnerable packages\\
+Image scanning & Trivy & Find OS and library CVEs in images\\
+Static analysis & ESLint, GitHub CodeQL & Code quality and security bugs\\
+Dynamic analysis & OWASP ZAP baseline scan & Test the running site\\
+Secrets management & GitHub Encrypted Secrets vs.\ Jenkins Credentials; AWS IAM roles & Keep keys out of code\\
+Monitoring (\textbf{secondary comparison}) & Prometheus + Grafana vs.\ Amazon CloudWatch & Runtime and pipeline metrics\\
+Documentation & LaTeX in Docker (\ChapterRef{LatexDocker}) & Reproducible report builds\\
+\end{tabularx}
+
+\section{Pipeline Design}
+Both pipelines implement the same stages so they can be compared stage by stage:
+\begin{minted}{text}
+commit/PR -> checkout -> secret scan (Gitleaks) -> install -> lint (ESLint)
+  -> unit + API tests -> dependency audit -> docker build -> image scan (Trivy)
+  -> push to ECR -> deploy to blue|green -> smoke test (/health)
+  -> DAST (ZAP baseline) -> publish metrics
+\end{minted}
+A pipeline fails if any security gate reports a high or critical finding.
+Pipeline timing, result, and finding counts are exported to the dashboard.
+
+\section{Environment}
+\begin{itemize}
+\item \textbf{Cloud:} AWS, region \texttt{us-east-1}, using the account,
+security model, and scripts established in \ChapterRef{AWSDockerDeployment}.
+\item \textbf{Blue environment:} EC2 instance deployed by GitHub Actions
+through an OpenID Connect (OIDC) role, so no long-lived AWS keys are stored in
+GitHub.
+\item \textbf{Green environment:} EC2 instance deployed by Jenkins, which runs
+in its own Docker container on a separate EC2 instance with an IAM instance
+role.
+\item \textbf{Local:} Docker Desktop and Docker Compose on members' laptops.
+\item \textbf{Budget:} Free Tier instances where possible, an AWS Budget alert,
+and Terraform \texttt{destroy} after each work session.
+\end{itemize}
+
+\section{Operations Dashboard}
+\index{dashboard}
+A Grafana dashboard will place both pipelines and both environments side by
+side. Planned panels:
+\begin{itemize}
+\item \textbf{\gls{dora} metrics per tool:} deployment frequency, lead time for
+changes, change failure rate, and time to restore service.
+\item \textbf{Pipeline health:} median and 95th-percentile duration per stage,
+queue time, and success rate.
+\item \textbf{Security:} open findings by scanner and severity, and time from
+introducing a planted fault to the pipeline blocking it.
+\item \textbf{Runtime:} request rate, error rate, and latency from the app's
+\texttt{/metrics} endpoint; CPU and memory of each instance.
+\item \textbf{Cost:} estimated cost per deployment and monthly cost per
+environment (from AWS Cost Explorer).
+\end{itemize}
+The same signals will be reproduced in a CloudWatch dashboard to compare the
+managed AWS option with the self-hosted Prometheus and Grafana option.
+
+\section{Comparison Criteria}
+\begin{tabularx}{\linewidth}{L{2.6cm}Y}
+\caption{How the Two CI/CD Tools Will Be Compared\label{Table:ComparisonCriteria}}\\
+\toprule \textbf{Dimension} & \textbf{Measure}\\ \midrule
+\endfirsthead
+\toprule \textbf{Dimension} & \textbf{Measure}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Security & Planted faults caught; secret-handling model; attack surface of the CI server; supply-chain risk of plugins or marketplace actions\\
+Development & Lines of pipeline code; time to write and debug the pipeline; local testability\\
+Hosting & Who runs the CI server; setup time; upgrade effort\\
+Monitoring & Metrics available out of the box; effort to export to Grafana\\
+Testing & Ease of parallel test jobs and test-report publishing\\
+Operations & Pipeline duration; failure and recovery time; maintenance hours per week\\
+Cost & AWS and CI minutes per deployment; cost at the group's scale and projected at a larger team's scale\\
+\end{tabularx}
+
+\section{Preliminary Modified SWOT Charts}
+The ``modified'' SWOT used here keeps the four classic quadrants but scores
+each one from the perspective of a small DevSecOps team and adds a final
+\emph{Evidence to collect} row, so every claim is tested during the project
+rather than assumed. These are initial hypotheses and will be revised with
+measured results in the final report. The four charts are
+Tables~\ref{Table:SWOT-GitHub Actions}--\ref{Table:SWOT-Amazon CloudWatch}.
+
+\newcommand{\SWOTChart}[6]{%
+\begin{table}[htbp]
+\centering
+\caption{Preliminary Modified SWOT: #1}\label{Table:SWOT-#1}
+\begin{tabular}{|p{0.455\linewidth}|p{0.455\linewidth}|}
+\hline
+\textbf{Strengths}\par #2 & \textbf{Weaknesses}\par #3\\ \hline
+\textbf{Opportunities}\par #4 & \textbf{Threats}\par #5\\ \hline
+\multicolumn{2}{|p{\dimexpr0.91\linewidth+2\tabcolsep+\arrayrulewidth\relax}|}{\textbf{Evidence to collect:} #6}\\ \hline
+\end{tabular}
+\end{table}}
+
+\SWOTChart{GitHub Actions}
+{No server to run; tight GitHub integration; large marketplace; OIDC to AWS without stored keys.}
+{Vendor lock-in to GitHub; limited free minutes for private repos; harder to debug locally.}
+{Reusable workflows across courses; CodeQL and Dependabot built in; matrix builds.}
+{Compromised third-party actions (supply chain); outages outside the team's control.}
+{Pipeline duration, minutes used, planted-fault detection time, lines of YAML.}
+
+\SWOTChart{Jenkins}
+{Full control and no usage limits; mature plugin ecosystem; runs anywhere, including air-gapped networks.}
+{Team must host, patch, and secure the server; plugin version conflicts; Groovy learning curve.}
+{Deep customization; shared libraries; on-premises compliance scenarios.}
+{Unpatched server or plugins as an attack surface; credential leakage from misconfigured jobs.}
+{Setup and maintenance hours, server cost, CVEs in installed plugins, pipeline duration.}
+
+\SWOTChart{Prometheus and Grafana}
+{Open source; powerful queries; one dashboard for both pipelines and both environments.}
+{Another service to host and secure; storage retention must be managed.}
+{Custom DORA panels; alerting to Slack or e-mail.}
+{Dashboard exposed publicly without authentication; metric gaps if exporters fail.}
+{Setup time, resource use, number of signals shown without custom code.}
+
+\SWOTChart{Amazon CloudWatch}
+{Managed; EC2 metrics with no setup; integrated alarms.}
+{Per-metric and per-dashboard cost; weak view of CI pipeline data; AWS-only.}
+{Logs Insights for incident analysis; native alarms for auto-recovery.}
+{Costs grow with custom metrics; lock-in to AWS.}
+{Monthly cost, setup time, ability to show pipeline metrics.}
+
+\section{What Makes This Project Unique}
+\label{Section:Unique}
+\begin{enumerate}
+\item \textbf{Controlled ``twin'' experiment.} The same commit, tests, image,
+and AWS target run through both tools at the same time, so the comparison is
+measured rather than anecdotal.
+\item \textbf{Planted-fault security drill.} On a test branch, the group will
+deliberately introduce known problems one at a time: a fake (non-functional)
+AWS key in source, a dependency with a published CVE, a base image with known
+vulnerabilities, and a missing security header. The dashboard records which
+pipeline catches each fault, at which stage, and how long it takes. This turns
+``which tool is more secure?'' into a scored result.
+\item \textbf{Cost per deployment.} Each successful deployment is tagged with
+its CI time and AWS resources, giving a cost-per-deploy figure for each tool.
+\item \textbf{Docs as code.} The final report is built from the repository by
+the LaTeX container, so the report itself can be a pipeline artifact.
+\end{enumerate}
+
+\section{Mapping to the Project Rubric}
+\begin{tabularx}{\linewidth}{L{5.0cm}Y}
+\caption{Proposal Coverage of the Project Expectations\label{Table:RubricMapping}}\\
+\toprule \textbf{Expectation} & \textbf{How TwinTrack addresses it}\\ \midrule
+\endfirsthead
+\toprule \textbf{Expectation} & \textbf{How TwinTrack addresses it}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Selected tools and environment & Table~\ref{Table:ProposalTools}; AWS plus local Docker\\
+Sample working application & TwinTrack API, front end, and PostgreSQL database\\
+Specific DevOps tools to build it & Git/GitHub, Docker, Terraform, Trivy, Gitleaks, ZAP, Playwright, k6\\
+Two comparable tools & GitHub Actions vs.\ Jenkins (primary); Prometheus/Grafana vs.\ CloudWatch (secondary)\\
+Comparison across security, development, hosting, monitoring, testing, operations & Table~\ref{Table:ComparisonCriteria}\\
+Environment (AWS, Digital Ocean, or homebrew) & AWS EC2, ECR, RDS; Docker locally\\
+Operational dashboard & Grafana dashboard with DORA, pipeline, security, runtime, and cost panels\\
+Modified SWOT chart for each tool & Preliminary charts above; final charts with measured evidence\\
+Something unique & Twin experiment, planted-fault drill, cost per deploy, docs as code\\
+\end{tabularx}
+
+\section{Team Roles and Timeline}
+\begin{tabularx}{\linewidth}{L{2.6cm}Y}
+\toprule \textbf{Member} & \textbf{Primary responsibility}\\ \midrule
+Brahmi Dalvi & Application, tests, GitHub Actions pipeline, Grafana dashboard\\
+Sakshi Deshpande & Terraform/AWS environments, Jenkins pipeline, security gates, report build\\
+Both & Planted-fault experiment, SWOT analysis, final report and presentation\\ \bottomrule
+\end{tabularx}
+
+\medskip
+\begin{tabularx}{\linewidth}{L{2.6cm}Y}
+\toprule \textbf{Weeks} & \textbf{Milestone}\\ \midrule
+1--2 & Repository, Kanban board, app skeleton, Docker Compose (T1--T2)\\
+3--4 & Tests and Terraform environments (T3--T4)\\
+5--6 & GitHub Actions and Jenkins pipelines with security gates (T5--T7)\\
+7 & Dashboard and planted-fault experiment (T8--T9)\\
+8 & Final SWOT charts, report, and presentation (T10)\\ \bottomrule
+\end{tabularx}
