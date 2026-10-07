@@ -19,9 +19,49 @@ with unit tests, the AWS deployment scripts under \texttt{deploy/aws}, the
 the updated document history. The assistant ran the unit tests, built and ran
 the website image locally, checked the buttons in a browser, and built the
 LaTeX image and compiled \texttt{hello.tex}; that output is stored in
-\texttt{evidence/}. The assistant did \emph{not} create AWS resources: it had no
-AWS account access, and launching paid infrastructure is a decision for the
-group. Human review and corrections: \textit{[to be completed by the group]};
-Unresolved assumptions: the public EC2 address (\texttt{\string\WebsiteURL}),
-the AWS evidence files, the due date, and the proposed split of team roles must
-be confirmed or filled in by the group.
+\texttt{evidence/}. In this session the assistant did \emph{not} create AWS
+resources: it had no AWS account access, and launching paid infrastructure was
+deferred to a session where a group member could configure the AWS CLI (see
+the next record). Human review and corrections: Brahmi Dalvi and Sakshi
+Deshpande reviewed the drafted chapters together; the AWS-for-Digital-Ocean
+substitution (disclosed in \ChapterRef{AWSDockerDeployment}) and the
+TwinTrack project proposal's scope (\ChapterRef{ProjectProposal}) were
+discussed and both confirmed as-is, with the group's intent to pace the
+proposal's ambitious scope across the semester rather than trim it now.
+Unresolved assumptions at the time of this record -- the public EC2 address,
+the AWS evidence files, the due date, and the team-role split -- were all
+resolved in the next record.
+
+\section{Record: AWS Deployment Execution and Report Fixes}
+Date: October 6--7, 2026; Tool and model: Claude Code (Claude Sonnet 5);
+Task: execute the AWS EC2 deployment that the previous record only scripted,
+using Brahmi Dalvi's AWS account. Inputs: the group repository at the state
+left by the previous record, live AWS CLI access configured by Brahmi Dalvi
+on her own machine, and her real-time command output and browser screenshots
+throughout. Output used: a running \texttt{t3.micro} EC2 instance, real
+command output saved to \texttt{evidence/aws-checks.txt}, and three real
+browser screenshots (\texttt{evidence/aws-website*.png}). The assistant
+\emph{did} create real AWS resources this session (an EC2 instance, a key
+pair, and security group rules) and real changes on the instance itself (an
+nginx TLS reverse proxy), each time after the group member's live
+authorization to proceed; the assistant never handled raw AWS access keys or
+the GitHub deploy key's private half. One class of action -- installing
+software and writing configuration over SSH on the EC2 instance -- was
+blocked by the assistant's own sandbox and was run by Brahmi Dalvi herself
+from commands the assistant supplied; the assistant verified the results
+afterward with read-only AWS CLI calls and \texttt{curl}. Along the way the
+assistant diagnosed and fixed three real problems documented in
+\ChapterRef{AWSDockerDeployment}: the bootstrap script's \texttt{git clone}
+failing against the group's private repository, a browser-only HTTPS/HSTS
+timeout that \texttt{curl} did not reproduce, and an \texttt{nginx} default
+server block silently claiming port~80. It also fixed two defects in the
+document build itself: a \texttt{tcolorbox}/\texttt{pgfkeys} error from an
+unbraced title containing a comma, and a blank page caused by an
+\texttt{\string\include}d file's trailing page break colliding with
+\texttt{\string\printglossaries}'s own chapter-start page break. Human
+review and corrections: Brahmi Dalvi reviewed every AWS CLI command and SSH
+session output in real time before the next step was taken, chose to keep
+the self-signed TLS certificate rather than pursue a trusted one, and
+confirmed each AWS resource (the EC2 instance, the opened ports) before it
+was created. Unresolved assumptions: none remaining for this chapter; the
+due date was confirmed as \DueDate.

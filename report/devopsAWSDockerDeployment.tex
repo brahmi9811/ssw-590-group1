@@ -5,14 +5,25 @@
 \index{Docker!cloud deployment}
 
 \section{Overview}
-The assignment asks for a Digital Ocean Droplet running Docker. With the
-instructor's guidance that AWS, Digital Ocean, or a home-built environment are
-all acceptable (see the project rubric), Group~1 deploys to \gls{aws} instead,
-because the semester project (\ChapterRef{ProjectProposal}) targets AWS and the
-same account, scripts, and security model can be reused. The cloud server is an
-\gls{ec2} instance, which plays the role of a Droplet. It runs the two-button
-website from \ChapterRef{ClassBasedWebsite} in a Docker container and serves it
-on port~80.
+\begin{devopsNote}[Deviation from the assignment, disclosed]
+This assignment's instructions ask for a \textbf{Digital Ocean Droplet}
+running Docker. Group~1 deployed to an \textbf{AWS EC2 instance} instead,
+performing the exact same role: one cloud virtual machine running Docker and
+serving the website. This substitution is a group choice, not something the
+assignment itself offered for this item; it is made because the semester
+project (\ChapterRef{ProjectProposal}) is built on AWS, and standing up the
+account, IAM users, budget alert, and security-group model here means that
+work is reused rather than duplicated on a second cloud provider the group
+would not otherwise use. Table~\ref{Table:DOtoAWS} maps every Digital Ocean
+concept the assignment describes onto its AWS equivalent, so the deployment
+can be read and graded as a direct substitute. If a literal Digital Ocean
+Droplet is required, the group will redeploy there using \texttt{doctl} in
+place of the AWS CLI; the Docker image and application are unchanged either
+way.
+\end{devopsNote}
+The cloud server is an \gls{ec2} instance, which plays the role of a Droplet.
+It runs the two-button website from \ChapterRef{ClassBasedWebsite} in a
+Docker container and serves it on port~80.
 
 \begin{devopsNote}[Live website]
 \textbf{Website:} \texttt{\WebsiteURL}\\
@@ -32,7 +43,7 @@ printed by \texttt{launch-ec2.sh} (Section~\ref{Section:AWSCLI}).
 \endhead \bottomrule \endlastfoot
 Droplet & \gls{ec2} instance & \texttt{t3.micro}, Free Tier eligible\\
 Droplet image (Ubuntu) & \gls{ami} & Amazon Linux 2023\\
-Cloud Firewall & \gls{securitygroup} & HTTP 80 open; SSH 22 from one IP\\
+Cloud Firewall & \gls{securitygroup} & HTTP 80 and HTTPS 443 open; SSH 22 from one IP\\
 SSH key & EC2 key pair & \texttt{ssw590-group1-key}\\
 Cloud-init user data & EC2 \gls{userdata} & \texttt{deploy/aws/ec2-user-data.sh}\\
 \texttt{doctl} CLI & AWS CLI v2 & \texttt{deploy/aws/launch-ec2.sh}\\
@@ -63,11 +74,34 @@ Droplet in the Digital Ocean web UI) and a scripted CLI path that the group uses
 for repeatable deployments. Both run the same \gls{userdata} script.
 
 \subsection{The Bootstrap Script}
+\label{Section:Bootstrap}
 At first boot the instance runs this script as root. It installs Docker and Git,
 clones the group repository, builds the image, and starts the container with a
 restart policy so the site comes back after a reboot. Port~80 on the host is
 mapped to port~3000 inside the container.
 \inputminted{bash}{../deploy/aws/ec2-user-data.sh}
+
+\subsection{Private Repository and the Deploy Key}
+\label{Section:DeployKey}
+\begin{devopsNote}[What actually happened on this deployment]
+The group repository is \textbf{private}. The bootstrap script in
+Section~\ref{Section:Bootstrap} clones it anonymously over HTTPS, which works
+only for a public repository. On the real run, cloud-init's \gls{userdata}
+step failed with \texttt{fatal: could not read Username for
+`https://github.com': No such device or address}, so the container never
+started automatically. This was diagnosed from the instance's console output
+(\texttt{aws ec2 get-console-output}) rather than guessed.
+
+The fix was to generate an \texttt{ed25519} key pair on the instance, add its
+\emph{public} half as a read-only \textbf{deploy key} on the GitHub repository
+(Settings $\rightarrow$ Deploy keys), and then run the same clone, build, and
+run commands shown in Section~\ref{Section:ManualCommands} by hand over SSH,
+using \texttt{git@github.com:\dots} instead of the HTTPS URL. The private key
+never leaves the instance; the deploy key is read-only and scoped to this one
+repository. A future improvement would be to bake the deploy key into the AMI
+or pass it through \gls{userdata} (e.g.\ via AWS Secrets Manager) so first
+boot succeeds without a manual step; that is not yet done.
+\end{devopsNote}
 
 \subsection{Path A: AWS Console}
 \begin{enumerate}
@@ -99,6 +133,7 @@ cd ssw-590-group1
 \end{minted}
 
 \subsection{Manual Commands on the Instance}
+\label{Section:ManualCommands}
 For transparency, these are the same steps the bootstrap script automates,
 typed by hand after connecting over SSH. They are also the steps to follow if
 the user data is omitted.
@@ -142,6 +177,48 @@ curl -sI http://<EC2-PUBLIC-DNS>/ | head -1   # HTTP/1.1 200 OK
 ssh -i ~/.ssh/ssw590-group1-key.pem ec2-user@<EC2-PUBLIC-DNS> \
   'docker ps --format "{{.Names}} {{.Status}} {{.Ports}}"'
 \end{minted}
+\inputminted{console}{../evidence/aws-checks.txt}
+
+\begin{devopsNote}[A browser-only problem, and why port 443 is also open]
+\texttt{curl} reached the site over plain HTTP the whole time, but a browser
+pointed at the same \texttt{http://} address showed
+\texttt{ERR\_CONNECTION\_TIMED\_OUT}. The cause was not the server: current
+Chrome and mobile browsers silently upgrade \texttt{http://} requests on
+\texttt{amazonaws.com} hosts to \texttt{https://} (an HSTS/HTTPS-first
+behavior that is hard-coded for many cloud domains and is not something a
+per-site browser setting can turn off), so the browser was actually trying
+port~443, which the security group did not yet open. The fix was to open
+port~443 (Table~\ref{Table:DOtoAWS}'s security group) and put
+\texttt{nginx} in front of the container as a TLS-terminating reverse proxy
+on port~443, forwarding to the existing app on port~80. The connection now
+succeeds for any browser on any network. Figure~\ref{Figure:AWSWebsite}
+shows the deployed site in a browser, including the two-button click
+behavior working against the live cloud instance.
+\end{devopsNote}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\includegraphics[width=0.7\linewidth]{../evidence/aws-website.png}}
+\caption{The deployed site at the public EC2 address, on load.}
+\label{Figure:AWSWebsite}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\includegraphics[width=0.7\linewidth]{../evidence/aws-website-blue.png}}
+\caption{The same deployment after clicking \emph{Blue}.}
+\label{Figure:AWSWebsiteBlue}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\includegraphics[width=0.7\linewidth]{../evidence/aws-website-red.png}}
+\caption{The same deployment after clicking \emph{Red}. Together with
+Figures~\ref{Figure:AWSWebsite} and~\ref{Figure:AWSWebsiteBlue}, this
+confirms the class-based code from \ChapterRef{ClassBasedWebsite} runs
+correctly on the real cloud deployment, not just locally.}
+\label{Figure:AWSWebsiteRed}
+\end{figure}
 
 \begin{tabularx}{\linewidth}{L{5.2cm}L{2.2cm}Y}
 \caption{Deployment Checklist\label{Table:AWSChecklist}}\\
@@ -152,9 +229,9 @@ ssh -i ~/.ssh/ssw590-group1-key.pem ec2-user@<EC2-PUBLIC-DNS> \
 Image builds and runs locally & \StatusPass & \texttt{evidence/local-build-run.txt}\\
 \texttt{/health} and JS module served & \StatusPass & \texttt{evidence/local-checks.txt}\\
 Buttons work in a browser & \StatusPass & Manual browser check (red, then blue)\\
-EC2 instance launched & \StatusPending & Instance ID from \texttt{launch-ec2.sh}\\
-Public URL returns HTTP 200 & \StatusPending & \texttt{evidence/aws-checks.txt}\\
-Screenshot of public site & \StatusPending & \texttt{evidence/aws-website.png}\\
+EC2 instance launched & \StatusPass & \texttt{i-00ee7edd4a5352f05}, public DNS \texttt{ec2-54-80-252-134.compute-1.amazonaws.com}\\
+Public URL returns HTTP 200 & \StatusPass & \texttt{evidence/aws-checks.txt}\\
+Screenshot of public site & \StatusPass & \texttt{evidence/aws-website.png} (Figure~\ref{Figure:AWSWebsite})\\
 \end{tabularx}
 
 \section{Updating the Deployment}
@@ -165,14 +242,22 @@ the container:
 
 \section{Security Notes}
 \begin{itemize}
-\item SSH is open only to the launching member's public IP; HTTP is the only
-port open to the internet. The container itself listens on 3000, which is not
-exposed.
+\item SSH is open only to the launching member's public IP. HTTP (80) and
+HTTPS (443) are open to the internet; HTTPS was added, after deployment, for
+the reason explained in Section~\ref{Section:ManualCommands}. The container
+itself listens on 3000, which is not exposed directly.
 \item No credentials are stored in the repository. The EC2 key pair's private
-key and the IAM access key remain on members' machines.
-\item The site is served over plain HTTP for this exercise. A production setup
-would add HTTPS through an Application Load Balancer with an ACM certificate or
-a reverse proxy such as Caddy with Let's Encrypt.
+key and the IAM access key remain on members' machines. The repository itself
+is private; the EC2 instance's own access to it is a read-only GitHub deploy
+key (Section~\ref{Section:DeployKey}) that was added specifically for this
+instance and grants no write access and no access to any other repository.
+\item The site is served over HTTPS using \texttt{nginx} with a
+\textbf{self-signed} certificate (Section~\ref{Section:DeployKey}
+devopsNote), so browsers show a certificate warning that a user must click
+through. A production setup would replace this with a certificate from a
+real certificate authority (e.g.\ Let's Encrypt via \texttt{certbot}, or an
+Application Load Balancer with an ACM certificate), which requires owning a
+domain name the group did not acquire for this exercise.
 \end{itemize}
 
 \section{Cost and Teardown}

@@ -1,0 +1,5 @@
+$ curl -s http://ec2-54-80-252-134.compute-1.amazonaws.com/health
+{"status":"ok","uptimeSeconds":5}
+
+$ curl -sI http://ec2-54-80-252-134.compute-1.amazonaws.com/ | head -1
+HTTP/1.1 200 OK

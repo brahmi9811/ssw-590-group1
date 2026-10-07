@@ -43,7 +43,7 @@
 % Replace these values for each assignment.
 \newcommand{\AssignmentTitle}{Cloud Docker Deployment and Project Proposal}
 \newcommand{\AssignmentNumber}{4}
-\newcommand{\DocumentVersion}{2.0}
+\newcommand{\DocumentVersion}{2.1}
 \newcommand{\DocumentStatus}{Group 1 Submission}
 \newcommand{\CourseNumber}{SSW 590}
 \newcommand{\CourseName}{DevOps}
@@ -51,11 +51,11 @@
 \newcommand{\StudentName}{Group 1: Brahmi Dalvi and Sakshi Deshpande}
 \newcommand{\Organization}{Stevens Institute of Technology}
 \newcommand{\DocumentDate}{October 6, 2026}
-\newcommand{\DueDate}{[due date from Canvas]}
+\newcommand{\DueDate}{October 6, 2026}
 \newcommand{\VERSION}{Version \DocumentVersion}
 % Public address of the AWS EC2 web server. Replace after running
 % deploy/aws/launch-ec2.sh (see the AWS Docker Deployment chapter).
-\newcommand{\WebsiteURL}{http://[EC2-PUBLIC-DNS]}
+\newcommand{\WebsiteURL}{https://ec2-54-80-252-134.compute-1.amazonaws.com}
 \newcommand{\RepoURL}{https://github.com/brahmi9811/ssw-590-group1}
 
 \hypersetup{
@@ -88,7 +88,7 @@
 \newcommand{\StatusFail}{\textbf{\footnotesize\textcolor{devopsRed}{FAIL}}}
 
 \newtcolorbox{devopsNote}[1][]{
-  colback=devopsLightBlue, colframe=devopsBlue, boxrule=0.6pt, arc=1mm, title=#1
+  colback=devopsLightBlue, colframe=devopsBlue, boxrule=0.6pt, arc=1mm, title={#1}
 }
 
 \lstset{
@@ -134,7 +134,7 @@
 \appendix
 \include{devopsDocumentGuide}
 \include{devopsAIAgentGuide}
-\include{devopsAIPromptLog}
+\input{devopsAIPromptLog}
 
 \glsaddall
 \printglossaries
