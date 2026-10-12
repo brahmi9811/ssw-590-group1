@@ -4,14 +4,14 @@ Read `README.md` first (decisions, gates, working agreement, rules). This file i
 Course manual `dosManual-V1.18.pdf` Chapters 1–2 is the source of truth; if a step here conflicts with it, the manual wins.
 
 ## What BD owns (and ONLY this)
-- `manual/devopsGitea.tex` regions: **`giteaDomainDns`, `giteaDeployment`, `giteaHttps`, `giteaFirewall`, `giteaManualQuality`**, plus the chapter intro, the status table, and the provider note at the top.
+- `manual/devopsGitea.tex` regions: **`giteaDomainDns`, `giteaDeployment`, `giteaHttps`, `giteaFirewall`**, plus the chapter intro, the status table, and the provider note at the top.
 - `gitea/` (docker-compose.yml, Caddyfile, .env.example, README.md).
 - `manual/devopsHostsPasswords.tex`, `devopsITManual.tex`, `prologue.tex`, `abstract.tex`, `devopsIntroduction.tex`, template appendices.
 - All cloud/DNS/firewall/domain actions, the instructor email, the final PDF build and LMS submission.
 - Append-only (own lines only): history, prompt log, glossary, bibliography.
 
 ## What BD must NOT touch (Sakshi's)
-- Regions **`giteaDatabase`, `giteaWorkflow`, `giteaArchitecture`, `giteaExtraCredit`** in `devopsGitea.tex`. Do not edit, reformat, or "tidy" them.
+- Regions **`giteaDatabase`, `giteaWorkflow`, `giteaArchitecture`, `giteaManualQuality`** in `devopsGitea.tex`. Do not edit, reformat, or "tidy" them.
 - Sakshi's history/prompt-log entries, her branches, and her local rehearsal work.
 - If something in her area is wrong, tell her; don't fix it.
 - `report/` — finished assignment, never modify.
@@ -66,17 +66,18 @@ Also plan the **external test** (must run from outside the VM, e.g. phone hotspo
 
 **B6. External exposure evidence (row 5).** Run the planned tests from outside; record test source, time, expected vs. actual for 443, 80, admin SSH, 3000, and the (absent) DB port; include the Compose port mappings (`docker compose ps`, `ss -tlnp` on the host) and a sanitized firewall screenshot/export. Document any correction you had to make. Explain why HTTPS isn't a firewall.
 
-**B7. Hand off to Sakshi (G3).** Send her: the URL; ask for her **public** SSH key and add it to the VM; give her a Gitea account/admin access via a password manager. Tell her which firewall source IPs are allowed (add hers). She does persistence, workflow, architecture, backup/restore from here.
+**B7. Hand off to Sakshi (G3).** Send her: the URL; ask for her **public** SSH key and add it to the VM; give her a Gitea account/admin access via a password manager. Tell her which firewall source IPs are allowed (add hers). She does persistence, workflow, architecture and the row 8 quality pass from here. The extra-credit backup/restore is unassigned and optional.
 
 **B8. Hosts and Passwords tables.** Add the VM (hostname, role, provider, address/DNS, exposed ports, owner, HTTPS URL, backup status) and hint rows for the Gitea admin, VM SSH key, domain registrar account, cloud account. Hints/vault references only, MFA status noted.
 
 ## Phase C — finish and submit
-1. **Row 8 (`giteaManualQuality`)**: bump `\DocumentVersion`, history entries (dated, initials, links to changed sections, **explicitly name Hosts and Passwords updates**), headings/captions/citations, glossary/index terms, failed tests and corrections, and a failed-build or troubleshooting note.
+1. **Row 8 is Sakshi's** (`giteaManualQuality`, version bump, quality review). Your part: keep Hosts/Passwords tables current and tell her when they change so she can name them in the history entry; add your own history entry and prompt-log record.
 2. Merge Sakshi's branch (resolve conflicts only in shared append-only files), remove every `\Todo`.
 3. Build per `README.md`; read the whole PDF; verify links and redaction; add your AI Prompt Log record.
 4. Upload **only** the PDF to the LMS.
 5. After grading (or when told): tear down cloud resources and record the shutdown in the manual (costs, renewals).
 
 ## BD done-list
+- (Row 8 manual quality is Sakshi's.)
 - [ ] Instructor decision recorded · [ ] domain claimed with costs/expiry · [ ] firewall applied and externally tested · [ ] DNS + independent lookup
 - [ ] Gitea + Caddy running, pinned · [ ] cert, redirect, renewal evidence · [ ] Sakshi has access · [ ] tables current · [ ] PDF submitted

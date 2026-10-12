@@ -22,7 +22,7 @@ Group 1: Brahmi Dalvi (BD), Sakshi Deshpande (SD). Course manual: `dosManual-V1.
 - Database: **SQLite, final.** No PostgreSQL work.
 - Reverse proxy / TLS: **Caddy** (suggested by the course manual) with Let's Encrypt. Proposed, BD to confirm when deploying.
 - **BD owns all deployment** (cloud VM, Gitea install, domain/DNS, HTTPS, firewall).
-- The 20-point **backup/restore extra credit is mandatory for us** (SD owns it).
+- The 20-point **backup/restore extra credit is optional and unassigned**. Nobody starts it unless Brahmi and Sakshi decide, later, that time is left. Do not plan around it.
 - **No cloud VM (AWS or DigitalOcean) is launched** until the instructor answers the AWS-instead-of-DigitalOcean email (gate G1).
 
 ## Ownership of the manual (all inside `manual/devopsGitea.tex`, one `Region:` block each)
@@ -38,14 +38,14 @@ The template requires one chapter per file, so both people edit the same file bu
 | 5 Firewall and external exposure | 15 | `giteaFirewall` | BD |
 | 6 Startup team workflow | 20 | `giteaWorkflow` | SD (BD acts as the 2nd member) |
 | 7 Architecture and operation | 5 | `giteaArchitecture` | SD |
-| 8 Manual quality and controls | 15 | `giteaManualQuality` | BD |
-| Extra credit: backup and restore | up to 20 | `giteaExtraCredit` | SD |
+| 8 Manual quality and controls | 15 | `giteaManualQuality` | SD |
+| Extra credit: backup and restore | up to 20 | `giteaExtraCredit` | **unassigned, decided later if time allows** |
 
-BD = 65 pts, SD = 35 pts + 20 extra credit.
+BD = 50 pts (rows 1, 2, 4, 5), SD = 50 pts (rows 3, 6, 7, 8). Extra credit has no owner.
 
 Other manual files: `devopsHostsPasswords.tex` → BD (SD may only add rows for SD's own accounts, hints only).
 `devopsDocumentHistory.tex`, `devopsAIPromptLog.tex`, `devopsGlossary.tex`, `devopsReferences.bib` → append-only, each person adds their own lines.
-Front matter, root file, `devopsIntroduction.tex`, template appendices → BD.
+Root file `devopsITManual.tex`, front matter, `devopsIntroduction.tex`, template appendices → BD, **except** SD may change only the `\DocumentVersion` and `\DocumentDate` lines in the root file (row 8 version bump).
 
 ## Gates and hand-offs
 
@@ -75,7 +75,7 @@ Front matter, root file, `devopsIntroduction.tex`, template appendices → BD.
 `cd assignment-4/manual && bash build.sh` (uses MiKTeX + Pygments for `minted`, `-shell-escape`). `build.sh` has BD's Windows paths hardcoded (`MIKTEX_BIN`, `MAKEGLOSSARIES_LUA`, `PYGMENTS_BIN`); SD should change them **locally only** and not commit that change. Check the final pass of the log for `undefined`, `multiply defined`, and `!` errors. Source of the Canvas template: `course-materials/`.
 
 ## Final checklist before submission (BD runs it)
-- [ ] All eight regions plus extra credit have real evidence, no `\Todo` left
+- [ ] All eight regions have real evidence (extra credit only if it was done), no `\Todo` left
 - [ ] Hosts and Passwords tables current (hints only); history entry says so
 - [ ] Version number bumped; history entries from both people present
 - [ ] AI Prompt Log has a record for each AI-assisted session (both people)

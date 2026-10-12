@@ -4,20 +4,21 @@ Read `README.md` first (decisions, gates, working agreement, rules). This file i
 Course manual `dosManual-V1.18.pdf` Chapters 1–2 is the source of truth (ask Brahmi/Canvas for the PDF); if a step here conflicts with it, the manual wins.
 
 ## What SD owns (and ONLY this)
-- `manual/devopsGitea.tex` regions: **`giteaDatabase`, `giteaWorkflow`, `giteaArchitecture`, `giteaExtraCredit`**. (Rows 3, 6, 7 = 35 pts, and the mandatory 20-pt backup/restore extra credit.)
+- `manual/devopsGitea.tex` regions: **`giteaDatabase`, `giteaWorkflow`, `giteaArchitecture`, `giteaManualQuality`**. (Rows 3, 6, 7, 8 = 50 pts.) The `giteaExtraCredit` region is **unassigned**; do not edit it or start that work unless Brahmi says time is available.
+- In `devopsITManual.tex` only the `\DocumentVersion` and `\DocumentDate` lines (row 8 version bump). Nothing else in that file.
 - Append-only, own lines only: `devopsDocumentHistory.tex`, `devopsAIPromptLog.tex`, `devopsGlossary.tex`, `devopsReferences.bib`.
 - `devopsHostsPasswords.tex`: only add rows for SD's own accounts, hints only. Everything else in it is Brahmi's.
 - Your own branch (`sd/...`) and your local rehearsal environment.
 
 ## What SD must NOT touch (Brahmi's)
-- Regions **`giteaDomainDns`, `giteaDeployment`, `giteaHttps`, `giteaFirewall`, `giteaManualQuality`**, the chapter intro, the status table, and the provider note.
+- Regions **`giteaDomainDns`, `giteaDeployment`, `giteaHttps`, `giteaFirewall`**, the chapter intro, the status table, and the provider note.
 - `gitea/` (compose, Caddyfile, .env.example): if you find a problem while rehearsing, **report it to Brahmi**; don't edit it. Local-only overrides go in untracked files and are never committed.
 - Cloud resources, firewall, DNS, domain, certificates. Do not create or change any, and do not ask Claude to.
 - `devopsITManual.tex`, `prologue.tex`, `abstract.tex`, `build.sh`, template appendices, and `report/`.
 - Final PDF assembly and LMS submission (Brahmi).
 
 ## Decisions that already bind you
-SQLite is **final** (no PostgreSQL). Backup/restore extra credit is **mandatory for us**. The VM does not exist until Brahmi gets the instructor's OK; she will give you access at gate G3. Don't wait idle: Phase A needs no cloud.
+SQLite is **final** (no PostgreSQL). Backup/restore extra credit is **optional and unassigned**; skip it unless Brahmi decides later that time remains. The VM does not exist until Brahmi gets the instructor's OK; she will give you access at gate G3. Don't wait idle: Phase A needs no cloud.
 
 ## Phase A — start now (local, no cloud, no cost)
 
@@ -36,7 +37,7 @@ Rehearsal output is **not** evidence for the PDF. Everything graded must be re-r
 4. Confirm the repo and issue are still there; record exact command, before/after, and a short "why it persisted" explanation (volume outside the disposable container layer).
 5. Draft the `giteaDatabase` text: SQLite chosen and why (two-person team, no extra container/credential, simple backup; limitation: weaker under high write concurrency), file path, volume, no DB port, no DB secret. Explicitly say the persistence test is **not** a backup/restore test. Leave real-VM evidence `\Todo`/`\StatusPending` until G3.
 
-**A3. Backup/restore plan (extra credit, up to 20 pts: 5 + 5 + 10).**
+**A3. (OPTIONAL, UNASSIGNED, DO NOT START unless told) Backup/restore plan (extra credit, up to 20 pts: 5 + 5 + 10).** Kept here only as a reference for if the team decides later to do it.
 Procedure to rehearse locally, then repeat on the VM. Verify every command against Gitea's backup/restore docs (`docs.gitea.com`, Administration → Backup and Restore) before trusting it:
 1. Create a test repo and issue **before** the backup (needed for the 10-pt proof).
 2. Backup with `gitea dump` run as the `git` user inside the container (it bundles repositories, attachments, config and the database, so one archive covers one recoverable state). Record method, coverage, location, timestamp (5 pts). Show a sanitized log or file listing and explain why DB and app data belong to the same state (5 pts).
@@ -52,8 +53,15 @@ Procedure to rehearse locally, then repeat on the VM. Verify every command again
 1. Send Brahmi your **public** SSH key only; she adds it. Ask her which firewall source IPs are approved and send her your current IP.
 2. **Row 3 on the VM:** repeat A2 against the real deployment; capture before/after, commands, identifiers, dates.
 3. **Row 6 with Brahmi (needs two people):** create the organization and product repository with README; two member accounts (you and Brahmi) with explicit roles; the ≥5 issues; for **two** issues create issue-linked branches (e.g. `issue-12-short-name`) and PRs that reference the issue (`Closes #12`); the **other** person reviews; merge; confirm the issue auto-closes. Capture links, dated screenshots, and commit IDs.
-4. **Extra credit on the VM:** repeat A3 there. Use the SSH tunnel for the restored instance.
 5. **Row 7:** finish the figure and text against the real setup.
+
+## Row 8 — Manual quality and controls (15 pts, region `giteaManualQuality`)
+Covers the whole manual, so do it last and after Brahmi's regions have real content. Required (course manual 2.6 item 8):
+1. **Increase the manual version** (`\DocumentVersion`, and `\DocumentDate`) in `devopsITManual.tex`; those two lines are the only edit you make to that file.
+2. **History:** a dated entry for initial setup (already exists as v0.1) and for this update, with links to the changed sections and evidence. Each entry must say whether the Hosts and Passwords tables changed. Ask Brahmi what changed in them; she owns the tables, you only verify they're current and hints-only (no secrets).
+3. Check headings, captions, citations, glossary/index entries for new terms (add your own lines), and that **all secrets are redacted** across the whole PDF, including Brahmi's screenshots.
+4. State any failed tests and corrective actions honestly (collect them from both of you).
+5. Before submission, scan the PDF for leftover `\Todo`, broken links, and unresolved references; report problems to the region's owner rather than editing their text.
 
 ## Phase C — finish
 1. Add your history entry (date, `SD`, change, links to your regions; **state whether Hosts/Passwords changed**, and send Brahmi any Passwords rows) and your AI Prompt Log record (what AI did, what you verified, what you corrected; no credentials).
@@ -61,5 +69,5 @@ Procedure to rehearse locally, then repeat on the VM. Verify every command again
 3. Push your branch and tell Brahmi it's ready; she merges and submits.
 
 ## SD done-list
-- [ ] Local rehearsal done (not used as evidence) · [ ] row 3 real evidence · [ ] row 6 workflow with Brahmi · [ ] row 7 diagram + runbook
-- [ ] Backup/restore done on the VM with 5+5+10 evidence · [ ] history + prompt-log entries · [ ] branch pushed, Brahmi notified
+- [ ] Row 8 quality pass · [ ] Local rehearsal done (not used as evidence) · [ ] row 3 real evidence · [ ] row 6 workflow with Brahmi · [ ] row 7 diagram + runbook
+[ ] history + prompt-log entries · [ ] branch pushed, Brahmi notified
