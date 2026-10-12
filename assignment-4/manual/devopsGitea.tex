@@ -1,0 +1,195 @@
+\chapter{Startup Foundation with Gitea}
+\ChapterLabel{Gitea}
+\index{Gitea}
+\index{startup DevSecOps process}
+
+\section{Overview and Status}
+This chapter answers the course manual's Chapter~2 \cite{DosManual}: the
+startup's Gitea work hub with a student domain, HTTPS, minimal public
+exposure, and persistent data. The eight numbered subsections below match the
+eight rubric rows (100 points) in the same order. Optional backup and restore
+evidence is a separate extra-credit subsection and is not part of the eight; the course treats it as optional, but Group~1 has committed to completing it.
+
+\begin{devopsNote}[Provider status]
+The assignment specifies a DigitalOcean Droplet. Group~1 has asked the
+instructor to allow AWS EC2 instead; \textbf{no reply has been received}, so no
+cloud resource has been created. Replace this note with the instructor's
+answer once received.\ \Todo{record the instructor's decision and date}
+\end{devopsNote}
+
+\begin{tabularx}{\linewidth}{L{5.2cm}L{1.4cm}L{1.6cm}Y}
+\caption{Rubric rows, owners, and status\label{Table:GiteaStatus}}\\
+\toprule \textbf{Subsection} & \textbf{Points} & \textbf{Owner} & \textbf{Status}\\ \midrule
+\endfirsthead
+\toprule \textbf{Subsection} & \textbf{Points} & \textbf{Owner} & \textbf{Status}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Student Pack domain and DNS & 10 & BD & \StatusPending\\
+Pinned Gitea deployment & 10 & BD & \StatusPending\\
+Database and persistence & 10 & SD & \StatusPending\\
+HTTPS and certificate renewal & 15 & BD & \StatusPending\\
+Firewall and external exposure & 15 & BD & \StatusPending\\
+Startup team workflow & 20 & SD & \StatusPending\\
+Architecture and operation & 5 & SD & \StatusPending\\
+Manual quality and controls & 15 & BD & \StatusPending\\
+Extra credit: backup and restore (committed) & up to 20 & SD & \StatusPending\\
+\end{tabularx}
+
+\section{Required Subsections}
+% ======================================================================
+% Region: giteaDomainDns (single owner; edit only your own region)
+\subsection{Student Pack domain and DNS (10 points)}
+\label{Section:giteaDomainDns}
+\index{Gitea!student pack domain and dns}
+\textbf{Owner:} BD. \StatusPending{} No evidence recorded yet.
+
+\textbf{Required content (from the course manual):}
+\begin{itemize}[nosep]
+  \item Domain offer, eligibility, first-year cost, renewal cost, expiration
+  \item Chosen Gitea hostname and clickable HTTPS link
+  \item DNS record screenshot and an independent lookup result (e.g. \texttt{nslookup} against 8.8.8.8, run by a teammate)
+  \item How a future team tracks renewal (calendar owner, date)
+\end{itemize}
+
+\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+
+% ======================================================================
+% Region: giteaDeployment (single owner; edit only your own region)
+\subsection{Pinned Gitea deployment (10 points)}
+\label{Section:giteaDeployment}
+\index{Gitea!pinned gitea deployment}
+\textbf{Owner:} BD. \StatusPending{} No evidence recorded yet.
+
+\textbf{Required content (from the course manual):}
+\begin{itemize}[nosep]
+  \item Droplet/EC2 and Gitea image versions, image source (Docker Hub \texttt{gitea/gitea})
+  \item Deployment commands, restart policy, persistent mounts, proxy connection
+  \item Redacted Compose excerpt and link to \texttt{gitea/docker-compose.yml} in the team repository
+  \item Steps another team could repeat
+\end{itemize}
+
+\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+
+% ======================================================================
+% Region: giteaDatabase (single owner; edit only your own region)
+\subsection{Database and persistence (10 points)}
+\label{Section:giteaDatabase}
+\index{Gitea!database and persistence}
+\textbf{Owner:} SD. \StatusPending{} No evidence recorded yet.
+
+\textbf{Required content (from the course manual):}
+\begin{itemize}[nosep]
+  \item \textbf{Decision (final, team, October 12, 2026): SQLite.} Record the settings, the database-file path under the persistent \texttt{/data} volume, the volume mount, and why no database secret exists. Justify: two-person team, no extra container or credential, simple consistent backup; note it may not suit higher concurrency
+  \item Repository and issue identifiers created before the test
+  \item Exact container-replacement command (volumes kept), before/after evidence, conclusion
+  \item Not applicable: PostgreSQL is not used, so there is no database port, healthcheck, or database secret to document
+\end{itemize}
+
+\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+
+% ======================================================================
+% Region: giteaHttps (single owner; edit only your own region)
+\subsection{HTTPS and certificate renewal (15 points)}
+\label{Section:giteaHttps}
+\index{Gitea!https and certificate renewal}
+\textbf{Owner:} BD. \StatusPending{} No evidence recorded yet.
+
+\textbf{Required content (from the course manual):}
+\begin{itemize}[nosep]
+  \item Comparison of two certificate options and the justification for the chosen one
+  \item Where TLS terminates; how private traffic reaches Gitea
+  \item Valid hostname certificate: issuer and expiry
+  \item HTTP-to-HTTPS redirect behaviour
+  \item Renewal automation plus a successful renewal test or dry run
+  \item Redacted proxy configuration and test output
+\end{itemize}
+
+\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+
+% ======================================================================
+% Region: giteaFirewall (single owner; edit only your own region)
+\subsection{Firewall and external exposure (15 points)}
+\label{Section:giteaFirewall}
+\index{Gitea!firewall and external exposure}
+\textbf{Owner:} BD. \StatusPending{} No evidence recorded yet.
+
+\textbf{Required content (from the course manual):}
+\begin{itemize}[nosep]
+  \item Cloud firewall / security group name and attachment, inbound rules, source ranges, IPv4 and IPv6
+  \item Host and Compose port mappings
+  \item Small network diagram
+  \item External test (source, time, expected vs.\ actual) for 443, 80, admin SSH, Gitea backend 3000, database port
+  \item Corrections made; why HTTPS does not replace a firewall
+\end{itemize}
+
+\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+
+% ======================================================================
+% Region: giteaWorkflow (single owner; edit only your own region)
+\subsection{Startup team workflow (20 points)}
+\label{Section:giteaWorkflow}
+\index{Gitea!startup team workflow}
+\textbf{Owner:} SD. \StatusPending{} No evidence recorded yet.
+
+\textbf{Required content (from the course manual):}
+\begin{itemize}[nosep]
+  \item Links to the organization and product repository; README
+  \item Two members and their roles
+  \item At least five actionable issues (product and operations)
+  \item Two issues traced through linked branch/PR, peer review, merge, closure (needs both members)
+\end{itemize}
+
+\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+
+% ======================================================================
+% Region: giteaArchitecture (single owner; edit only your own region)
+\subsection{Architecture and operation (5 points)}
+\label{Section:giteaArchitecture}
+\index{Gitea!architecture and operation}
+\textbf{Owner:} SD. \StatusPending{} No evidence recorded yet.
+
+\textbf{Required content (from the course manual):}
+\begin{itemize}[nosep]
+  \item Architecture diagram: end-to-end request and data paths
+  \item Where data lives; which interfaces are public vs.\ private
+  \item How the team restarts and troubleshoots the service
+  \item Persistence test is not a backup/restore test
+\end{itemize}
+
+\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+
+% ======================================================================
+% Region: giteaManualQuality (single owner; edit only your own region)
+\subsection{Manual quality and controls (15 points)}
+\label{Section:giteaManualQuality}
+\index{Gitea!manual quality and controls}
+\textbf{Owner:} BD. \StatusPending{} No evidence recorded yet.
+
+\textbf{Required content (from the course manual):}
+\begin{itemize}[nosep]
+  \item Increase the manual version; dated history entries for initial setup and this update, linking sections and evidence
+  \item Update Hosts and Passwords tables (hints only) and mention both in the history
+  \item Headings, captions, citations, glossary/index entries; secrets redacted
+  \item State any failed tests and corrective actions
+\end{itemize}
+
+\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+
+
+\section{Extra Credit}
+% ======================================================================
+% Region: giteaExtraCredit (single owner; edit only your own region)
+\subsection{Extra credit: verified backup and restore (up to 20 extra-credit points; committed by the team)}
+\label{Section:giteaExtraCredit}
+\index{Gitea!optional extra credit: verified backup and restore}
+\textbf{Owner:} SD. \StatusPending{} No evidence recorded yet.
+
+\textbf{Required content (from the course manual):}
+\begin{itemize}[nosep]
+  \item Backup method, coverage, storage location, time (5)
+  \item Sanitized backup log/listing; DB and app data form one recoverable state (5)
+  \item Test repository and issue present and usable in a separate temporary restored instance, with restore log and screenshots (10)
+  \item Do not overwrite the working service; do not include archives, dumps, or keys
+\end{itemize}
+
+\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+

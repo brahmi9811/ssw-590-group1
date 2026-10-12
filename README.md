@@ -20,6 +20,10 @@ The group deploys to **AWS EC2** instead of a Digital Ocean Droplet.
 
 The compiled report is [`report/devopsAssignment.pdf`](report/devopsAssignment.pdf).
 
+## Assignment 4: Startup Foundation with Gitea
+
+In progress. Start at [`assignment-4/README.md`](assignment-4/README.md); each member's scope and steps are in `assignment-4/BRAHMI.md` and `assignment-4/SAKSHI.md`.
+
 ## Repository layout
 
 ```

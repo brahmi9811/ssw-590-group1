@@ -1,0 +1,5 @@
+# Caddy obtains and renews a Let's Encrypt certificate for this hostname and
+# redirects HTTP to HTTPS automatically. Gitea is reached by Compose service name.
+{$GITEA_DOMAIN} {
+	reverse_proxy gitea:3000
+}

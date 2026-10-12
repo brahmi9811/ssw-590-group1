@@ -1,0 +1,29 @@
+\chapter{AI Prompt Log}
+\ChapterLabel{AIPromptLog}
+\index{AI prompt log}
+\section{How to Use This Appendix}
+Record AI assistance that materially affects wording, automation, evidence
+interpretation, troubleshooting, or feedback: enough context for a reviewer to
+see the input, output, assumptions, and human corrections. Never record
+credentials or personal data.
+
+\section{Record: IT Manual Skeleton and Gitea Chapter Outline}
+Date: October 12, 2026; Tool and model: Claude Code (Claude Sonnet 5.5);
+Task: set up this separate IT manual and prepare the Gitea chapter before any
+infrastructure exists. Inputs: the course manual \cite{DosManual} (Version
+1.18, Chapters 1 and 2 read in full; it is logged here as the governing
+source), and the conventions of the earlier \texttt{report/} document. Output
+used: the manual skeleton, the Gitea chapter outline with eight rubric-aligned
+subsections and an extra-credit subsection, the Hosts and Passwords tables,
+a draft cloud-agnostic Compose configuration under \texttt{gitea/}, and a work
+split between the two members. The assistant created no cloud resources,
+executed no deployment, and recorded no test results; every evidence item is
+\StatusPending. The first draft of the skeleton was derived from
+\texttt{report/} because the course template was not yet available; it was
+rebuilt from the Canvas template (version 1.3) after Brahmi Dalvi supplied it,
+which also required merging the per-section files into the single
+\texttt{devopsGitea.tex} chapter file the template's AI guide requires. Human
+decisions recorded: SQLite is the final database choice; Brahmi Dalvi owns the
+cloud deployment, DNS, HTTPS, and firewall work; the 20-point backup/restore
+extra credit is a committed deliverable. Human review and corrections:
+\Todo{BD/SD to record review of these drafts}.

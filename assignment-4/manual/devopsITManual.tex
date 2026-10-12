@@ -1,0 +1,141 @@
+% SSW 590 Group 1 DevOps IT Manual (living manual, one chapter per module).
+% Built from the course Canvas template (2026F-SSW-590-DevOps-canvas-template.zip,
+% template version 1.3, by Darian Muresan). One chapter per file; see devopsAIAgentGuide.tex.
+\documentclass[12pt]{cornell}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{xspace}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{ltablex}
+\keepXColumns
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{tcolorbox}
+\usepackage{makeidx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.multipart,arrows.meta,positioning}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage[acronym,toc]{glossaries}
+
+\makeindex
+\makeglossaries
+\input{devopsGlossary.tex}
+
+\definecolor{devopsBlue}{RGB}{31,78,121}
+\definecolor{devopsGreen}{RGB}{46,125,50}
+\definecolor{devopsRed}{RGB}{183,28,28}
+\definecolor{devopsGray}{RGB}{90,90,90}
+\definecolor{devopsLightBlue}{RGB}{232,240,247}
+
+\newcommand{\AssignmentTitle}{Group 1 DevOps IT Manual}
+\newcommand{\AssignmentNumber}{4}
+\newcommand{\DocumentVersion}{0.1}
+\newcommand{\DocumentStatus}{Draft: Gitea Chapter in Progress}
+\newcommand{\CourseNumber}{SSW 590}
+\newcommand{\CourseName}{DevOps}
+\newcommand{\Instructor}{David Darian Muresan, Ph.D.}
+\newcommand{\StudentName}{Group 1: Brahmi Dalvi and Sakshi Deshpande}
+\newcommand{\Organization}{Stevens Institute of Technology}
+\newcommand{\DocumentDate}{October 12, 2026}
+\newcommand{\DueDate}{set by the LMS}
+\newcommand{\VERSION}{Version \DocumentVersion}
+\newcommand{\RepoURL}{https://github.com/brahmi9811/ssw-590-group1}
+% Placeholders: set once the domain is claimed and the Gitea org/repo exist.
+\newcommand{\GiteaHost}{git.example.com}
+\newcommand{\GiteaURL}{https://\GiteaHost}
+\newcommand{\GiteaRepoURL}{\GiteaURL/startup/product}
+
+\hypersetup{
+  pdftitle={\CourseNumber\ --- \AssignmentTitle},
+  pdfauthor={\StudentName},
+  pdfcreator={Group 1, with Anthropic Claude Code},
+  pdfsubject={Group 1 DevOps IT manual (Gitea)},
+  pdfkeywords={DevOps, Gitea, HTTPS, firewall, evidence}
+}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\LTpre}{6pt}
+\setlength{\LTpost}{6pt}
+
+% Stable IDs make activity, evidence, and artifact references durable.
+\newcommand{\ArtifactLabel}[2]{\phantomsection\label{#1:#2}}
+\newcommand{\ArtifactID}[2]{\texttt{#2}\ArtifactLabel{#1}{#2}\index{#1!#2}}
+\newcommand{\ArtifactRef}[2]{\hyperref[#1:#2]{\texttt{#2}}}
+\newcommand{\EvidenceID}[1]{\ArtifactID{Evidence}{#1}}
+\newcommand{\EvidenceRef}[1]{\ArtifactRef{Evidence}{#1}}
+\newcommand{\ChapterLabel}[1]{\label{Chapter:#1}}
+\newcommand{\ChapterRef}[1]{\hyperref[Chapter:#1]{Chapter~\ref*{Chapter:#1}}}
+\newcommand{\StatusPass}{\textbf{\footnotesize\textcolor{devopsGreen}{PASS}}}
+\newcommand{\StatusPending}{\textbf{\footnotesize\textcolor{devopsGray}{PENDING}}}
+\newcommand{\StatusFail}{\textbf{\footnotesize\textcolor{devopsRed}{FAIL}}}
+% Marks text a team member still has to supply. Never leave one in a submitted PDF.
+\newcommand{\Todo}[1]{\textcolor{devopsRed}{\textbf{[TODO: #1]}}}
+
+\newtcolorbox{devopsNote}[1][]{
+  colback=devopsLightBlue, colframe=devopsBlue, boxrule=0.6pt, arc=1mm, title={#1}
+}
+
+\lstset{
+  backgroundcolor=\color{white}, basicstyle=\ttfamily\footnotesize,
+  breaklines=true, frame=single, keywordstyle=\color{blue},
+  commentstyle=\color{devopsGreen}, numbers=left, numbersep=6pt,
+  numberstyle=\tiny\color{devopsGray}, showstringspaces=false,
+  stringstyle=\color{devopsRed}, tabsize=2
+}
+\setminted{fontsize=\footnotesize, breaklines, breakanywhere, frame=lines, framesep=2mm}
+
+\setlength{\emergencystretch}{3em}
+\changenormalspacing{\singlespacing}
+\begin{document}
+\pagenumbering{roman}
+\singlespacing
+\include{prologue}
+
+\setcounter{page}{1}
+\pagenumbering{arabic}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\lhead{\small IT Manual}
+\chead{\small\nouppercase{\leftmark}}
+\rhead{\small\thepage}
+\lfoot{\small\CourseNumber}
+\cfoot{\small\copyright\ \Organization}
+\rfoot{\small\VERSION}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\include{devopsIntroduction}
+\include{devopsHostsPasswords}
+\include{devopsGitea}
+
+\nocite{*}
+\bibliographystyle{IEEEtran}
+\bibliography{devopsReferences}
+
+\appendix
+\include{devopsDocumentGuide}
+\include{devopsAIAgentGuide}
+\include{devopsAIPromptLog}
+
+\glsaddall
+\printglossaries
+\cleardoublepage
+\phantomsection
+\ChapterLabel{Index}
+\addcontentsline{toc}{chapter}{Index}
+\markboth{Index}{Index}
+\printindex
+\end{document}
