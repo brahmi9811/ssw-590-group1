@@ -23,7 +23,7 @@ Group 1: Brahmi Dalvi (BD), Sakshi Deshpande (SD). Course manual: `dosManual-V1.
 - Reverse proxy / TLS: **Caddy** (suggested by the course manual) with Let's Encrypt. Proposed, BD to confirm when deploying.
 - **BD owns all deployment** (cloud VM, Gitea install, domain/DNS, HTTPS, firewall).
 - The 20-point **backup/restore extra credit is optional and unassigned**. Nobody starts it unless Brahmi and Sakshi decide, later, that time is left. Do not plan around it.
-- **No cloud VM (AWS or DigitalOcean) is launched** until the instructor answers the AWS-instead-of-DigitalOcean email (gate G1).
+- **AWS is approved** (instructor Canvas reply, Oct 12, 2026, 8:36 pm): any host is fine "as long as they are available online and can be used by the TA (and me) to test the assignments." The service must therefore stay up and testable by the TA/instructor until grading is done; plan for that when restricting access. **Brahmi must still approve each paid launch.**
 
 ## Ownership of the manual (all inside `manual/devopsGitea.tex`, one `Region:` block each)
 
@@ -51,7 +51,7 @@ Root file `devopsITManual.tex`, front matter, `devopsIntroduction.tex`, template
 
 | Gate | Meaning | Who unblocks it |
 |---|---|---|
-| G1 | Instructor approves AWS (or a DO credit exists) | BD |
+| G1 | Instructor approves AWS. **DONE Oct 12, 2026.** | BD |
 | G2 | Domain claimed, DNS A record points at the VM | BD |
 | G3 | Gitea reachable at `https://<hostname>` | BD |
 

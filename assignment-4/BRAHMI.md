@@ -21,7 +21,7 @@ Course manual `dosManual-V1.18.pdf` Chapters 1–2 is the source of truth; if a 
 
 ## Phase A — start now (no cloud, no cost)
 
-**A1. Chase the instructor reply (gate G1).** The AWS-instead-of-DigitalOcean email is unanswered. Do nothing paid until you have an answer. When it comes, record the answer and date in the provider note at the top of `devopsGitea.tex` (replace the `\Todo`). If the answer is "DigitalOcean only", find out whether any DO credit is available before proceeding.
+**A1. Instructor reply (gate G1): DONE.** On Oct 12, 2026 the professor replied that any hosting service, including AWS, is allowed provided it is available online and usable by the TA and him to test the assignments. It is recorded in the provider note in `devopsGitea.tex`. **Design consequence:** the deployment must stay up and testable by the TA/instructor through grading. Gitea's HTTPS is public anyway; SSH only needs to be open to you and Sakshi. Plan how the TA will test (a TA account or a repo they can view) and do not tear anything down until grading is finished. Still check with Brahmi before every paid launch.
 
 **A2. Claim the domain (rubric row 1, 10 pts).**
 1. Open the GitHub Student Developer Pack page (`education.github.com/pack`) → Namecheap offer → follow the claim link. GitHub's pack page lists a `.me` domain plus an SSL certificate, each free for one year; treat that as unconfirmed until you see your own checkout.
@@ -47,7 +47,7 @@ Also plan the **external test** (must run from outside the VM, e.g. phone hotspo
 
 **A5. Review the deployment files.** `gitea/docker-compose.yml`, `Caddyfile`, `.env.example` are a draft: Gitea 1.27.3 and Caddy 2.11.7 (tags existed on Docker Hub on Oct 12, 2026; re-check, and consider whether a newer Gitea is wanted). Nothing has ever been run on a server. Confirm Caddy as the proxy. Gitea has **no published ports**; only Caddy publishes 80/443. Keep it that way.
 
-## Phase B — after G1 (instructor says yes). Check in with Brahmi before every paid action.
+## Phase B — G1 cleared (AWS approved). Check in with Brahmi before every paid action.
 
 **B1. Launch the VM** (human approves each step). Decide whether to reuse the instance from the last assignment (`i-00ee7edd4a5352f05` in `report/`) or create a new one; reusing changes that assignment's live site, so ask first. Size matters: Gitea + Caddy fit a small instance, but check memory and disk. Record: provider, region, instance type, OS, estimated monthly cost, owner, and the **teardown steps**. On AWS give the instance an **Elastic IP** (otherwise the public IP changes on stop/start and DNS breaks; note its cost). Do not run `deploy/aws/*` scripts from the last assignment unless you have read them; they target the old website.
 
