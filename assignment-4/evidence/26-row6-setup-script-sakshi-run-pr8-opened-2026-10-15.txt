@@ -1,0 +1,28 @@
+Real output of assignment-4/gitea/row6-setup.py run by Sakshi in her own terminal (macOS), Oct 15, 2026 (about 19:39 UTC).
+The access token was typed at a hidden prompt and is not in this output. Followed by an independent check made with NO token (anonymous Gitea API).
+
+=== Script output (Sakshi's stages) ===
+Gitea access token (hidden, not saved):
+Signed in as: sakshi  (site admin=False)
+[repo] exists already: https://git.ssw590-g1.tech/group1-startup/twintrack  (private=False)
+[issues] exists: #1 Write the product README
+[issues] exists: #2 Add CONTRIBUTING.md for the issue, branch, PR, review flow
+[issues] exists: #3 Define the TwinTrack task data model
+[issues] exists: #4 Protect `main`: require PR + 1 approval
+[issues] exists: #5 Document the Gitea restart and troubleshooting runbook
+[issues] exists: #6 Add the domain expiry date (Oct 15, 2027) to the shared calendar and name its owner
+[readme-pr] branch issue-1-readme created with the product README (from sd/backlog-draft.md)
+[pr] opened: https://git.ssw590-g1.tech/group1-startup/twintrack/pulls/8
+    NEXT: Brahmi reviews it (at least one comment), Sakshi addresses it, Brahmi approves, then merge.
+
+Your stages are done. Brahmi runs her part next (protection and the CONTRIBUTING.md PR).
+
+Now DELETE the token in Gitea > Settings > Applications.
+Repository: https://git.ssw590-g1.tech/group1-startup/twintrack
+
+=== Independent check, anonymous API, 2026-10-15 19:40:30 UTC ===
+#8 'Add product README' state=open head=issue-1-readme base=main by=sakshi body='Add product README.\n\nCloses #1'
+
+Notes:
+- Sakshi's first run (before Brahmi's) stopped with HTTP 403 "User is not allowed to create repositories in this organization";
+  nothing was created. Expected: the team `developers` cannot create repositories. Brahmi then ran her stages first.
