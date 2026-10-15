@@ -1034,38 +1034,55 @@ credit (Section~\ref{Section:giteaExtraCredit}).
 \subsection{Manual quality and controls (15 points)}
 \label{Section:giteaManualQuality}
 \index{Gitea!manual quality and controls}
-\textbf{Owner:} SD. \textbf{Status:} \StatusPending{} until every other
-region has its final evidence.
+\textbf{Owner:} SD. \textbf{Status:} final review of the whole manual on
+October 15, 2026, before submission \StatusPass.
 
-\begin{tabularx}{\linewidth}{L{5.0cm}L{1.9cm}Y}
-\caption{Manual quality controls\label{Table:ManualQuality}}\\
-\toprule \textbf{Control} & \textbf{Status} & \textbf{Where / note}\\ \midrule
+\begin{tabularx}{\linewidth}{L{4.6cm}L{2.0cm}Y}
+\caption{Manual quality controls, checked October 15, 2026\label{Table:ManualQuality}}\\
+\toprule \textbf{Control} & \textbf{Status} & \textbf{Where / how checked}\\ \midrule
 \endfirsthead
-\toprule \textbf{Control} & \textbf{Status} & \textbf{Where / note}\\ \midrule
+\toprule \textbf{Control} & \textbf{Status} & \textbf{Where / how checked}\\ \midrule
 \endhead \bottomrule \endlastfoot
-Manual version increased & \StatusPending & \Todo{0.1 $\rightarrow$ 1.0 at submission}\\
-History: initial setup entry & \StatusPass & Version 0.1, Table~\ref{Table:DocumentHistory}\\
-History: this update, with links & \StatusPending & Table~\ref{Table:DocumentHistory}\\
-Hosts and Passwords tables current, hints only, named in history & \StatusPending & \ChapterRef{HostsPasswords}; tables owned by BD\\
-Headings, captions, labels & \StatusPending & full PDF read-through\\
-Citations for external facts & \StatusPending & Bibliography\\
-Glossary and index entries for new terms & \StatusPending & Glossary, Index\\
-Secrets and IPs redacted in text and screenshots & \StatusPending & every figure and listing\\
-Hyperlinks to Gitea repository and hostname work & \StatusPending & \GiteaURL\\
-No \texttt{\string\Todo}, undefined references, or build errors & \StatusPending & final build log\\
+Manual version increased & \StatusPass & 0.1 $\rightarrow$ 1.0 (title page and page footers), dated October 15, 2026\\
+History: initial setup entry & \StatusPass & Version 0.1, October 12, 2026, Table~\ref{Table:DocumentHistory}\\
+History: this update, with links & \StatusPass & Version 1.0 entry and the dated entries for each row, each linking its section, table, or figure\\
+Hosts and Passwords tables current, hints only, named in history & \StatusPass & \ChapterRef{HostsPasswords}; every row holds a vault reference or hint, never a secret; the version 1.0 history entry names both tables as updated\\
+Headings, captions, labels & \StatusPass & One subsection per rubric row in rubric order; every figure, table, and listing has a caption and label; the final build has no undefined or multiply defined references\\
+Evidence inside the PDF & \StatusPass & Command output as listings and screenshots as figures, referenced by number rather than by file name\\
+Citations for external facts & \StatusPass & Course manual, Gitea, Caddy, Let's Encrypt, Docker, and GitHub Education sources in the Bibliography\\
+Glossary and index entries for new terms & \StatusPass & Glossary, Acronyms, Index\\
+Secrets and addresses redacted & \StatusPass & Scripted scan of all chapter sources and of every command-output file printed in the PDF for private keys, access tokens, AWS keys and account numbers, passwords, e-mail addresses, and IPv4 addresses. Only expected addresses remain: the server's public Elastic IP (published in DNS anyway), public DNS resolvers, loopback, and private Docker and AWS addresses. Every screenshot was inspected by eye; the AWS console screenshot is redacted, and browser tab bars with unrelated personal tabs were cropped\\
+Hyperlinks to the Gitea service, organization, repositories, issues, and pull requests & \StatusPass & Repositories are public, so the links work for the TA and instructor without an account\\
+No \texttt{\string\Todo}, undefined references, or build errors & \StatusPending & SD's build of October 15, 2026 has no undefined or multiply defined references and no errors. Five \texttt{\string\Todo} markers remained outside SD's regions (domain calendar owner, extra-credit placeholder, Introduction link, and two AI-log review lines); they were sent to BD, who removes them and sets this row to PASS in the final build\\
 \end{tabularx}
 
 \subsubsection{Failed tests and corrective actions}
-\begin{tabularx}{\linewidth}{L{2.3cm}YY}
+All failed or inconclusive attempts made for this chapter are listed here,
+with the section where each is described in full.
+\begin{tabularx}{\linewidth}{L{1.9cm}YY}
 \caption{Failed tests and corrective actions\label{Table:FailedTests}}\\
 \toprule \textbf{Date} & \textbf{What failed} & \textbf{Correction}\\ \midrule
 \endfirsthead
 \toprule \textbf{Date} & \textbf{What failed} & \textbf{Correction}\\ \midrule
 \endhead \bottomrule \endlastfoot
-October 12, 2026 & First local run of \texttt{persistence-test.sh} (rehearsal) stopped with a Python syntax error in the script's output formatting. & Fixed the quoting; the rerun completed. No data was affected.\\
-October 15, 2026 & SD's first run of \texttt{row6-setup.py} could not create the product repository: HTTP~403 ``User is not allowed to create repositories in this organization''. Nothing was created. & Expected under least privilege (team \texttt{developers} cannot create repositories). BD, as owner, ran her stages first; SD's rerun skipped what existed and opened pull request \#8.\\
-\multicolumn{3}{l}{\Todo{collect failed attempts from BD and SD before submission}}\\
+October 12, 2026 & SD's first local rehearsal of \texttt{persistence-test.sh} stopped with a Python syntax error in the script's output formatting. & Fixed the quoting; the rerun completed. Rehearsal only; no server involved.\\
+October 15, 2026 & The AWS command line tool on Windows crashed printing a non-ASCII character from the instance console log, so an early check looked like ``still waiting'' (Section~\ref{Section:giteaDeployment}). & Read the log again with UTF-8 forced.\\
+October 15, 2026 & The IAM user was denied the public image-lookup parameter (Section~\ref{Section:giteaDeployment}). & Found the Amazon Linux image with \texttt{describe-images}.\\
+October 15, 2026 & A multi-line script passed to \texttt{ssh} from Windows PowerShell~5.1 lost its quotes and failed (Section~\ref{Section:giteaDeployment}). & Scripts are copied to the server and run there.\\
+October 15, 2026 & One transient 502 at first start: a scanner reached Caddy before Gitea was listening (Section~\ref{Section:giteaDeployment}). & None needed; it did not recur.\\
+October 15, 2026 & Renewal test, attempt 1 (staging CA for the real hostname): inconclusive; attempt 2: Caddy rejected the directive \texttt{ca} (Section~\ref{Section:giteaHttps}). & Attempt 3 used a throwaway hostname with a staging-only issuer and succeeded; the production Caddyfile was restored.\\
+October 15, 2026 & SD's first run of \texttt{row6-setup.py} could not create the product repository: HTTP~403 ``User is not allowed to create repositories in this organization'' (Section~\ref{Section:giteaWorkflow}). & Expected under least privilege. BD, as owner, ran her stages first; SD's rerun opened pull request \#8.\\
+October 15, 2026 & A manual build failed: a single-character ellipsis in captured \texttt{docker compose ps} output could not be line-broken by \texttt{minted}. & The character is written as three dots in that evidence file, and the file's header says so.\\
 \end{tabularx}
+
+\subsubsection{Accepted limitations}
+\begin{itemize}[nosep]
+  \item No backup exists; the persistence test is not a backup
+  (Section~\ref{Section:giteaArchitecture}). The extra credit was not attempted.
+  \item The peer reviews in row~6 were light (Section~\ref{Section:giteaWorkflow}).
+  \item MFA statuses in the Passwords table are as reported by each account
+  owner and were not independently checked.
+\end{itemize}
 
 \section{Extra Credit}
 % ======================================================================
