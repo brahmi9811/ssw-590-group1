@@ -4,7 +4,7 @@ Read `README.md` first (decisions, gates, working agreement, rules). This file i
 Course manual `dosManual-V1.18.pdf` Chapters 1–2 is the source of truth; if a step here conflicts with it, the manual wins.
 
 ## Progress tracker (kept up to date as we work)
-_Last updated: Oct 15, 2026 (Gitea + Caddy live over HTTPS, admin `brahmi` works; Sakshi's branch `sd/gitea` exists, unmerged)._ Evidence files are in `evidence/` (see its `README.md` index).
+_Last updated: Oct 15, 2026 (HTTPS live, admin `brahmi` works, Sakshi's `sd/gitea` merged into `main`; Brahmi's three regions and the Sakshi hand-off are next)._
 
 ### Done
 | Item | Date | Notes / evidence |
@@ -35,7 +35,9 @@ _Last updated: Oct 15, 2026 (Gitea + Caddy live over HTTPS, admin `brahmi` works
 | **Let's Encrypt certificate obtained automatically** (TLS-ALPN-01), issuer `YE2`, valid 2026-10-15 to 2027-01-13, TLS 1.3, chain valid; HTTP gives 308 redirect to HTTPS; HTTPS 200 | Oct 15, 17:35 UTC | Evidence 12, 13 |
 | First external probes from the admin machine: 443 and 80 open; 3000, 2019, 5432 not reachable | Oct 15 | Evidence 13. From the **admin IP**, so a second-network test is still needed |
 | **First Gitea admin created** by Brahmi in her own terminal (username `brahmi`; password in her password manager, never shared) and sign-in at `https://git.ssw590-g1.tech` works | Oct 15 | Evidence 14 |
-| Checked the remote: `main` has nothing new. Sakshi pushed branch **`sd/gitea`** (1 commit, "draft rows 3, 6, 7, 8"): touches only her regions and shared append-only files; a trial merge into `main` predicts no conflicts | Oct 15 | Not merged yet; see Pending #12 |
+| Your work committed (`4f691a0`) and Sakshi's branch **`sd/gitea` merged into `main`** (merge commit `1d3de7b`), pushed; `main` is in sync with `origin/main`; no PDF tracked | Oct 15 | Her branch only touched her regions and shared append-only files |
+| Read-only server pre-checks of Sakshi's persistence script: all its assumptions hold (python3 3.9, container `gitea` healthy, volume `gitea_gitea_data` -> `/data`, DB `/data/gitea/gitea.db` 2.1 MB, server reaches its own HTTPS URL, API 1.27.3) | Oct 15 | Evidence 15. Her script is not run yet; it is her row 3 task |
+| `README.md` working agreement changed: **work on `main`, no new branches**; `SAKSHI.md` has a status section, steps and a verification table for her rows | Oct 15 | |
 | Budget already exists: "My Monthly Cost Budget", **$15.00/month**; used $3.13, forecast $3.12 (before the new instance) | Oct 15 | Evidence 07. Thresholds/email not visible in the screenshot |
 
 ### Pending (in order)
@@ -55,7 +57,7 @@ _Last updated: Oct 15, 2026 (Gitea + Caddy live over HTTPS, admin `brahmi` works
 | 9 | Hand Sakshi access: URL, her public SSH key, a Gitea account (B7) | #8 |
 | 10 | Hosts and Passwords tables, history entry, prompt-log record (B8) | as things happen |
 | 11 | Final build, remove `\Todo`s, submit PDF only (Phase C) | everything |
-| 12 | **Commit and push** your own uncommitted work first (evidence 07-14, `gitea/aws/ec2-user-data.sh`, manual and tracker edits), then review and merge Sakshi's `sd/gitea` branch; tell her to `git pull --rebase` afterwards | you |
+| 12 | Merge done. **Left:** tell Sakshi, then delete the merged branch on GitHub (Branches page, trash icon; or `git push origin --delete sd/gitea`), then locally `git fetch --prune`. From now on **nobody creates branches**: both work on `main` with `git pull --rebase` before pushing (rule 1 in `README.md`) | you |
 | 13 | Hosts and Passwords tables are still placeholders: add the server (hostname `git.ssw590-g1.tech`, AWS `us-east-1`, instance `i-0c68ec1bc1e16a414`, ports 443/80/22), and hint rows for the Gitea admin, AWS, Name.com, SSH key | you + Claude |
 
 ## What BD owns (and ONLY this)
@@ -127,7 +129,7 @@ Also plan the **external test** (must run from outside the VM, e.g. phone hotspo
 
 ## Phase C — finish and submit
 1. **Row 8 is Sakshi's** (`giteaManualQuality`, version bump, quality review). Your part: keep Hosts/Passwords tables current and tell her when they change so she can name them in the history entry; add your own history entry and prompt-log record.
-2. Merge Sakshi's branch (resolve conflicts only in shared append-only files), remove every `\Todo`.
+2. Pull Sakshi's pushed commits on `main` (`git pull --rebase`; shared append-only files are the only likely conflicts), run the verification table in `SAKSHI.md`, remove every `\Todo`.
 3. Build per `README.md`; read the whole PDF; verify links and redaction; add your AI Prompt Log record.
 4. Upload **only** the PDF to the LMS.
 5. After grading (or when told): tear down cloud resources and record the shutdown in the manual (costs, renewals).

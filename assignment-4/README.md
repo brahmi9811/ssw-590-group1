@@ -63,7 +63,7 @@ Root file `devopsITManual.tex`, front matter, `devopsIntroduction.tex`, template
 | SD → BD | Finished regions + history/prompt-log lines | Push to a branch; BD merges, builds, submits |
 
 ## Working agreement (applies to both people and both Claude sessions)
-1. `git pull --rebase` before you start and before you push. Work on your own branch (`bd/…`, `sd/…`). Commit/push only when the human says so.
+1. **Work directly on `main`; do not create new branches** (decided Oct 15, 2026: the one-time `sd/gitea` branch was merged and is retired). Run `git pull --rebase` before you start and again before you push, commit small, and push often. Only edit your own regions, so rebases stay trivial. Commit/push only when the human says so.
 2. Edit only what your own file lists. If you need a change in the other person's area, write it in a message to them instead of editing.
 3. Never fabricate command output, screenshots, dates, costs or test results. Unrun = `\StatusPending`. Failed attempts are documented, not hidden.
 4. Never handle, print, store or commit credentials, tokens, private keys, `.env` with real values, or Gitea dumps (they contain secrets).

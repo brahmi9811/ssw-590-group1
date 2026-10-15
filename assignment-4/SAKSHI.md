@@ -7,18 +7,33 @@ Course manual `dosManual-V1.18.pdf` Chapters 1–2 is the source of truth (ask B
 
 **The shared server is live (gate G3 reached).** Gitea 1.27.3 (SQLite) + Caddy 2.11.7 run on AWS EC2 at **https://git.ssw590-g1.tech** with a Let's Encrypt certificate. Brahmi owns it and has already created the first admin account (`brahmi`). Facts you will need (all in `evidence/`, files 08 to 14): Compose project directory on the server is `~/gitea` (only `docker-compose.yml`, `Caddyfile`, `.env` there, not the repo); containers are named `gitea` and `caddy`; volumes are `gitea_gitea_data`, `gitea_caddy_data`, `gitea_caddy_config`; SQLite file is `/data/gitea/gitea.db` in the Gitea container; Gitea's own ports are not published; SSH to the server is key-only as `ec2-user`, allowed only from your shared home IP (same as Brahmi's); Docker works for `ec2-user`.
 
-### Already done (from your branch `sd/gitea`, Oct 15)
+### Already done (your branch `sd/gitea`, Oct 15; now merged into `main`)
 - Draft of your four regions (`giteaDatabase`, `giteaWorkflow`, `giteaArchitecture`, `giteaManualQuality`), a TikZ architecture figure, `sd/persistence-test.sh`, `sd/backlog-draft.md`, history, glossary, bibliography and AI-log lines. All VM results are still marked pending, which is correct. A local rehearsal was run and is labeled "not graded".
-- Brahmi has checked your branch: it only touches your regions and the shared append-only files, and a trial merge into `main` predicts no conflicts. She will merge it after she commits her own work.
+- **Merged:** Brahmi merged your branch into `main` (merge commit `1d3de7b`, Oct 15) with no conflicts. Her checks: it only touched your regions and the shared append-only files. **Do not create new branches from now on: work directly on `main`** (see the rules below).
 
 ### Do next, in this order
 1. **Give Brahmi your SSH public key** (never the private one). On your machine: `ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\ssw590-g1-sakshi"`, then send her the contents of the `.pub` file. She adds it to the server. Until that is done you cannot SSH in.
 2. **Wait for Brahmi to create** (a) your Gitea account and (b) the organization `group1-startup`, and for her message that they are ready. Sign in at https://git.ssw590-g1.tech and change the temporary password. Keep it in a password manager; send Brahmi only a one-line hint for the Passwords table.
-3. **Row 3, persistence on the real server.** Copy `sd/persistence-test.sh` to the server (it expects to run from the Compose directory; adapt paths: the server directory is `~/gitea`, not `assignment-4/gitea`). Run it against `https://git.ssw590-g1.tech` (not `-k`, the certificate is valid). Record exact commands, IDs, before/after, dates, and put the output in `evidence/` with an index row. The local rehearsal does not count.
+3. **Row 3, persistence on the real server.** Brahmi's Claude pre-checked your script against the live server (evidence 15): Python 3.9, container `gitea` healthy, volume `gitea_gitea_data` -> `/data`, DB at `/data/gitea/gitea.db`, valid certificate, server can reach its own URL. So no `-k` is needed. Procedure (after your SSH key is added and your Gitea account exists):
+   1. Copy the script: `scp -i <your key> assignment-4/sd/persistence-test.sh ec2-user@git.ssw590-g1.tech:~/`
+   2. Log in **with a terminal** (the script asks for your password): `ssh -t -i <your key> ec2-user@git.ssw590-g1.tech`
+   3. Run from the Compose directory: `cd ~/gitea && GITEA_URL=https://git.ssw590-g1.tech GITEA_USER=<your Gitea username> bash ~/persistence-test.sh | tee ~/persistence.log`
+   4. Copy `persistence.log` back, strip nothing, and save it into `evidence/` as the next numbered file with an index row. It creates repo `persistence-check` under **your** account; leave it there as evidence.
+   Known caveats: the password is visible in the server's process list while the script runs (two-person server, accepted, but don't run it with anyone else logged in); do not use `GITEA_PASS` on the command line; the script is a plain test and does not delete anything. Never run `docker compose down -v` or remove volumes.
 4. **Row 6 with Brahmi.** Create the product repository, README, members and roles, the 5 or more issues from `sd/backlog-draft.md`, and two issue-linked pull requests reviewed by the other person, merged, issues closed. Capture links and dated screenshots. Brahmi is the second member for peer review.
 5. **Row 7.** Replace the draft architecture text with the real deployment (use evidence 09, 11, 12, 13) and finish the restart/troubleshooting runbook with commands you actually ran.
 6. **Row 8, last.** After Brahmi's regions (2, 4, 5) have real content: version bump, history entries, Hosts/Passwords check, citations, redaction scan across the whole PDF, failed-test log, final `\Todo` scan.
 7. **Extra credit (backup/restore): unassigned.** Do nothing on it unless Brahmi says there is time.
+
+### How Brahmi's Claude will verify your work before it counts (so you can self-check first)
+| Row | What gets checked | Pass condition |
+|---|---|---|
+| 3 database | Your `persistence.log` is saved in `evidence/` and indexed | Real run on the server (not localhost); same repo id, issue id and DB file before and after; container id/created time changed; volume name unchanged; no `-v` used; no `-k` |
+| 3 database | The region text matches the facts in evidence 15 | SQLite at `/data/gitea/gitea.db`, volume `gitea_gitea_data`, no DB port, no DB secret |
+| 6 workflow | Links work when opened while signed out and signed in | Org + repo + README exist; 2 members with roles; 5+ issues; 2 PRs that reference issues, approved by the other person, merged, issues closed |
+| 7 architecture | The figure and text describe the real deployment | Hostname, Caddy 80/443, Gitea 3000 private, volume, SSH key-only admin path, IPv4 only; the runbook commands were actually run |
+| 8 quality | Whole-PDF scan | No leftover `\Todo`, no secrets or admin IPs, links and references resolve, history entries say whether Hosts/Passwords changed |
+| all | Build | `bash build.sh` finishes; no `undefined`/`multiply defined` in the last pass |
 
 ### Before you start working
 `git pull --rebase` after Brahmi pushes her commit, so you get the new `evidence/` folder, the AWS boot script `gitea/aws/ec2-user-data.sh`, and her manual edits. Do not edit `gitea/`, her regions, or the cloud.
@@ -28,7 +43,7 @@ Course manual `dosManual-V1.18.pdf` Chapters 1–2 is the source of truth (ask B
 - In `devopsITManual.tex` only the `\DocumentVersion` and `\DocumentDate` lines (row 8 version bump). Nothing else in that file.
 - Append-only, own lines only: `devopsDocumentHistory.tex`, `devopsAIPromptLog.tex`, `devopsGlossary.tex`, `devopsReferences.bib`.
 - `devopsHostsPasswords.tex`: only add rows for SD's own accounts, hints only. Everything else in it is Brahmi's.
-- Your own branch (`sd/...`) and your local rehearsal environment.
+- Your own work, committed **directly to `main`** (no new branches), and your local rehearsal environment.
 
 ## What SD must NOT touch (Brahmi's)
 - Regions **`giteaDomainDns`, `giteaDeployment`, `giteaHttps`, `giteaFirewall`**, the chapter intro, the status table, and the provider note.
@@ -42,7 +57,7 @@ SQLite is **final** (no PostgreSQL). Backup/restore extra credit is **optional a
 
 ## Phase A — start now (local, no cloud, no cost)
 
-**A0. Setup.** `git pull --rebase`, create branch `sd/gitea`. Install Docker Desktop. To build the PDF you need MiKTeX/TeX Live with `pdflatex`, `bibtex`, `makeglossaries`, `makeindex`, and Pygments (for `minted`, built with `-shell-escape`). `manual/build.sh` has Brahmi's Windows paths in `MIKTEX_BIN`, `MAKEGLOSSARIES_LUA`, `PYGMENTS_BIN`; edit them **locally only** (use `git update-index --assume-unchanged` or just don't stage that file). The earlier assignment also has a `latex-docker/` container; whether it has everything this manual needs is unverified, so test before relying on it.
+**A0. Setup.** `git pull --rebase` on `main` (do not create a branch). Install Docker Desktop. To build the PDF you need MiKTeX/TeX Live with `pdflatex`, `bibtex`, `makeglossaries`, `makeindex`, and Pygments (for `minted`, built with `-shell-escape`). `manual/build.sh` has Brahmi's Windows paths in `MIKTEX_BIN`, `MAKEGLOSSARIES_LUA`, `PYGMENTS_BIN`; edit them **locally only** (use `git update-index --assume-unchanged` or just don't stage that file). The earlier assignment also has a `latex-docker/` container; whether it has everything this manual needs is unverified, so test before relying on it.
 
 **A1. Local rehearsal stack (not evidence).**
 1. `cd assignment-4/gitea && cp .env.example .env` and set `GITEA_DOMAIN=localhost` (the `.env` is untracked; keep it that way).
@@ -86,8 +101,8 @@ Covers the whole manual, so do it last and after Brahmi's regions have real cont
 ## Phase C — finish
 1. Add your history entry (date, `SD`, change, links to your regions; **state whether Hosts/Passwords changed**, and send Brahmi any Passwords rows) and your AI Prompt Log record (what AI did, what you verified, what you corrected; no credentials).
 2. Add glossary/index entries and citations for new terms; remove all `\Todo` in your regions; build the PDF locally and check the last pass for `undefined`/`multiply defined`/`!`.
-3. Push your branch and tell Brahmi it's ready; she merges and submits.
+3. `git pull --rebase`, then push to `main`, and tell Brahmi what you pushed. Brahmi does the final build and submits.
 
 ## SD done-list
 - [ ] Row 8 quality pass · [ ] Local rehearsal done (not used as evidence) · [ ] row 3 real evidence · [ ] row 6 workflow with Brahmi · [ ] row 7 diagram + runbook
-[ ] history + prompt-log entries · [ ] branch pushed, Brahmi notified
+[ ] history + prompt-log entries · [ ] pushed to `main`, Brahmi notified

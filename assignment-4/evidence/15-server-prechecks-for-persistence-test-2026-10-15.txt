@@ -1,0 +1,27 @@
+Real read-only output from the server (ssh ec2-user@git.ssw590-g1.tech), Oct 15, 2026 (about 17:50 UTC). Run by Claude Code on Brahmi's go-ahead.
+Purpose: check that the assumptions in Sakshi's script (assignment-4/sd/persistence-test.sh) hold on the real deployment BEFORE she runs it.
+This is NOT the persistence test and is not row 3 evidence by itself; it only shows the starting state.
+
+python3: Python 3.9.25
+curl: curl 8.21.0 (x86_64-amazon-linux-gnu) libcurl/8.21.0 OpenSSL/3.5.8 ...
+
+--- container name + health ---
+/gitea health=healthy image=gitea/gitea:1.27.3
+
+--- mounts (type name -> destination) ---
+volume gitea_gitea_data -> /data
+
+--- SQLite file path used by her script ---
+-rw-r--r--    1 git      git        2187264 Oct 15 17:49 /data/gitea/gitea.db
+
+--- can the server reach its own public HTTPS URL (her script needs this)? ---
+HTTP 200 via public URL, ssl_verify=0        (0 = certificate verified OK)
+
+--- Gitea API ---
+{"version":"1.27.3"}
+explore/users page HTTP 200
+
+Findings:
+- All of the script's assumptions hold: container name `gitea`, healthcheck, volume `gitea_gitea_data` at /data, DB at /data/gitea/gitea.db, python3 present, valid certificate (so no -k / CURL_INSECURE needed).
+- The script must be copied to the server and run from ~/gitea (the server has no repository checkout; only docker-compose.yml, Caddyfile and .env are in ~/gitea).
+- The script reads the Gitea password with `read -s` (needs an interactive terminal: use `ssh -t`) and passes it to curl with `-u`, so it is visible in the process list on the server while the script runs.
