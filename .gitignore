@@ -32,3 +32,7 @@ _minted*/
 .aws/
 
 .DS_Store
+
+# Assignment 4 manual: built PDF is a build product (submit via LMS). Sources stay tracked.
+# To snapshot the final version once, use: git add -f assignment-4/manual/devopsITManual.pdf
+assignment-4/manual/*.pdf

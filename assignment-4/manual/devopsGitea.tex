@@ -44,17 +44,69 @@ Extra credit: backup and restore (optional) & up to 20 & unassigned & \StatusPen
 \subsection{Student Pack domain and DNS (10 points)}
 \label{Section:giteaDomainDns}
 \index{Gitea!student pack domain and dns}
-\textbf{Owner:} BD. \StatusPending{} No evidence recorded yet.
+\textbf{Owner:} BD. Domain registration: \StatusPass{} (order confirmed, \$0.00). Stored card removed: \StatusPass{}. DNS record and independent lookup: \StatusPending{} (no server exists yet).
 
-\textbf{Required content (from the course manual):}
-\begin{itemize}[nosep]
-  \item Domain offer, eligibility, first-year cost, renewal cost, expiration
-  \item Chosen Gitea hostname and clickable HTTPS link
-  \item DNS record screenshot and an independent lookup result (e.g. \texttt{nslookup} against 8.8.8.8, run by a teammate)
-  \item How a future team tracks renewal (calendar owner, date)
-\end{itemize}
+\paragraph{Offer and eligibility.}
+The domain comes from the GitHub Student Developer Pack, which lists domain
+offers from Namecheap, Name.com, and .TECH Domains \cite{GitHubPackDomains}.
+The group's Student Pack is approved on Brahmi Dalvi's GitHub account. The
+Namecheap offer was started first but its GitHub authorization page requested
+the \texttt{repo} scope (read and write access to all public and private
+repositories), which the group judged too broad for a domain claim, so it was
+cancelled. The Name.com Education Pack authorization requested ``public data
+only'' and was accepted.
 
-\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+\paragraph{Domain and costs.}
+\begin{tabularx}{\linewidth}{L{4.2cm}Y}
+\caption{Domain registration facts\label{Table:DomainFacts}}\\
+\toprule \textbf{Item} & \textbf{Value}\\ \midrule
+\endfirsthead
+\toprule \textbf{Item} & \textbf{Value}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Domain & \texttt{ssw590-g1.tech}, registered at Name.com, order \#28974415. The confirmation email arrived Thursday, October 15, 2026 at 00:36 (mailbox local time) and gives the order date as October 14, 2026; the one-day difference is consistent with Name.com stamping the date in a different time zone, which we did not confirm\\
+Planned Gitea hostname & \texttt{\GiteaHost} (DNS not yet created)\\
+First-year cost & \$0.00 (cart total \$0.00; the regular price shown struck through in the cart was \$89.99)\\
+Renewal cost & \$89.99 (``Renew for \$89.99'' on the domain page)\\
+Expiration & October 15, 2027\\
+Automatic renewal & OFF (turned off after registration)\\
+Extras declined & Domain Safe Pro (\$7.99/year); the free Domain Safe plan (domain lock, WHOIS privacy, free SSL certificate) is included\\
+\end{tabularx}
+The order summary after checkout also shows a struck-through \$7.99 next to the
+domain; the group did not investigate that figure and relies on the \$0.00
+total and the \$89.99 renewal price shown on the domain page.
+Figure~\ref{Fig:DomainOrder} shows the completed order and
+Figure~\ref{Fig:DomainDetails} shows the domain page after automatic renewal
+was turned off.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\linewidth]{../evidence/02-namecom-order-summary-ssw590-g1-tech-total-0.00-2026-10-15.png}
+\caption{Name.com order summary, October 15, 2026: domain and free Domain Safe, total \$0.00.}
+\label{Fig:DomainOrder}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../evidence/04-namecom-domain-details-expires-2027-10-15-autorenew-OFF-2026-10-15.png}
+\caption{Domain page, October 15, 2026: expires October 15, 2027, automatic renewal OFF, renewal price \$89.99.}
+\label{Fig:DomainDetails}
+\end{figure}
+
+\paragraph{Renewal tracking.}
+The group does not plan to renew: the domain is needed only through grading,
+and the TA and instructor must be able to reach the service until then. Expiry
+is October 15, 2027. \Todo{name the owner and calendar reminder for this date}
+
+\paragraph{Still to do in this subsection.}
+\Todo{after the server exists: DNS record screenshot, independent lookup result (for example \texttt{nslookup} against 8.8.8.8 run by a teammate), and the HTTPS hostname link}.
+
+\paragraph{Payment safeguards.}
+Name.com required a card even for the \$0.00 order. To avoid an unintended
+renewal charge, the group turned automatic renewal off and deleted the stored
+payment profile; the billing page then reads ``No saved payment profiles''
+(evidence file \texttt{05-namecom-billing-no-saved-payment-profiles-2026-10-15.png}).
+The confirmation email shows order \#28974415 with an order total of \$0.00
+(evidence file \texttt{06-namecom-order-confirmed-email-order-28974415-received-2026-10-15-0036.png}). \Todo{after a few days, check the card statement and record whether any charge appeared}
 
 % ======================================================================
 % Region: giteaDeployment (single owner; edit only your own region)
