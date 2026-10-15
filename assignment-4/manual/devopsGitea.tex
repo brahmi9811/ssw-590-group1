@@ -161,8 +161,8 @@ The confirmation email shows order \#28974415 with an order total of \$0.00
 \label{Section:giteaDatabase}
 \index{Gitea!database and persistence}
 \index{SQLite}
-\textbf{Owner:} SD. \textbf{Status:} configuration verified in a local
-rehearsal; evidence from the cloud VM \StatusPending.
+\textbf{Owner:} SD. \textbf{Status:} persistence test on the cloud VM
+\StatusPass{} (October 15, 2026, 18:29~UTC).
 
 \subsubsection{Decision: SQLite}
 Group~1 uses Gitea's built-in SQLite database \cite{GiteaDBPrep}. This was a
@@ -254,19 +254,38 @@ below.
 \endfirsthead
 \toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual (VM)}\\ \midrule
 \endhead \bottomrule \endlastfoot
-Container ID before / after & different & \StatusPending\\
-Volume mounted at \texttt{/data} & \texttt{gitea\_gitea\_data} both times & \StatusPending\\
-Repository \texttt{persistence-check} & same id before and after & \StatusPending\\
-Issue \#1 & present, same id and state & \StatusPending\\
-\texttt{main} commit & same commit ID & \StatusPending\\
+Container ID before / after & different & \texttt{858a02ae8412} (created 17:34:23) $\rightarrow$ \texttt{834924d4bc0a} (created 18:29:21) \StatusPass\\
+Volume mounted at \texttt{/data} & \texttt{gitea\_gitea\_data} both times & \texttt{gitea\_gitea\_data} before and after \StatusPass\\
+Database file & same file, still present & \texttt{/data/gitea/gitea.db}, 2\,187\,264 bytes before and after \StatusPass\\
+Repository \texttt{persistence-check} & same id before and after & id~1, \texttt{sakshi/persistence-check}, created 18:29:20 both times \StatusPass\\
+Issue \#1 & present, same id and state & id~1, open, same title \StatusPass\\
+\texttt{main} commit & same commit ID & \texttt{4f15f700003e} both times \StatusPass\\
 \end{tabularx}
 
-\Todo{after G3: run persistence-test.sh on the VM, paste the sanitized log
-below with \texttt{\string\inputminted}, fill the Actual column with date and
-time, and add a dated screenshot of the repository and issue.}
+The test was run by SD on October 15, 2026 from her workstation over SSH, as
+\texttt{ec2-user} on the EC2 instance, from the Compose directory
+\texttt{\textasciitilde/gitea}:
+\begin{minted}{bash}
+ssh -t -i ~/.ssh/ssw590-g1-sakshi ec2-user@git.ssw590-g1.tech \
+  'cd ~/gitea && GITEA_URL=https://git.ssw590-g1.tech GITEA_USER=sakshi \
+   bash ~/persistence-test.sh | tee ~/persistence.log'
+\end{minted}
+The complete, unedited log follows (evidence file
+\path{20-persistence-test-container-replacement-sakshi-2026-10-15.txt}). It
+contains no credential: the password was typed at a hidden prompt. The
+\texttt{host:} line is the instance's AWS-internal name, which is not
+reachable from the internet.
+\inputminted{text}{../evidence/20-persistence-test-container-replacement-sakshi-2026-10-15.txt}
+
+\Todo{add dated screenshots of \url{\GiteaURL/sakshi/persistence-check} and its issue \#1 after the test.}
 
 \subsubsection{Conclusion}
-\Todo{write after the VM run.} This test shows that data survives replacement
+The Gitea container was replaced (new container ID and creation time) while
+the named volume was kept, and the repository, its \texttt{main} commit, and
+issue \#1 were unchanged afterwards. They persisted because SQLite and the Git
+repositories live in the \texttt{gitea\_gitea\_data} volume, outside the
+container's disposable layer; the new container mounted the same volume.
+Gitea was unavailable for about 30~seconds during the replacement. This test shows that data survives replacement
 of the container. It is \emph{not} a backup or restore test: no copy of the
 data exists outside the volume, so losing the volume or the VM disk would
 still lose the data (see Section~\ref{Section:giteaArchitecture}).
