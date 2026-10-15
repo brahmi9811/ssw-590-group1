@@ -22,6 +22,11 @@ Brahmi embedded hers inline; do the same for yours. Screenshots: `\begin{figure}
 - Your run stopped with HTTP 403 because the team `developers` cannot create repositories. **That is expected and correct.** Brahmi runs the script first (repo, issues, protection, her CONTRIBUTING.md PR, an `infra` repo). **Wait for her message, then pull and rerun the script**: it will skip what exists and open your README pull request for issue 1. Make sure your token is deleted (you did) and create a fresh one for the rerun.
 - Your row 7 push (`ecc32c8`, evidence 24) is noted. Row 3 is complete. Your row 6 screenshots start at evidence 25.
 
+### Update Oct 15, 19:30 UTC: Brahmi ran her part
+- Done by Brahmi (evidence 40): repo `group1-startup/twintrack` (public), the 6 issues (yours: #1, #3, #5), `main` protected (1 approval), and **pull request #7 "Add CONTRIBUTING.md"** (Closes #2) waiting for **your review**.
+- **Do now:** `git pull --rebase`; make a fresh token; rerun `python assignment-4/gitea/row6-setup.py`: it skips what exists and opens your README PR for issue #1 (it should become PR #8). Delete the token. Then **review PR #7** (at least one comment, wait for Brahmi to address it, then approve) and tell Brahmi your PR is ready for hers. Merge both after approvals and check issues #1 and #2 close.
+- Evidence: your screenshots are files 25 and up; Brahmi uses 40 and up.
+
 ### Do next, in this order
 1. **Give Brahmi your SSH public key** (never the private one). On your machine: `ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\ssw590-g1-sakshi"`, then send her the contents of the `.pub` file. She adds it to the server. Until that is done you cannot SSH in.
 2. **Wait for Brahmi to create** (a) your Gitea account and (b) the organization `group1-startup`, and for her message that they are ready. Sign in at https://git.ssw590-g1.tech and change the temporary password. Keep it in a password manager; send Brahmi only a one-line hint for the Passwords table.

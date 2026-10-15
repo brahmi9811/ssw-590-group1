@@ -229,12 +229,15 @@ was six days old and was not chosen. No image uses the \texttt{latest} tag.
 \paragraph{Compose and proxy configuration.}
 The files below are exactly what runs on the server (their SHA-256 prefixes
 were compared after copying, \ListRef{12}). They contain no secrets, so no
-redaction was needed. They are kept in the team repository at
-\url{\RepoURL/tree/main/assignment-4/gitea}.
-The course repository on GitHub is private, so graders cannot open that link. The
-same non-secret files are therefore published in the team's public Gitea
-repository: \href{\GiteaURL/group1-startup/infra}{\texttt{\GiteaURL/group1-startup/infra}}.
-\Todo{this link works only after the setup script has published the \texttt{infra} repository; open it signed out, confirm it lists the four files, then delete this note}
+redaction was needed. They are versioned in the team's course repository on
+GitHub, which was made public on October 15, 2026 so that graders can open it:
+\url{\RepoURL/tree/main/assignment-4/gitea}. A second copy of the same files is
+published in the team's own Gitea at
+\href{\GiteaURL/group1-startup/infra}{\texttt{\GiteaURL/group1-startup/infra}}.
+It was created on October 15, 2026 and is public; a signed-out check of Gitea's
+API listed the four files (\texttt{docker-compose.yml}, \texttt{Caddyfile},
+\texttt{.env.example}, and \texttt{aws/ec2-user-data.sh}) plus a README, and their
+checksums match the files shown below.
 
 \inputminted{yaml}{../gitea/docker-compose.yml}
 

@@ -1,0 +1,50 @@
+Real output of assignment-4/gitea/row6-setup.py run by Brahmi in her own terminal, Oct 15, 2026 (about 19:30 UTC), followed by independent checks run by Claude Code with NO token (anonymous Gitea API) at 19:32:25 UTC.
+The access token was typed at a hidden prompt, never printed or saved, and deleted afterwards. Nothing below contains a secret.
+
+=== Script output (Brahmi's stages) ===
+Signed in as: brahmi  (site admin=True)
+[repo] created: https://git.ssw590-g1.tech/group1-startup/twintrack  (private=False)
+[issues] created: #1 Write the product README  (assignee sakshi)
+[issues] created: #2 Add CONTRIBUTING.md for the issue, branch, PR, review flow  (assignee brahmi)
+[issues] created: #3 Define the TwinTrack task data model  (assignee sakshi)
+[issues] created: #4 Protect `main`: require PR + 1 approval  (assignee brahmi)
+[issues] created: #5 Document the Gitea restart and troubleshooting runbook  (assignee sakshi)
+[issues] created: #6 Add the domain expiry date (Oct 15, 2027) to the shared calendar and name its owner  (assignee brahmi)
+[protect] rule created for main
+    rule: name=main enable_push=False required_approvals=1 block_on_rejected_reviews=True dismiss_stale_approvals=True apply_to_admins=None
+[protect] direct commit to main: HTTP 403 -> REFUSED (good)
+    server said: {'message': 'user cannot commit to repo [user: brahmi]', 'url': 'https://git.ssw590-g1.tech/api/swagger'}
+[protect] issue #4 commented and closed (HTTP 201)
+[contributing-pr] branch issue-2-contributing created with CONTRIBUTING.md
+[pr] opened: https://git.ssw590-g1.tech/group1-startup/twintrack/pulls/7
+    NEXT: Sakshi reviews it (at least one comment), Brahmi addresses it, Sakshi approves, then merge.
+[infra] repository created: https://git.ssw590-g1.tech/group1-startup/infra  (private=False)
+[infra] docker-compose.yml: HTTP 201 (ok)
+[infra] Caddyfile: HTTP 201 (ok)
+[infra] .env.example: HTTP 201 (ok)
+[infra] aws/ec2-user-data.sh: HTTP 201 (ok)
+[infra] README.md: HTTP 200 (ok)
+[infra] link for the manual: https://git.ssw590-g1.tech/group1-startup/infra
+Your stages are done. Review Sakshi's README pull request and ask her to review yours.
+
+=== Independent verification, anonymous API, 2026-10-15 19:32:25 UTC ===
+twintrack: private=False | default_branch=main | open_issues=5 | open_pulls=1
+branch main: {'name': 'main', 'protected': True, 'required_approvals': 1, 'enable_status_check': False}
+issues:
+  #1 open   sakshi  Write the product README
+  #2 open   brahmi  Add CONTRIBUTING.md for the issue, branch, PR, review flow
+  #3 open   sakshi  Define the TwinTrack task data model
+  #4 closed brahmi  Protect `main`: require PR + 1 approval
+  #5 open   sakshi  Document the Gitea restart and troubleshooting runbook
+  #6 open   brahmi  Add the domain expiry date (Oct 15, 2027) to the shared calendar
+pull request #7: title 'Add CONTRIBUTING.md' | state open | merged False | head issue-2-contributing | base main | user brahmi | body 'Add CONTRIBUTING.md.\n\nCloses #2'
+infra: private=False; files: .env.example, Caddyfile, README.md, docker-compose.yml, aws/ec2-user-data.sh
+infra files vs the repository copies (sha256 prefix, line endings normalized): all four MATCH
+  docker-compose.yml ed23b4136370 | Caddyfile 7705e125f84a | .env.example f42b0bd6bee7 | aws/ec2-user-data.sh 5ba5d8694b30
+
+Notes:
+- Protection is confirmed from the outside ("protected": true, 1 required approval) AND by behaviour (a direct commit by the site administrator was refused with HTTP 403).
+  The read-back of the rule shows apply_to_admins=None (the API did not return that field); the refusal of the administrator's own commit is the evidence that admins are bound.
+- Pull requests share the issue number sequence: the issues are #1-#6, so the first pull request is #7 (it closes issue #2).
+- Issue #4 was closed by the script only after the refusal proof. Issue #6 (calendar) is still open: it needs a person.
+- Not yet done: Sakshi's README pull request (blocked until she reruns the script), peer reviews, merges.
