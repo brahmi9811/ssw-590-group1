@@ -74,15 +74,32 @@ Extras declined & Domain Safe Pro (\$7.99/year); the free Domain Safe plan (doma
 The order summary after checkout also shows a struck-through \$7.99 next to the
 domain; the group did not investigate that figure and relies on the \$0.00
 total and the \$89.99 renewal price shown on the domain page.
-Figure~\ref{Fig:DomainOrder} shows the completed order and
-Figure~\ref{Fig:DomainDetails} shows the domain page after automatic renewal
-was turned off.
+\FigRef{01} shows the cart before payment: the domain is free and the paid
+Domain Safe Pro is declined, so the total is \$0.00. Figure~\ref{Fig:DomainOrder}
+shows the completed order, \FigRef{03} shows the domain page right after
+registration (automatic renewal still on, renewal price \$89.99), and
+Figure~\ref{Fig:DomainDetails} shows the same page after automatic renewal was
+turned off.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{../evidence/01-namecom-cart-ssw590-g1-tech-total-0.00-2026-10-15.png}
+\caption{Name.com cart before payment, October 15, 2026: \texttt{ssw590-g1.tech} free for one year through the partner offer, Domain Safe Pro (\$7.99) declined, total \$0.00. This is the cart, not a receipt.}
+\label{Fig:E01}
+\end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\linewidth]{../evidence/02-namecom-order-summary-ssw590-g1-tech-total-0.00-2026-10-15.png}
 \caption{Name.com order summary, October 15, 2026: domain and free Domain Safe, total \$0.00.}
 \label{Fig:DomainOrder}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../evidence/03-namecom-domain-details-renews-2027-10-15-autorenew-ON-2026-10-15.png}
+\caption{Domain page right after registration, October 15, 2026: ``Renews Oct 15, 2027'', automatic renewal ON, WHOIS privacy ON, transfer locked, ``Renew for \$89.99''.}
+\label{Fig:E03}
 \end{figure}
 
 \begin{figure}[htbp]
@@ -125,18 +142,37 @@ through three public resolvers (expected: \texttt{52.73.254.36}; actual: the sam
 \end{center}
 These lookups were run from Brahmi Dalvi's computer through public resolvers; they
 were not run by a teammate on a separate network, so the independent-lookup
-wording of the assignment is met only in that sense.
-\Todo{optional: a teammate repeats the lookup (for example \texttt{nslookup \GiteaHost{} 8.8.8.8}) from another network and the result is added}.
-The HTTPS hostname link will resolve once Gitea and the proxy are deployed.
-\Todo{add the clickable HTTPS link once the site is live}
+wording of the assignment is met only in that sense. \ListRef{11} is the real output.
+A teammate has not repeated the lookup from a separate network; the three public resolvers above are the independent check.
+The Gitea site is live at the hostname: \href{\GiteaURL}{\texttt{\GiteaURL}}.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/11-dns-lookups-and-ssh-check-git-ssw590-g1-tech-2026-10-15.txt}
+\caption{DNS lookups through three public resolvers, SSH host-key check, and a read-only SSH check of the server, October 15, 2026 (real output; the administrator's address is not part of it).}
+\label{Listing:E11}
+\end{longlisting}
 
 \paragraph{Payment safeguards.}
 Name.com required a card even for the \$0.00 order. To avoid an unintended
 renewal charge, the group turned automatic renewal off and deleted the stored
 payment profile; the billing page then reads ``No saved payment profiles''
-(evidence file 05).
-The confirmation email shows order \#28974415 with an order total of \$0.00
-(evidence file 06). \Todo{after a few days, check the card statement and record whether any charge appeared}
+(\FigRef{05}). The confirmation email shows order \#28974415 with an order total
+of \$0.00 (\FigRef{06}). The group has not yet compared a card statement; because
+the order total was \$0.00 and the card was removed, no charge is expected.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{../evidence/05-namecom-billing-no-saved-payment-profiles-2026-10-15.png}
+\caption{Name.com billing page, October 15, 2026: ``No saved payment profiles'' after the card was deleted.}
+\label{Fig:E05}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\linewidth]{../evidence/06-namecom-order-confirmed-email-order-28974415-received-2026-10-15-0036.png}
+\caption{Name.com order confirmation email, received Thursday October 15, 2026 at 00:36 (mailbox time): order 28974415, \texttt{ssw590-g1.tech}, one year, order total \$0.00. The email gives the order date as October 14, 2026.}
+\label{Fig:E06}
+\end{figure}
 
 % ======================================================================
 % Region: giteaDeployment (single owner; edit only your own region)
@@ -175,6 +211,12 @@ Both image tags were confirmed to exist on Docker Hub on October 12, 2026.
 \texttt{1.27.3} was the newest 1.27 release that day; a 28.1 release existed but
 was six days old and was not chosen. No image uses the \texttt{latest} tag.
 
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/09-aws-ec2-instance-launched-ssw590-g1-gitea-2026-10-15.txt}
+\caption{The instance as created and the result of its first-boot script, October 15, 2026 (real AWS command line and console-log output).}
+\label{Listing:E09}
+\end{longlisting}
+
 \paragraph{How it is configured.}
 \begin{itemize}[nosep]
   \item \textbf{Restart behavior:} both containers use \texttt{restart: unless-stopped}, so they return after a reboot or a Docker restart.
@@ -186,10 +228,13 @@ was six days old and was not chosen. No image uses the \texttt{latest} tag.
 
 \paragraph{Compose and proxy configuration.}
 The files below are exactly what runs on the server (their SHA-256 prefixes
-were compared after copying, evidence file 12). They contain no secrets, so no
+were compared after copying, \ListRef{12}). They contain no secrets, so no
 redaction was needed. They are kept in the team repository at
 \url{\RepoURL/tree/main/assignment-4/gitea}.
-\Todo{confirm the instructor and TA can open this link, or also copy the deployment files into the team's Gitea repository}
+The course repository on GitHub is private, so graders cannot open that link. The
+same non-secret files are therefore published in the team's public Gitea
+repository: \href{\GiteaURL/group1-startup/infra}{\texttt{\GiteaURL/group1-startup/infra}}.
+\Todo{this link works only after the setup script has published the \texttt{infra} repository; open it signed out, confirm it lists the four files, then delete this note}
 
 \inputminted{yaml}{../gitea/docker-compose.yml}
 
@@ -235,14 +280,27 @@ docker compose exec -u git gitea gitea admin user create --admin \
 \endfirsthead
 \toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual} & \textbf{Evidence}\\ \midrule
 \endhead \bottomrule \endlastfoot
-Instance state & running, both status checks ok & running; instance and system checks ok & file 09\\
-First-boot script & finishes without error, Compose checksum matches & ``user-data finished OK'' at 17:17:40 UTC & file 09\\
-Installed tools & Docker, Compose, git, swap & Docker 25.0.14, Compose v5.6.0, git 2.50.1, 2\,GB swap & files 09, 11\\
-Files on the server & identical to the repository copies & SHA-256 prefixes match for all three files & file 12\\
-Containers & both up, Gitea healthy & \texttt{gitea} Up (healthy), \texttt{caddy} Up & file 12\\
-Gitea settings & HTTPS \texttt{ROOT\_URL}, SQLite & AppURL \texttt{https://\GiteaHost/}; database ping \texttt{sqlite3} & file 12\\
-Site and login & page loads, admin can sign in & HTTP 200 over HTTPS; signed in as the administrator & files 13, 14\\
+Instance state & running, both status checks ok & running; instance and system checks ok & \ListRef{09}\\
+First-boot script & finishes without error, Compose checksum matches & ``user-data finished OK'' at 17:17:40 UTC & \ListRef{09}\\
+Installed tools & Docker, Compose, git, swap & Docker 25.0.14, Compose v5.6.0, git 2.50.1, 2\,GB swap & \ListRef{09}, \ListRef{11}\\
+Files on the server & identical to the repository copies & SHA-256 prefixes match for all three files & \ListRef{12}\\
+Containers & both up, Gitea healthy & \texttt{gitea} Up (healthy), \texttt{caddy} Up & \ListRef{12}\\
+Gitea settings & HTTPS \texttt{ROOT\_URL}, SQLite & AppURL \texttt{https://\GiteaHost/}; database ping \texttt{sqlite3} & \ListRef{12}\\
+Site and login & page loads, admin can sign in & HTTP 200 over HTTPS; signed in as the administrator & \ListRef{13}, \FigRef{14}\\
 \end{tabularx}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/12-gitea-caddy-deployed-docker-compose-up-2026-10-15.txt}
+\caption{Files copied to the server, image pull, \texttt{docker compose up -d}, container status, and the Caddy and Gitea logs, October 15, 2026 (real server output, trimmed, remote addresses removed).}
+\label{Listing:E12}
+\end{longlisting}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth]{../evidence/14-gitea-signed-in-as-brahmi-https-git-ssw590-g1-tech-2026-10-15.png}
+\caption{The deployed Gitea at \texttt{git.ssw590-g1.tech}, signed in as the administrator, October 15, 2026.}
+\label{Fig:E14}
+\end{figure}
 
 \paragraph{Problems met and corrections.}
 \begin{itemize}[nosep]
@@ -255,7 +313,18 @@ Site and login & page loads, admin can sign in & HTTP 200 over HTTPS; signed in 
 \paragraph{Cost and cleanup.}
 The running costs are the instance, the 20\,GB volume, and the Elastic IP. The
 group has not confirmed the exact prices on AWS's own pricing pages.
-\Todo{record verified hourly prices (t3.micro, gp3 storage, public IPv4 address) and the monthly estimate}
+An estimate at on-demand list prices in \texttt{us-east-1}, for about 730 hours a
+month: the \texttt{t3.micro} instance at \$0.0104 per hour is about \$7.59; the
+public IPv4 address at \$0.005 per hour is about \$3.65 \cite{AWSIPv4Blog}; the
+20\,GB gp3 volume at \$0.08 per GB-month is about \$1.60 \cite{AWSEbsGp3}. The
+total is \textbf{about \$12.84 per month}. The instance rate comes from a
+third-party price calculator \cite{HoloriT3Micro}, and the gp3 rate from AWS blog
+and third-party guides; neither was confirmed on AWS's own pricing pages, so the
+figure is an estimate, not a bill. The group uses AWS credits and may qualify for
+free-tier hours (not checked), so the real charge may be lower. The account has a
+monthly cost budget of \$15, created for the earlier assignment; its alert
+thresholds were not reviewed. The earlier assignment's instance, which keeps
+running until that assignment is graded, is a separate cost.
 The service must stay online until grading is finished because the instructor
 and TA test it. Teardown, after grading and only then: terminate the instance,
 release the Elastic IP, delete the security group and key pair, delete the DNS
@@ -421,7 +490,7 @@ still lose the data (see Section~\ref{Section:giteaArchitecture}).
 \subsection{HTTPS and certificate renewal (15 points)}
 \label{Section:giteaHttps}
 \index{Gitea!https and certificate renewal}
-\textbf{Owner:} BD. Certificate issued, redirect and TLS checked on October 15, 2026: \StatusPass{}. Second-option research and the renewal test: \StatusPending{}.
+\textbf{Owner:} BD. Certificate issued, redirect and TLS checked on October 15, 2026: \StatusPass{}. Second-option research is partly done (open questions remain). The staging dry run passed as an issuance test; an actual renewal of the production certificate has not yet happened, so it is \StatusPending{}.
 
 \paragraph{Certificate options compared.}
 Two ways to get a certificate for \texttt{\GiteaHost} were considered.
@@ -431,18 +500,22 @@ Two ways to get a certificate for \texttt{\GiteaHost} were considered.
 \endfirsthead
 \toprule \textbf{Aspect} & \textbf{A. Let's Encrypt through Caddy} & \textbf{B. Free certificate offered with the Student Pack or domain bundle}\\ \midrule
 \endhead \bottomrule \endlastfoot
-Cost & Free \cite{CaddyAutoHTTPS} & Listed as free for one year on the Student Pack page and in the Name.com cart; later cost not checked\\
-Issuance & Automatic: Caddy proves control of the name to Let's Encrypt with an ACME challenge (TLS-ALPN-01 was used) \cite{LetsEncryptChallenges} & Not investigated: how it is requested, validated, and installed on this server\\
-Renewal & Automatic inside Caddy; certificates live in a persistent volume & Not investigated; a one-year certificate would need a manual renewal\\
-Fit for this project & Fits Docker Compose: no extra tool, no manual step, nothing to remember in a year & Unknown\\
+Cost & Free \cite{CaddyAutoHTTPS} & Included free with Name.com's Domain Safe tier (visible in the cart); the Student Pack page also lists a free one-year Namecheap certificate \cite{NameDomainSafe,GitHubPackDomains}\\
+Issuance & Automatic: Caddy proves control of the name to Let's Encrypt with an ACME challenge (TLS-ALPN-01 was used) \cite{LetsEncryptChallenges} & A domain-validated certificate from Name.com's free-certificate program. The support pages we could read do not say how it is requested, or whether it can be installed on a server hosted elsewhere \cite{NameDomainSafe}\\
+Renewal & Automatic inside Caddy; certificates live in a persistent volume & Manual: in the Name.com account (My Products, then Renew; the checkout shows \$0), and only within 90 days of expiry \cite{NameRenewSSL}. A missed window removes the renewal option\\
+Fit for this project & Fits Docker Compose: no extra tool, no manual step, nothing to remember in a year & Not confirmed to work on our AWS-hosted server; adds a yearly manual step and an account dependency. For the Namecheap certificate, one student reports being asked to pay after claiming the free domain \cite{NamecheapCommunity}\\
 \end{tabularx}
-\Todo{research option B properly (what the Name.com and Namecheap free certificates are, validation type, installation steps, renewal) and complete its column; until then the comparison is incomplete}
+Option B's facts come from Name.com's support pages as summarized by a search
+engine, because the article bodies could not be retrieved in full; they have
+not been confirmed with the vendors.
+Whether the Domain Safe certificate can be installed on an external server, and whether its private key can be exported, is an open question that the group did not pursue, because option A already met the need.
 
 \textbf{Choice:} option A. It is free, fully automatic, needs no extra software
 because Caddy is already the reverse proxy, and removes a manual renewal step.
-This justification rests on the documentation and on what the deployment
-actually did (a certificate was issued within seconds of the first start, see
-below), not on a full evaluation of option B.
+This rests on the documentation and on what the deployment actually did (a
+certificate was issued within seconds of the first start, see below). Option B
+was researched only through public support pages, so its limits are stated as
+open questions above, not as proven facts.
 
 \paragraph{Where TLS terminates.}
 TLS ends at Caddy, which is the only container that publishes ports 80 and 443.
@@ -455,8 +528,8 @@ links and clone URLs it generates use HTTPS.
 On the first \texttt{docker compose up -d} (17:34 UTC) Caddy requested a
 certificate, completed the TLS-ALPN-01 challenge from several Let's Encrypt
 vantage points, and logged ``certificate obtained successfully'' within seconds of the stack
-starting (evidence file 12). The certificate served at 17:35 UTC was read
-directly from the live connection (evidence file 13).
+starting (\ListRef{12}). The certificate served at 17:35 UTC was read
+directly from the live connection (\ListRef{13}).
 
 \begin{tabularx}{\linewidth}{L{3.3cm}Y}
 \caption{Certificate served by \texttt{\GiteaHost}, October 15, 2026\label{Table:CertDetails}}\\
@@ -472,10 +545,16 @@ Chain & \texttt{YE2}, \texttt{Root YE}, \texttt{ISRG Root X2}; Windows built the
 Client check & \texttt{curl} accepted the certificate without the insecure flag and received HTTP 200\\
 \end{tabularx}
 
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/13-https-redirect-cert-and-port-probes-2026-10-15.txt}
+\caption{HTTP redirect, HTTPS response, the served certificate, and port probes from the administrator's computer, October 15, 2026, 17:35 UTC (real output).}
+\label{Listing:E13}
+\end{longlisting}
+
 \paragraph{HTTP to HTTPS redirect.}
 Requesting \texttt{http://\GiteaHost/} returned \texttt{HTTP/1.1 308 Permanent
-Redirect} with \texttt{Location: https://\GiteaHost/} from Caddy (evidence file
-13, 17:35 UTC). Port 80 therefore serves only this redirect and certificate
+Redirect} with \texttt{Location: https://\GiteaHost/} from Caddy (\ListRef{13},
+17:35 UTC). Port 80 therefore serves only this redirect and certificate
 validation; it exposes no application.
 
 \paragraph{Renewal.}
@@ -485,12 +564,38 @@ issue \cite{CaddyAutoHTTPS}. Caddy's log already recorded the renewal window
 reported by the certificate authority (ACME Renewal Information), and the
 certificate and account are stored in the persistent volume
 \texttt{gitea\_caddy\_data}, so a container replacement does not lose them.
-This is configuration evidence only. \textbf{A successful renewal test has not
-been run yet.} Caddy has no dry-run command that we know of, so the plan is to
-point Caddy at Let's Encrypt's staging server temporarily and show that it
-obtains a certificate with the same configuration. Until that is done, this
-subsection does not claim that renewal works.
-\Todo{run the staging-server renewal test, record the exact commands, log lines, date, and result, then restore the production configuration and confirm the valid certificate is served again}
+\paragraph{Renewal test (staging dry run).}
+Caddy has no renew-now or dry-run command that we know of, so the test used the
+idea behind a certbot dry run: run the same ACME process against Let's
+Encrypt's \emph{staging} server, which issues untrusted test certificates and
+does not touch the production certificate (\ListRef{42}, October 15, 2026,
+19:03 to 19:08 UTC). Three attempts were needed, and all are reported.
+\begin{enumerate}[nosep]
+  \item \textbf{Staging CA for the real hostname: inconclusive.} Adding a global staging CA and reloading Caddy produced no new order. Caddy already held a valid certificate for the name, kept serving it (same thumbprint), and logged only that automatic TLS was enabled. This proved nothing about renewal, and the production configuration was restored at once.
+  \item \textbf{Wrong directive: rejected.} The first version of the test block used \texttt{ca} inside the ACME issuer, which Caddy rejected (``unrecognized ACME issuer property: ca'') and kept its previous working configuration, so the live site was unaffected. The correct directive is \texttt{dir}.
+  \item \textbf{Throwaway hostname with a staging-only issuer: succeeded.} A second site block was added for \texttt{52-73-254-36.sslip.io} (a public wildcard-DNS name that resolves to the server's address), configured with the staging directory, and the production block was left unchanged. Within about five seconds of the reload Caddy created an ACME account, solved the TLS-ALPN-01 challenge, finalized the order, downloaded the chain, and logged ``certificate obtained successfully'' with the staging issuer. The server then presented that certificate for the test name (issuer ``(STAGING) Artificial Amaranth YE1'', not trusted by Windows, as expected) while the production certificate stayed identical (same thumbprint).
+\end{enumerate}
+The production Caddyfile was then restored (its SHA-256 matches the repository
+copy), the test certificate and backup file were removed, and normal checks
+confirmed the redirect, an HTTP 200 response, and the original production
+certificate (\ListRef{42}).
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/42-caddy-acme-staging-issuance-test-2026-10-15.txt}
+\caption{The staging dry run, with all three attempts, the restore, and the final checks, October 15, 2026, 19:03 to 19:08 UTC (real output; remote addresses masked).}
+\label{Listing:E42}
+\end{longlisting}
+
+\textbf{What this shows and what it does not.} It shows that Caddy as deployed
+(same image, same ports, a reachable challenge port, writable certificate
+storage) completes a full certificate order in seconds and stores the result. It
+is an \emph{issuance} test for a different hostname; it is \textbf{not} an
+observed renewal of the production certificate. That certificate was issued at
+17:34 UTC on October 15, 2026, and Caddy's log gives it a renewal window from
+December 13, 2026 (19:20 UTC) to December 15, 2026. The first automatic renewal
+is therefore expected in that window; this is a prediction from the log, not a
+result.
+That window falls after this document is due, so the real renewal could not be observed before submission.
 
 \paragraph{Proxy configuration.}
 The proxy configuration is the \texttt{Caddyfile} shown in the deployment
@@ -501,16 +606,17 @@ secrets.
 
 \paragraph{Expected versus actual.}
 \begin{tabularx}{\linewidth}{L{3.3cm}L{3.4cm}YL{1.4cm}}
-\caption{HTTPS checks, October 15, 2026, 17:35 UTC, from the administrator's computer\label{Table:HttpsChecks}}\\
+\caption{HTTPS checks, October 15, 2026 (rows 1 to 4 at 17:35 UTC from the administrator's computer; the renewal rows from the 19:03 to 19:08 UTC test)\label{Table:HttpsChecks}}\\
 \toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual} & \textbf{Evidence}\\ \midrule
 \endfirsthead
 \toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual} & \textbf{Evidence}\\ \midrule
 \endhead \bottomrule \endlastfoot
-HTTP on port 80 & redirect to HTTPS & 308 to \texttt{https://\GiteaHost/} & file 13\\
-HTTPS on port 443 & valid certificate, page served & HTTP 200, certificate accepted & file 13\\
-Certificate identity & issued for the hostname by a public CA & Let's Encrypt, subject and SAN match the hostname & file 13\\
-Validity & not expired, about 90 days & expires 2027-01-13 & file 13\\
-Renewal & automatic renewal works & not tested yet & pending\\
+HTTP on port 80 & redirect to HTTPS & 308 to \texttt{https://\GiteaHost/} & \ListRef{13}\\
+HTTPS on port 443 & valid certificate, page served & HTTP 200, certificate accepted & \ListRef{13}\\
+Certificate identity & issued for the hostname by a public CA & Let's Encrypt, subject and SAN match the hostname & \ListRef{13}\\
+Validity & not expired, about 90 days & expires 2027-01-13 & \ListRef{13}\\
+Renewal process (staging dry run) & Caddy completes a full ACME order and serves the new certificate & staging order for a throwaway name succeeded in about 5 seconds; production certificate unchanged & \ListRef{42}; \StatusPass{} (issuance only)\\
+Renewal of the production certificate & renews automatically before expiry & window predicted Dec 13 to 15, 2026; not yet observed & \StatusPending{}\\
 \end{tabularx}
 
 % ======================================================================
@@ -518,7 +624,7 @@ Renewal & automatic renewal works & not tested yet & pending\\
 \subsection{Firewall and external exposure (15 points)}
 \label{Section:giteaFirewall}
 \index{Gitea!firewall and external exposure}
-\textbf{Owner:} BD. Security group created and first outside checks run on October 15, 2026: \StatusPass{}. Test from a second network and a console screenshot: \StatusPending{}.
+\textbf{Owner:} BD. Security group created and first outside checks run on October 15, 2026: \StatusPass{}. Second-network (hotspot) test: \StatusPass{}. Console screenshot of the rules: \StatusPass{}.
 
 \paragraph{The firewall.}
 The public boundary is an AWS security group, a stateful firewall attached to
@@ -535,7 +641,7 @@ on any host firewall; none was configured on the instance.
 Name and ID & \texttt{ssw590-g1-gitea}, \texttt{sg-0415c75429368eb85}\\
 Network & default VPC (\texttt{vpc-08a308ecc88120f9f}) in \texttt{us-east-1}\\
 Attached to & instance \texttt{i-0c68ec1bc1e16a414}; this is the only security group passed at launch\\
-Created & October 15, 2026, with the AWS command line interface (evidence file 08)\\
+Created & October 15, 2026, with the AWS command line interface (\ListRef{08})\\
 Default network ACL & left unchanged and not examined\\
 \end{tabularx}
 
@@ -561,8 +667,14 @@ HTTPS over TCP. \textbf{Outbound:} the AWS default (all traffic allowed) was
 kept, because the instance must reach Docker Hub, GitHub releases, package
 mirrors, DNS, time servers, and Let's Encrypt.
 
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/08-aws-security-group-created-ssw590-g1-gitea-2026-10-15.txt}
+\caption{Creation of the security group and its rules with the AWS command line interface, October 15, 2026 (real output; the administrator's address is replaced by a placeholder).}
+\label{Listing:E08}
+\end{longlisting}
+
 \paragraph{Host and Compose port mappings.}
-\texttt{docker compose ps} on the server (evidence file 12) shows:
+\texttt{docker compose ps} on the server (\ListRef{12}) shows:
 \begin{itemize}[nosep]
   \item \texttt{caddy}: publishes \texttt{0.0.0.0:80}, \texttt{0.0.0.0:443}, their \texttt{[::]} equivalents, and \texttt{443/udp}; port \texttt{2019/tcp} (Caddy's administration interface) is only exposed inside the container and is not published.
   \item \texttt{gitea}: \texttt{22/tcp} and \texttt{3000/tcp} are exposed only to the Compose network; nothing is published on the host.
@@ -582,35 +694,70 @@ Figure~\ref{Figure:GiteaArchitecture}.
 \end{figure}
 
 \paragraph{External tests.}
-The first outside checks ran at 17:35 UTC on October 15, 2026 from the
-administrator's computer, which is not the server (evidence file 13).
-\textbf{Limitation:} that computer uses the approved administrator address, so
-it cannot show that SSH is blocked for anyone else.
+Two sets of outside checks were run from the administrator's computer, which is
+not the server (\ListRef{13} and \ListRef{41}). The first was at 17:35 UTC on October
+15, 2026 on the administrator's home network, which uses the approved
+administrator address, so it could not show that SSH is blocked for anyone else.
+The second was at 18:57:54 UTC the same day with the computer connected to a
+phone hotspot: a different network and a different public IPv4 address (the
+program confirmed the address differed from the approved one before probing; the
+addresses are not recorded here).
 
-\begin{tabularx}{\linewidth}{L{2.2cm}L{3.0cm}L{3.2cm}Y}
+\begin{tabularx}{\linewidth}{L{1.7cm}L{2.7cm}L{2.5cm}L{3.1cm}Y}
 \caption{External exposure checks\label{Table:ExposureChecks}}\\
-\toprule \textbf{Port} & \textbf{Expected} & \textbf{Actual} & \textbf{Result}\\ \midrule
+\toprule \textbf{Port} & \textbf{Expected} & \textbf{Admin network, 17:35} & \textbf{Hotspot network, 18:57} & \textbf{Result}\\ \midrule
 \endfirsthead
-\toprule \textbf{Port} & \textbf{Expected} & \textbf{Actual} & \textbf{Result}\\ \midrule
+\toprule \textbf{Port} & \textbf{Expected} & \textbf{Admin network, 17:35} & \textbf{Hotspot network, 18:57} & \textbf{Result}\\ \midrule
 \endhead \bottomrule \endlastfoot
-443 & open, HTTPS & open, HTTP 200 & \StatusPass\\
-80 & open, redirect only & open, 308 redirect & \StatusPass\\
-3000 (Gitea) & not reachable & closed or filtered & \StatusPass\\
-2019 (Caddy API) & not reachable & closed or filtered & \StatusPass\\
-5432 (database) & not reachable & closed or filtered & \StatusPass\\
-22 from the admin IP & open & open & \StatusPass\\
-22 from another network & blocked & not tested yet & \StatusPending\\
+443 & open, HTTPS & open, HTTP 200 & open, HTTP 200 & \StatusPass\\
+80 & open, redirect only & open, 308 redirect & open, 308 redirect & \StatusPass\\
+3000 (Gitea) & not reachable & closed or filtered & closed or filtered & \StatusPass\\
+2019 (Caddy API) & not reachable & closed or filtered & closed or filtered & \StatusPass\\
+5432 (database) & not reachable & closed or filtered & closed or filtered & \StatusPass\\
+22 (SSH) & open from the admin address only & open & blocked: connection timed out & \StatusPass\\
 \end{tabularx}
 ``Closed or filtered'' means the connection attempt failed; the test cannot tell
 a refused connection from a dropped one, and both mean the port is not usable
-from outside.
-\Todo{second-network test: join the administrator's computer to a phone hotspot (a different public address) and repeat the probes for 22, 80, 443, 3000, 2019; record the time, source, expected and actual results}
-\Todo{add a sanitized screenshot of the security group's inbound rules from the AWS console (hide the administrator's IP address)}
+from that network. For SSH, the hotspot attempt used the \emph{valid} private
+key and still failed after about 20 seconds with ``Connection timed out''. That
+is a network-level drop, not an authentication failure, which confirms that the
+security group, not the key, keeps other addresses out. \textbf{Limits:} this
+is one mobile network at one moment, and it does not test IPv6 (no AAAA record
+exists).
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/41-hotspot-second-network-probes-2026-10-15.txt}
+\caption{Probes from the phone-hotspot network, October 15, 2026, 18:57 UTC (real output; neither network address is printed).}
+\label{Listing:E41}
+\end{longlisting}
+
+The server's own SSH log gives a second view. It was read at 18:34 UTC, about an hour after the instance started. It lists only successful key logins from the two administrators' keys and 	extbf{zero} failed or invalid attempts (\ListRef{23}), which is consistent with port 22 being reachable only from the approved address. One hour of log is a weak measure, not proof.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/23-sshd-log-sakshi-key-login-verified-2026-10-15.txt}
+\caption{SSH journal on the server, read at 18:34 UTC on October 15, 2026 (source addresses masked; only public-key fingerprints shown).}
+\label{Listing:E23}
+\end{longlisting}
+Figure~\ref{Fig:SgConsole} shows the same rules in the AWS console, on the
+instance's Security tab, with the account number and the administrator's address
+blacked out. It confirms that the instance is running with the Elastic IP, has no
+IPv6 address, requires IMDSv2, and has the security group \texttt{ssw590-g1-gitea}
+attached (launched October 15, 2026, 13:16 Eastern time). The rule list is
+scrolled to its end; the three rules are 80 and 443 from anyone and 22 from the
+redacted administrator address, with the descriptions given when they were
+created. A command-line listing of the same rules is in \ListRef{08}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../evidence/43-aws-console-instance-inbound-rules-redacted-2026-10-15.png}
+\caption{AWS console, instance \texttt{i-0c68ec1bc1e16a414}, Security tab, October 15, 2026 (redacted).}
+\label{Fig:SgConsole}
+\end{figure}
 
 \paragraph{Corrections.}
 None have been needed so far. The only exposure found beyond the plan is
 informational: internet scanners reached the HTTPS port within seconds of the
-site coming online (evidence file 12) and probed for unrelated software, which
+site coming online (\ListRef{12}) and probed for unrelated software, which
 returned 404 responses. Nobody could create an account, because registration
 is disabled.
 

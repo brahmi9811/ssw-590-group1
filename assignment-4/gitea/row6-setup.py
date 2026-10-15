@@ -19,6 +19,9 @@ Every stage is safe to run twice (it skips what already exists).
        if refused, comment on and close issue 4
     4. branch issue-2-contributing with CONTRIBUTING.md and open the pull request
        "Add CONTRIBUTING.md" with "Closes #<issue 2>"  (Sakshi must review and approve it)
+    5. publish the non-secret deployment files (docker-compose.yml, Caddyfile, .env.example,
+       aws/ec2-user-data.sh) to the public repository group1-startup/infra, so the IT manual can
+       link to them (the GitHub repository is private)
 
 Security: the access token is typed at a hidden prompt, kept only in memory, never written to
 disk and never printed. Create it in Gitea > Settings > Applications with the scopes
@@ -273,6 +276,63 @@ def stage_contributing_pr(numbers):
         say("    NEXT: Sakshi reviews it (at least one comment), Brahmi addresses it, Sakshi approves, then merge.")
 
 
+INFRA = "infra"
+INFRA_FULL = f"{ORG}/{INFRA}"
+INFRA_README = """# infra: deployment files for git.ssw590-g1.tech
+
+Non-secret files that run the Group 1 Gitea (SQLite) behind a Caddy reverse proxy on one AWS EC2 instance.
+No passwords, tokens or keys are stored here.
+
+| File | Purpose |
+|---|---|
+| `docker-compose.yml` | Gitea `gitea/gitea:1.27.3` and Caddy `caddy:2.11.7`; only Caddy publishes ports 80 and 443 |
+| `Caddyfile` | Automatic HTTPS (Let's Encrypt) and reverse proxy to `gitea:3000` |
+| `.env.example` | Image versions and the hostname; copy to `.env` |
+| `aws/ec2-user-data.sh` | First-boot script for Amazon Linux 2023: 2 GB swap, Docker, git, pinned Docker Compose |
+
+Deploy: `cp .env.example .env`, then `docker compose config -q && docker compose pull && docker compose up -d`.
+The security group allows 443 and 80 from anyone and 22 only from the administrators' address.
+"""
+
+
+def put_file(repo_full, path, text, message):
+    """Create or update one file on main (Unix line endings, so shell scripts stay runnable)."""
+    text = text.replace("\r\n", "\n")
+    st, cur = api("GET", f"/repos/{repo_full}/contents/{path}?ref=main")
+    payload = {"content": b64(text), "message": message, "branch": "main"}
+    if st == 200 and isinstance(cur, dict) and cur.get("sha"):
+        payload["sha"] = cur["sha"]
+        return api("PUT", f"/repos/{repo_full}/contents/{path}", payload)
+    return api("POST", f"/repos/{repo_full}/contents/{path}", payload)
+
+
+def stage_infra():
+    st, repo = api("GET", f"/repos/{INFRA_FULL}")
+    if st != 200:
+        st, repo = api("POST", f"/orgs/{ORG}/repos", {
+            "name": INFRA, "description": "Non-secret deployment files for git.ssw590-g1.tech",
+            "private": False, "auto_init": True, "default_branch": "main", "readme": "Default"})
+        if st not in (200, 201):
+            say(f"[infra] create repository FAILED (HTTP {st}): {str(repo)[:250]}")
+            return
+        say(f"[infra] repository created: {repo['html_url']}  (private={repo['private']})")
+    else:
+        say(f"[infra] repository exists already: {repo['html_url']}  (private={repo['private']})")
+    here = os.path.dirname(os.path.abspath(__file__))
+    for rel in ("docker-compose.yml", "Caddyfile", ".env.example", "aws/ec2-user-data.sh"):
+        try:
+            with open(os.path.join(here, *rel.split("/")), encoding="utf-8", newline="") as f:
+                text = f.read()
+        except OSError as e:
+            say(f"[infra] cannot read {rel}: {e}")
+            continue
+        st, res = put_file(INFRA_FULL, rel, text, f"Add {rel}")
+        say(f"[infra] {rel}: HTTP {st} ({'ok' if st in (200, 201) else str(res)[:150]})")
+    st, res = put_file(INFRA_FULL, "README.md", INFRA_README, "Describe the deployment files")
+    say(f"[infra] README.md: HTTP {st} ({'ok' if st in (200, 201) else str(res)[:150]})")
+    say(f"[infra] link for the manual: https://git.ssw590-g1.tech/{INFRA_FULL}")
+
+
 def main():
     global TOKEN
     TOKEN = getpass.getpass("Gitea access token (hidden, not saved): ").strip()
@@ -295,6 +355,7 @@ def main():
     else:
         stage_protect(numbers)
         stage_contributing_pr(numbers)
+        stage_infra()
         say("\nYour stages are done. Review Sakshi's README pull request and ask her to review yours.")
     say("\nNow DELETE the token in Gitea > Settings > Applications.")
     say(f"Repository: https://git.ssw590-g1.tech/{FULL}")

@@ -19,6 +19,9 @@
 \usepackage{enumitem}
 \usepackage{listings}
 \usepackage{minted}
+\usepackage{caption}
+% A captioned listing that is NOT a float, so long real command output can break across pages.
+\newenvironment{longlisting}{\captionsetup{type=listing}}{}
 \usepackage{tcolorbox}
 \usepackage{makeidx}
 \usepackage{tikz}
@@ -80,6 +83,10 @@
 \newcommand{\StatusPass}{\textbf{\footnotesize\textcolor{devopsGreen}{PASS}}}
 \newcommand{\StatusPending}{\textbf{\footnotesize\textcolor{devopsGray}{PENDING}}}
 \newcommand{\StatusFail}{\textbf{\footnotesize\textcolor{devopsRed}{FAIL}}}
+% References to the evidence embedded in this PDF (only the PDF is submitted, so
+% evidence is shown inline instead of pointing at repository files).
+\newcommand{\ListRef}[1]{Listing~\ref{Listing:E#1}}
+\newcommand{\FigRef}[1]{Figure~\ref{Fig:E#1}}
 % Marks text a team member still has to supply. Never leave one in a submitted PDF.
 \newcommand{\Todo}[1]{\textcolor{devopsRed}{\textbf{[TODO: #1]}}}
 
