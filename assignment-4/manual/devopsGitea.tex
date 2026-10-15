@@ -160,17 +160,116 @@ The confirmation email shows order \#28974415 with an order total of \$0.00
 \subsection{Database and persistence (10 points)}
 \label{Section:giteaDatabase}
 \index{Gitea!database and persistence}
-\textbf{Owner:} SD. \StatusPending{} No evidence recorded yet.
+\index{SQLite}
+\textbf{Owner:} SD. \textbf{Status:} configuration verified in a local
+rehearsal; evidence from the cloud VM \StatusPending.
 
-\textbf{Required content (from the course manual):}
+\subsubsection{Decision: SQLite}
+Group~1 uses Gitea's built-in SQLite database \cite{GiteaDBPrep}. This was a
+team decision recorded on October 12, 2026. Reasons:
 \begin{itemize}[nosep]
-  \item \textbf{Decision (final, team, October 12, 2026): SQLite.} Record the settings, the database-file path under the persistent \texttt{/data} volume, the volume mount, and why no database secret exists. Justify: two-person team, no extra container or credential, simple consistent backup; note it may not suit higher concurrency
-  \item Repository and issue identifiers created before the test
-  \item Exact container-replacement command (volumes kept), before/after evidence, conclusion
-  \item Not applicable: PostgreSQL is not used, so there is no database port, healthcheck, or database secret to document
+  \item The startup has two members; Gitea's write load is a few pushes,
+  issues, and reviews per day, well within SQLite's capability.
+  \item No second container, database port, or database credential exists, so
+  there is nothing extra to secure, patch, or expose.
+  \item The whole service state (database file and repositories) lives in one
+  volume, which keeps a future backup simple.
 \end{itemize}
+\textbf{Limitation.} SQLite serialises writes in a single file. A larger team
+with many concurrent pushes, or a deployment that runs several Gitea instances
+behind a load balancer, should move to PostgreSQL in its own container
+\cite{DosManual}.
 
-\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+\subsubsection{Settings}
+The database is configured with environment variables in the versioned
+Compose file (\href{\RepoURL/blob/main/assignment-4/gitea/docker-compose.yml}{\texttt{gitea/docker-compose.yml}}),
+which Gitea writes into \texttt{/data/gitea/conf/app.ini} at start-up
+\cite{GiteaConfig}:
+\begin{minted}{yaml}
+services:
+  gitea:
+    environment:
+      GITEA__database__DB_TYPE: sqlite3
+      GITEA__database__PATH: /data/gitea/gitea.db
+    volumes:
+      - gitea_data:/data        # named volume, outside the container layer
+    # no ports: Gitea is reached only by Caddy on the private network
+volumes:
+  gitea_data:
+\end{minted}
+
+\begin{tabularx}{\linewidth}{L{4.2cm}Y}
+\caption{Where Gitea's persistent data lives\label{Table:GiteaDataLocations}}\\
+\toprule \textbf{Item} & \textbf{Location / value}\\ \midrule
+\endfirsthead
+\toprule \textbf{Item} & \textbf{Location / value}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Database type & \texttt{sqlite3} (file, no server)\\
+Database file & \texttt{/data/gitea/gitea.db}\\
+Git repositories & \texttt{/data/git/repositories/<owner>/<repo>.git}\\
+Attachments, avatars, indexes & \texttt{/data/gitea/attachments}, \texttt{avatars}, \texttt{indexers}\\
+Generated configuration & \texttt{/data/gitea/conf/app.ini} (contains generated secrets; never copied into this manual)\\
+Docker volume & \texttt{gitea\_gitea\_data} (Compose project \texttt{gitea}) mounted at \texttt{/data}\\
+Database network port & none: SQLite is a file, so there is no port to publish or firewall\\
+Database credential & none: SQLite has no user or password\\
+\end{tabularx}
+
+Because the volume is mounted from Docker's volume store, it is \emph{outside}
+the container's disposable writable layer: removing or recreating the
+container does not touch it. Only an explicit \texttt{docker compose down -v}
+or \texttt{docker volume rm} deletes it, and both are forbidden in the team's
+runbook (Section~\ref{Section:giteaArchitecture}).
+
+\subsubsection{Persistence test procedure}
+The test is scripted in
+\href{\RepoURL/blob/main/assignment-4/sd/persistence-test.sh}{\texttt{assignment-4/sd/persistence-test.sh}}
+so it can be repeated exactly. Run on the Docker host from
+\texttt{assignment-4/gitea}, it:
+\begin{enumerate}[nosep]
+  \item creates repository \texttt{persistence-check} (with an initial README
+  commit) and issue \#1 through the Gitea API, unless they already exist;
+  \item records the container ID and creation time, the volume mount, the
+  database file, and the repository, issue, and \texttt{main} commit IDs;
+  \item replaces \emph{only} the Gitea container, keeping volumes:
+\begin{minted}{bash}
+docker compose up -d --force-recreate gitea
+\end{minted}
+  \item waits for the health check, then records the same items again.
+\end{enumerate}
+The password is read from the terminal and never printed.
+
+\subsubsection{Evidence}
+\begin{devopsNote}[Local rehearsal, October 12, 2026: not graded evidence]
+The procedure was rehearsed on SD's workstation (Docker Desktop, Gitea
+1.27.3, Caddy 2.11.7, \texttt{https://localhost}). The container ID changed
+from \texttt{fdca1b83aa58} to \texttt{c1e3fb1ba256}; repository id~1, issue
+\#1 (open) and commit \texttt{19b82109db90} were unchanged afterwards. This
+only shows the procedure works; the graded result is the run on the cloud VM
+below.
+\end{devopsNote}
+
+\begin{tabularx}{\linewidth}{L{4.6cm}L{4.6cm}Y}
+\caption{Persistence test on the cloud VM\label{Table:PersistenceTest}}\\
+\toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual (VM)}\\ \midrule
+\endfirsthead
+\toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual (VM)}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Container ID before / after & different & \StatusPending\\
+Volume mounted at \texttt{/data} & \texttt{gitea\_gitea\_data} both times & \StatusPending\\
+Repository \texttt{persistence-check} & same id before and after & \StatusPending\\
+Issue \#1 & present, same id and state & \StatusPending\\
+\texttt{main} commit & same commit ID & \StatusPending\\
+\end{tabularx}
+
+\Todo{after G3: run persistence-test.sh on the VM, paste the sanitized log
+below with \texttt{\string\inputminted}, fill the Actual column with date and
+time, and add a dated screenshot of the repository and issue.}
+
+\subsubsection{Conclusion}
+\Todo{write after the VM run.} This test shows that data survives replacement
+of the container. It is \emph{not} a backup or restore test: no copy of the
+data exists outside the volume, so losing the volume or the VM disk would
+still lose the data (see Section~\ref{Section:giteaArchitecture}).
 
 % ======================================================================
 % Region: giteaHttps (single owner; edit only your own region)
@@ -214,52 +313,198 @@ The confirmation email shows order \#28974415 with an order total of \$0.00
 \subsection{Startup team workflow (20 points)}
 \label{Section:giteaWorkflow}
 \index{Gitea!startup team workflow}
-\textbf{Owner:} SD. \StatusPending{} No evidence recorded yet.
+\index{pull request}
+\textbf{Owner:} SD (BD is the second member and reviewer). \textbf{Status:}
+backlog prepared; Gitea work \StatusPending{} until the service is live (G3).
 
-\textbf{Required content (from the course manual):}
-\begin{itemize}[nosep]
-  \item Links to the organization and product repository; README
-  \item Two members and their roles
-  \item At least five actionable issues (product and operations)
-  \item Two issues traced through linked branch/PR, peer review, merge, closure (needs both members)
-\end{itemize}
+\subsubsection{Organization, repository, and members}
+\begin{tabularx}{\linewidth}{L{3.6cm}Y}
+\toprule \textbf{Item} & \textbf{Value}\\ \midrule
+Organization & \Todo{link: \GiteaURL/<org>}\\
+Product repository & \Todo{link: \GiteaRepoURL}\\
+README & \Todo{link and screenshot}\\
+Member: Brahmi Dalvi & \Todo{role, e.g.\ organization owner (infrastructure)}\\
+Member: Sakshi Deshpande & \Todo{role, e.g.\ member of a team with write access (product)}\\
+\end{tabularx}
 
-\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+\subsubsection{Backlog}
+At least five actionable issues mixing product and operations work. The
+planned issues are listed in Table~\ref{Table:GiteaBacklog}.
+\Todo{replace each ``--'' with the linked Gitea issue number once created.}
+
+\begin{tabularx}{\linewidth}{L{0.8cm}YL{2.0cm}L{1.8cm}}
+\caption{Startup backlog\label{Table:GiteaBacklog}}\\
+\toprule \textbf{\#} & \textbf{Issue} & \textbf{Type} & \textbf{Assignee}\\ \midrule
+\endfirsthead
+\toprule \textbf{\#} & \textbf{Issue} & \textbf{Type} & \textbf{Assignee}\\ \midrule
+\endhead \bottomrule \endlastfoot
+-- & Write the product README: what TwinTrack is, who it is for, how to run it locally & product & SD\\
+-- & Define the TwinTrack task data model (fields, states) and add it to \texttt{docs/} & product & SD\\
+-- & Add a \texttt{CONTRIBUTING.md} describing the issue $\rightarrow$ branch $\rightarrow$ pull request $\rightarrow$ review flow & operations & BD\\
+-- & Protect \texttt{main}: require a pull request and one approving review & operations & BD\\
+-- & Document the Gitea restart and troubleshooting runbook & operations & SD\\
+-- & Add the domain expiry date (October 15, 2027) to the shared team calendar and name its owner & operations & BD\\
+\end{tabularx}
+
+\subsubsection{Issue-to-merge traces}
+Two issues are carried through the full workflow: a branch named after the
+issue, a pull request whose description contains \texttt{Closes \#N}, a review
+and approval by the \emph{other} member, a merge, and automatic closure of the
+issue.
+\begin{tabularx}{\linewidth}{L{2.2cm}YY}
+\caption{Issue-to-merge traces\label{Table:GiteaTraces}}\\
+\toprule \textbf{Step} & \textbf{Trace 1} & \textbf{Trace 2}\\ \midrule
+\endfirsthead
+\toprule \textbf{Step} & \textbf{Trace 1} & \textbf{Trace 2}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Issue & \Todo{\#N README (SD)} & \Todo{\#N CONTRIBUTING (BD)}\\
+Branch & \Todo{\texttt{issue-N-readme}} & \Todo{\texttt{issue-N-contributing}}\\
+Pull request & \Todo{link, ``Closes \#N''} & \Todo{link}\\
+Reviewer & \Todo{BD, approved, date} & \Todo{SD, approved, date}\\
+Merge commit & \Todo{ID} & \Todo{ID}\\
+Issue closed & \Todo{auto-closed by merge, date} & \Todo{auto-closed by merge, date}\\
+\end{tabularx}
+
+\Todo{after G3, with BD: create the organization, repository, accounts, and
+issues; run both traces; add dated screenshots of the issue list, one PR
+review, and a closed issue.}
 
 % ======================================================================
 % Region: giteaArchitecture (single owner; edit only your own region)
 \subsection{Architecture and operation (5 points)}
 \label{Section:giteaArchitecture}
 \index{Gitea!architecture and operation}
-\textbf{Owner:} SD. \StatusPending{} No evidence recorded yet.
+\index{runbook}
+\textbf{Owner:} SD. \textbf{Status:} design and runbook written and rehearsed
+locally; the figure must be confirmed against the live VM \StatusPending.
 
-\textbf{Required content (from the course manual):}
-\begin{itemize}[nosep]
-  \item Architecture diagram: end-to-end request and data paths
-  \item Where data lives; which interfaces are public vs.\ private
-  \item How the team restarts and troubleshoots the service
-  \item Persistence test is not a backup/restore test
-\end{itemize}
+\subsubsection{Architecture}
+Figure~\ref{Figure:GiteaArchitecture} shows the deployment, adapted from the
+course reference design \cite{DosManual} for the SQLite path only. Black
+arrows cross the public internet; blue arrows stay inside the VM.
 
-\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+\begin{figure}[htbp]
+\centering
+\resizebox{\linewidth}{!}{\input{TikZ/devopsGitea/devopsGiteaArchitecture.tex}}
+\caption{Group~1 Gitea deployment on one cloud VM. The cloud firewall admits
+HTTPS (443) and HTTP (80, redirect and certificate validation only) from
+anyone, and SSH (22) only from approved team IPs. Only Caddy publishes ports;
+Gitea's port 3000 and the SQLite file are private
+\cite{DosManual,GiteaDocker,CaddyAutoHTTPS}.}
+\label{Figure:GiteaArchitecture}
+\end{figure}
+
+\subsubsection{Request path}
+\begin{enumerate}[nosep]
+  \item The browser resolves \GiteaHost{} through public DNS to the VM's
+  address and connects on 443.
+  \item The cloud firewall admits 443 (and 80) and drops every other port
+  except SSH from approved IPs.
+  \item Caddy terminates TLS with the hostname certificate stored in
+  \texttt{caddy\_data}. A request on port 80 is redirected to HTTPS.
+  \item Caddy forwards the request as plain HTTP over the private Compose
+  network \texttt{web} to \texttt{gitea:3000}, found by service name.
+  \item Gitea reads and writes the SQLite file and the bare Git repositories
+  in the \texttt{gitea\_data} volume and returns the page through Caddy.
+\end{enumerate}
+Git clone and push use the same HTTPS path; Gitea's built-in SSH clone is
+disabled (\texttt{DISABLE\_SSH=true}). The image's own \texttt{sshd} still
+listens on port 22 \emph{inside} the container, but that port is not
+published, so it is unreachable from outside the VM.
+
+\subsubsection{Public and private interfaces}
+\begin{tabularx}{\linewidth}{L{3.3cm}L{2.2cm}Y}
+\caption{Interfaces and exposure\label{Table:GiteaInterfaces}}\\
+\toprule \textbf{Interface} & \textbf{Exposure} & \textbf{Notes}\\ \midrule
+\endfirsthead
+\toprule \textbf{Interface} & \textbf{Exposure} & \textbf{Notes}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Caddy 443/TCP & public & HTTPS for the web UI and Git\\
+Caddy 80/TCP & public & redirect to HTTPS and ACME HTTP-01 only\\
+Host SSH 22/TCP & restricted & approved team IPs only (Section~\ref{Section:giteaFirewall})\\
+Gitea 3000/TCP & private & Compose network only, no host port mapping\\
+Container sshd 22 & private & not published\\
+SQLite & none & a file, not a network service\\
+\end{tabularx}
+
+\subsubsection{Where data lives}
+All Gitea state is in the named volume \texttt{gitea\_data}
+(Table~\ref{Table:GiteaDataLocations}); TLS certificates and the ACME account
+are in \texttt{caddy\_data}. The volumes are on the VM's disk. Containers hold
+no state and can be replaced at any time.
+
+\subsubsection{Operating runbook}
+All commands run on the VM from \texttt{assignment-4/gitea}.
+\begin{minted}{bash}
+docker compose ps                      # both services Up; gitea (healthy)
+docker compose logs --tail=100 gitea   # application errors
+docker compose logs --tail=100 caddy   # TLS issuance/renewal, proxy errors
+docker compose restart gitea           # restart without recreating
+docker compose up -d                   # re-apply the Compose file after a change
+docker compose pull && docker compose up -d   # after changing a pinned tag in .env
+curl -sI https://<host>/api/healthz    # end-to-end check through Caddy
+\end{minted}
+\begin{tabularx}{\linewidth}{L{4.4cm}Y}
+\caption{Troubleshooting\label{Table:GiteaTroubleshooting}}\\
+\toprule \textbf{Symptom} & \textbf{Check}\\ \midrule
+\endfirsthead
+\toprule \textbf{Symptom} & \textbf{Check}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Browser cannot connect & DNS points at the VM; firewall allows 443; \texttt{docker compose ps} shows Caddy Up\\
+502 Bad Gateway & Gitea is down or unhealthy: \texttt{docker compose logs gitea}\\
+Certificate error & \texttt{docker compose logs caddy}; port 80/443 reachable for ACME; \texttt{caddy\_data} still mounted\\
+Data appears missing & \texttt{docker volume ls} still lists \texttt{gitea\_gitea\_data}; the Compose project name has not changed\\
+\end{tabularx}
+\textbf{Never run} \texttt{docker compose down -v} or \texttt{docker volume rm}
+on the VM: they delete the volumes and all data.
+
+\subsubsection{Persistence is not backup}
+The persistence test (Section~\ref{Section:giteaDatabase}) proves data
+survives a \emph{container} replacement because it lives on a volume. A backup
+is a separate copy of that data, stored elsewhere, that has been restored
+successfully. Without one, deleting the volume, losing the VM disk, or
+corrupting the database still loses everything. A verified backup and restore
+is the optional extra credit (Section~\ref{Section:giteaExtraCredit}).
+
+\Todo{after G3: confirm provider, VM name, and hostname in the figure and text
+match the live deployment.}
 
 % ======================================================================
 % Region: giteaManualQuality (single owner; edit only your own region)
 \subsection{Manual quality and controls (15 points)}
 \label{Section:giteaManualQuality}
 \index{Gitea!manual quality and controls}
-\textbf{Owner:} SD. \StatusPending{} No evidence recorded yet.
+\textbf{Owner:} SD. \textbf{Status:} \StatusPending{} until every other
+region has its final evidence.
 
-\textbf{Required content (from the course manual):}
-\begin{itemize}[nosep]
-  \item Increase the manual version; dated history entries for initial setup and this update, linking sections and evidence
-  \item Update Hosts and Passwords tables (hints only) and mention both in the history
-  \item Headings, captions, citations, glossary/index entries; secrets redacted
-  \item State any failed tests and corrective actions
-\end{itemize}
+\begin{tabularx}{\linewidth}{L{5.0cm}L{1.9cm}Y}
+\caption{Manual quality controls\label{Table:ManualQuality}}\\
+\toprule \textbf{Control} & \textbf{Status} & \textbf{Where / note}\\ \midrule
+\endfirsthead
+\toprule \textbf{Control} & \textbf{Status} & \textbf{Where / note}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Manual version increased & \StatusPending & \Todo{0.1 $\rightarrow$ 1.0 at submission}\\
+History: initial setup entry & \StatusPass & Version 0.1, Table~\ref{Table:DocumentHistory}\\
+History: this update, with links & \StatusPending & Table~\ref{Table:DocumentHistory}\\
+Hosts and Passwords tables current, hints only, named in history & \StatusPending & \ChapterRef{HostsPasswords}; tables owned by BD\\
+Headings, captions, labels & \StatusPending & full PDF read-through\\
+Citations for external facts & \StatusPending & Bibliography\\
+Glossary and index entries for new terms & \StatusPending & Glossary, Index\\
+Secrets and IPs redacted in text and screenshots & \StatusPending & every figure and listing\\
+Hyperlinks to Gitea repository and hostname work & \StatusPending & \GiteaURL\\
+No \texttt{\string\Todo}, undefined references, or build errors & \StatusPending & final build log\\
+\end{tabularx}
 
-\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
-
+\subsubsection{Failed tests and corrective actions}
+\begin{tabularx}{\linewidth}{L{2.3cm}YY}
+\caption{Failed tests and corrective actions\label{Table:FailedTests}}\\
+\toprule \textbf{Date} & \textbf{What failed} & \textbf{Correction}\\ \midrule
+\endfirsthead
+\toprule \textbf{Date} & \textbf{What failed} & \textbf{Correction}\\ \midrule
+\endhead \bottomrule \endlastfoot
+October 12, 2026 & First local run of \texttt{persistence-test.sh} (rehearsal) stopped with a Python syntax error in the script's output formatting. & Fixed the quoting; the rerun completed. No data was affected.\\
+\multicolumn{3}{l}{\Todo{collect failed attempts from BD and SD before submission}}\\
+\end{tabularx}
 
 \section{Extra Credit}
 % ======================================================================

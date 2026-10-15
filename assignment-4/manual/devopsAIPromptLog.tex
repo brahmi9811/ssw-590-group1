@@ -27,3 +27,25 @@ decisions recorded: SQLite is the final database choice; Brahmi Dalvi owns the
 cloud deployment, DNS, HTTPS, and firewall work; the 20-point backup/restore
 extra credit is optional and unassigned. Human review and corrections:
 \Todo{BD/SD to record review of these drafts}.
+
+\section{Record: SD Regions of the Gitea Chapter (Draft)}
+Date: October 12, 2026; Tool and model: Claude Code (Claude Opus 5.5);
+Task: carry out Phase~A of SD's plan (\texttt{assignment-4/SAKSHI.md}) without
+any cloud resources: local rehearsal of the Gitea and Caddy stack, a
+persistence rehearsal, and drafts of the \texttt{giteaDatabase},
+\texttt{giteaWorkflow}, \texttt{giteaArchitecture}, and
+\texttt{giteaManualQuality} regions. Inputs: the course manual
+\cite{DosManual} Chapters 1--2 and Appendix~A, the team's
+\texttt{README.md} and \texttt{SAKSHI.md}, and the draft files in
+\texttt{gitea/}. Output used: the four region drafts, the architecture
+figure, the script \texttt{assignment-4/sd/persistence-test.sh}, a backlog
+draft, and glossary, bibliography, and history lines. The assistant ran the
+stack on SD's workstation at \texttt{https://localhost} with Caddy's local
+certificate authority, created a throwaway local administrator whose generated
+password was kept in a private file outside the repository and never printed,
+and ran the persistence script twice (the first run failed on a quoting bug,
+recorded in Table~\ref{Table:FailedTests}). Only the rehearsal's container and
+object IDs are quoted, inside a box marked as not graded; every VM result is
+\StatusPending. The assistant did not edit BD's regions, \texttt{gitea/}, or
+the root file, and created no cloud resources. Human review and corrections:
+\Todo{SD to record her review of these drafts}.
