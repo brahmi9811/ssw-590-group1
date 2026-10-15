@@ -38,6 +38,8 @@ _Last updated: Oct 15, 2026 (HTTPS live, admin `brahmi` works, Sakshi's `sd/gite
 | Your work committed (`4f691a0`) and Sakshi's branch **`sd/gitea` merged into `main`** (merge commit `1d3de7b`), pushed; `main` is in sync with `origin/main`; no PDF tracked | Oct 15 | Her branch only touched her regions and shared append-only files |
 | Read-only server pre-checks of Sakshi's persistence script: all its assumptions hold (python3 3.9, container `gitea` healthy, volume `gitea_gitea_data` -> `/data`, DB `/data/gitea/gitea.db` 2.1 MB, server reaches its own HTTPS URL, API 1.27.3) | Oct 15 | Evidence 15. Her script is not run yet; it is her row 3 task |
 | `README.md` working agreement changed: **work on `main`, no new branches**; `SAKSHI.md` has a status section, steps and a verification table for her rows | Oct 15 | |
+| **Gitea organization `group1-startup` and team `developers` created** (Write on all repositories, no members yet); Brahmi is the only member | Oct 15 | Evidence 16. Org visibility not shown in the screenshot; confirm it is Public |
+| Brahmi joined the `developers` team herself (team now shows 1 member, badge Public) | Oct 15 | Evidence 17. Sakshi is not a member yet |
 | Budget already exists: "My Monthly Cost Budget", **$15.00/month**; used $3.13, forecast $3.12 (before the new instance) | Oct 15 | Evidence 07. Thresholds/email not visible in the screenshot |
 
 ### Pending (in order)
@@ -51,7 +53,7 @@ _Last updated: Oct 15, 2026 (HTTPS live, admin `brahmi` works, Sakshi's `sd/gite
 | 5 | ~~Security group, key pair, instance, Elastic IP~~ (all done) | |
 | 6 | ~~DNS record, lookup, SSH test~~ (done). Optional: Sakshi runs `nslookup git.ssw590-g1.tech 8.8.8.8` from her side | |
 | 7 | ~~Deploy Gitea + Caddy, create first admin~~ (done) | |
-| 7a | **Hand-off to Sakshi (B7), now unblocked:** (1) ask her for her SSH **public** key and add it to `~/.ssh/authorized_keys` on the server (her public IP is the same as yours, so the security group already allows her); (2) create her Gitea account in the admin UI (site administration, user accounts, "must change password"), give her the temporary password through a password manager, never chat; (3) create the Gitea organization `group1-startup` (her backlog draft names you as owner) and add her; (4) tell her it is ready | you |
+| 7a | **Hand-off to Sakshi, in progress.** Done: organization + `developers` team. **Left:** (1) message sent to Sakshi asking for a NEW key `ssw590-g1-sakshi.pub` and her email; she first sent a default `id_ed25519.pub` that Brahmi chose to set aside; (2) add her public key to `authorized_keys` on the server; (3) create her Gitea account (`sakshi`, non-admin, must change password) and add her to `developers`; (4) tell her it is ready | you |
 | 7b | **Write your three manual regions from real evidence:** `giteaDeployment` (evidence 09, 11, 12, 14), `giteaHttps` (certificate comparison + evidence 12, 13), `giteaFirewall` (evidence 08, 13 + a second-network test). Claude can draft these | you + Claude |
 | 8 | Remaining HTTPS/exposure evidence: a real **renewal test** (e.g. temporarily use Let's Encrypt staging, or another honest method); external test from a **second network** (phone hotspot) for SSH/80/443/3000; confirm the hostname loads in a browser (screenshot) | after #7 |
 | 9 | Hand Sakshi access: URL, her public SSH key, a Gitea account (B7) | #8 |
