@@ -783,59 +783,116 @@ are reachable. The two address different risks, so both are needed
 \index{Gitea!startup team workflow}
 \index{pull request}
 \textbf{Owner:} SD (BD is the second member and reviewer). \textbf{Status:}
-backlog prepared; Gitea work \StatusPending{} until the service is live (G3).
+organization, repository, backlog, and two reviewed, merged, issue-closing
+pull requests on October 15, 2026 \StatusPass.
 
 \subsubsection{Organization, repository, and members}
 \begin{tabularx}{\linewidth}{L{3.6cm}Y}
+\caption{Startup organization and members\label{Table:GiteaOrg}}\\
 \toprule \textbf{Item} & \textbf{Value}\\ \midrule
-Organization & \Todo{link: \GiteaURL/<org>}\\
-Product repository & \Todo{link: \GiteaRepoURL}\\
-README & \Todo{link and screenshot}\\
-Member: Brahmi Dalvi & \Todo{role, e.g.\ organization owner (infrastructure)}\\
-Member: Sakshi Deshpande & \Todo{role, e.g.\ member of a team with write access (product)}\\
+\endfirsthead
+\toprule \textbf{Item} & \textbf{Value}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Organization & \href{https://git.ssw590-g1.tech/group1-startup}{\texttt{group1-startup}}\\
+Product repository & \href{https://git.ssw590-g1.tech/group1-startup/twintrack}{\texttt{group1-startup/twintrack}} (public, so the TA and instructor can inspect it signed out); default branch \texttt{main}\\
+README & \href{https://git.ssw590-g1.tech/group1-startup/twintrack/src/branch/main/README.md}{\texttt{README.md}} on \texttt{main}, added by pull request \#8\\
+Member: Brahmi Dalvi (\texttt{brahmi}) & organization owner and Gitea site administrator (infrastructure); also in team \texttt{developers}\\
+Member: Sakshi Deshpande (\texttt{sakshi}) & team \texttt{developers}: write access to code, issues, and pull requests; cannot create repositories in the organization or change settings (product)\\
+Branch rule on \texttt{main} & no direct pushes, one approving review required; a direct commit by the administrator was refused with HTTP~403 (issue \#4)\\
 \end{tabularx}
+The least-privilege split was confirmed by a real failure: SD's first attempt
+to create the repository returned HTTP~403 ``User is not allowed to create
+repositories in this organization'', so BD, as owner, created it
+(Table~\ref{Table:FailedTests}).
 
 \subsubsection{Backlog}
-At least five actionable issues mixing product and operations work. The
-planned issues are listed in Table~\ref{Table:GiteaBacklog}.
-\Todo{replace each ``--'' with the linked Gitea issue number once created.}
+Six actionable issues mix product and operations work
+(Table~\ref{Table:GiteaBacklog}). They were created through the Gitea API by
+the setup script \texttt{assignment-4/gitea/row6-setup.py}, run by each member
+with a personal token typed at a hidden prompt and deleted afterwards
+(\ListRef{26}).
 
-\begin{tabularx}{\linewidth}{L{0.8cm}YL{2.0cm}L{1.8cm}}
-\caption{Startup backlog\label{Table:GiteaBacklog}}\\
-\toprule \textbf{\#} & \textbf{Issue} & \textbf{Type} & \textbf{Assignee}\\ \midrule
+\begin{tabularx}{\linewidth}{L{0.6cm}YL{1.9cm}L{1.6cm}L{2.6cm}}
+\caption{Startup backlog in \texttt{group1-startup/twintrack}, October 15, 2026\label{Table:GiteaBacklog}}\\
+\toprule \textbf{\#} & \textbf{Issue} & \textbf{Type} & \textbf{Assignee} & \textbf{State}\\ \midrule
 \endfirsthead
-\toprule \textbf{\#} & \textbf{Issue} & \textbf{Type} & \textbf{Assignee}\\ \midrule
+\toprule \textbf{\#} & \textbf{Issue} & \textbf{Type} & \textbf{Assignee} & \textbf{State}\\ \midrule
 \endhead \bottomrule \endlastfoot
--- & Write the product README: what TwinTrack is, who it is for, how to run it locally & product & SD\\
--- & Define the TwinTrack task data model (fields, states) and add it to \texttt{docs/} & product & SD\\
--- & Add a \texttt{CONTRIBUTING.md} describing the issue $\rightarrow$ branch $\rightarrow$ pull request $\rightarrow$ review flow & operations & BD\\
--- & Protect \texttt{main}: require a pull request and one approving review & operations & BD\\
--- & Document the Gitea restart and troubleshooting runbook & operations & SD\\
--- & Add the domain expiry date (October 15, 2027) to the shared team calendar and name its owner & operations & BD\\
+\href{https://git.ssw590-g1.tech/group1-startup/twintrack/issues/1}{1} & Write the product README & product & SD & closed by PR \#8\\
+\href{https://git.ssw590-g1.tech/group1-startup/twintrack/issues/2}{2} & Add CONTRIBUTING.md for the issue, branch, PR, review flow & operations & BD & closed by PR \#7\\
+\href{https://git.ssw590-g1.tech/group1-startup/twintrack/issues/3}{3} & Define the TwinTrack task data model & product & SD & open\\
+\href{https://git.ssw590-g1.tech/group1-startup/twintrack/issues/4}{4} & Protect \texttt{main}: require PR + 1 approval & operations & BD & closed after the refusal test\\
+\href{https://git.ssw590-g1.tech/group1-startup/twintrack/issues/5}{5} & Document the Gitea restart and troubleshooting runbook & operations & SD & open\\
+\href{https://git.ssw590-g1.tech/group1-startup/twintrack/issues/6}{6} & Add the domain expiry date (October 15, 2027) to the shared calendar and name its owner & operations & BD & open\\
 \end{tabularx}
 
 \subsubsection{Issue-to-merge traces}
-Two issues are carried through the full workflow: a branch named after the
-issue, a pull request whose description contains \texttt{Closes \#N}, a review
-and approval by the \emph{other} member, a merge, and automatic closure of the
-issue.
-\begin{tabularx}{\linewidth}{L{2.2cm}YY}
-\caption{Issue-to-merge traces\label{Table:GiteaTraces}}\\
-\toprule \textbf{Step} & \textbf{Trace 1} & \textbf{Trace 2}\\ \midrule
-\endfirsthead
-\toprule \textbf{Step} & \textbf{Trace 1} & \textbf{Trace 2}\\ \midrule
-\endhead \bottomrule \endlastfoot
-Issue & \Todo{\#N README (SD)} & \Todo{\#N CONTRIBUTING (BD)}\\
-Branch & \Todo{\texttt{issue-N-readme}} & \Todo{\texttt{issue-N-contributing}}\\
-Pull request & \Todo{link, ``Closes \#N''} & \Todo{link}\\
-Reviewer & \Todo{BD, approved, date} & \Todo{SD, approved, date}\\
-Merge commit & \Todo{ID} & \Todo{ID}\\
-Issue closed & \Todo{auto-closed by merge, date} & \Todo{auto-closed by merge, date}\\
-\end{tabularx}
+Each trace has an issue, a branch named after it, a pull request whose
+description contains \texttt{Closes \#N}, a comment and an approving review by
+the \emph{other} member, a merge, and automatic closure of the issue. Gitea
+numbers pull requests in the same sequence as issues, so the first pull
+request is \#7. All times are UTC from the Gitea API (\ListRef{30}).
 
-\Todo{after G3, with BD: create the organization, repository, accounts, and
-issues; run both traces; add dated screenshots of the issue list, one PR
-review, and a closed issue.}
+\begin{tabularx}{\linewidth}{L{2.3cm}YY}
+\caption{Issue-to-merge traces, October 15, 2026\label{Table:GiteaTraces}}\\
+\toprule \textbf{Step} & \textbf{Trace 1 (author SD)} & \textbf{Trace 2 (author BD)}\\ \midrule
+\endfirsthead
+\toprule \textbf{Step} & \textbf{Trace 1 (author SD)} & \textbf{Trace 2 (author BD)}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Issue & \href{https://git.ssw590-g1.tech/group1-startup/twintrack/issues/1}{\#1} Write the product README & \href{https://git.ssw590-g1.tech/group1-startup/twintrack/issues/2}{\#2} Add CONTRIBUTING.md\\
+Branch & \texttt{issue-1-readme} & \texttt{issue-2-contributing}\\
+Pull request & \href{https://git.ssw590-g1.tech/group1-startup/twintrack/pulls/8}{\#8} ``Add product README'', body ``Closes \#1'', opened 19:40:12 & \href{https://git.ssw590-g1.tech/group1-startup/twintrack/pulls/7}{\#7} ``Add CONTRIBUTING.md'', body ``Closes \#2'', opened 19:31:18\\
+Reviewer comment & BD, 19:47:09 & SD, 19:39:04 (asks that authors reply to or resolve each comment before approval)\\
+Approval & BD, APPROVED, 19:47:21 & SD, APPROVED, 19:46:27\\
+Merge & by SD, 19:47:45, commit \texttt{15f8a00343} & by BD, 19:49:04, commit \texttt{0d0c3dac4d}\\
+Issue closed & \#1 closed 19:47:45 by the merge & \#2 closed 19:49:04 by the merge\\
+\end{tabularx}
+\textbf{Review quality, stated honestly.} Both reviews were real approvals by
+the other member, enforced by the branch rule (``0 of 1 official approvals''
+blocked the merge until then; \FigRef{25}). They were light: BD's comment on
+\#8 was a placeholder (``comment from brahmi''), and SD's request on \#7 was
+approved and merged without a reply or a change to \texttt{CONTRIBUTING.md}.
+SD's suggestion remains open as a follow-up for the next contribution.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{../evidence/25-twintrack-pr7-sakshi-review-comment-2026-10-15.png}
+\caption{Pull request \#7 before approval, October 15, 2026: SD's review comment, and the merge blocked with ``0 of 1 official approvals granted''.}
+\label{Fig:E25}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{../evidence/27-twintrack-pr7-approved-by-sakshi-merged-by-brahmi-2026-10-15.png}
+\caption{Pull request \href{https://git.ssw590-g1.tech/group1-startup/twintrack/pulls/7}{\#7} merged, October 15, 2026: ``Closes \#2'', approved by \texttt{sakshi}, merged by \texttt{brahmi} as commit \texttt{0d0c3dac4d}.}
+\label{Fig:E27}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{../evidence/28-twintrack-pr8-approved-by-brahmi-merged-by-sakshi-2026-10-15.png}
+\caption{Pull request \href{https://git.ssw590-g1.tech/group1-startup/twintrack/pulls/8}{\#8} merged, October 15, 2026: ``Closes \#1'', approved by \texttt{brahmi}, merged by \texttt{sakshi} as commit \texttt{15f8a00343}.}
+\label{Fig:E28}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{../evidence/29-twintrack-closed-issues-1-2-4-2026-10-15.png}
+\caption{Closed issues in \texttt{twintrack}, October 15, 2026: \#1 and \#2 closed by their merges, \#4 closed after the branch-protection test.}
+\label{Fig:E29}
+\end{figure}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/26-row6-setup-script-sakshi-run-pr8-opened-2026-10-15.txt}
+\caption{SD's run of the setup script, which opened pull request \#8, October 15, 2026 (real output; no token in it).}
+\label{Listing:E26}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/30-twintrack-row6-workflow-anonymous-api-2026-10-15.txt}
+\caption{The whole workflow read from the public Gitea API without a token, October 15, 2026, 19:49:50~UTC: issues, branch rule, both pull requests with comments, approvals, merges, and merge commits.}
+\label{Listing:E30}
+\end{longlisting}
 
 % ======================================================================
 % Region: giteaArchitecture (single owner; edit only your own region)
@@ -1006,6 +1063,7 @@ No \texttt{\string\Todo}, undefined references, or build errors & \StatusPending
 \toprule \textbf{Date} & \textbf{What failed} & \textbf{Correction}\\ \midrule
 \endhead \bottomrule \endlastfoot
 October 12, 2026 & First local run of \texttt{persistence-test.sh} (rehearsal) stopped with a Python syntax error in the script's output formatting. & Fixed the quoting; the rerun completed. No data was affected.\\
+October 15, 2026 & SD's first run of \texttt{row6-setup.py} could not create the product repository: HTTP~403 ``User is not allowed to create repositories in this organization''. Nothing was created. & Expected under least privilege (team \texttt{developers} cannot create repositories). BD, as owner, ran her stages first; SD's rerun skipped what existed and opened pull request \#8.\\
 \multicolumn{3}{l}{\Todo{collect failed attempts from BD and SD before submission}}\\
 \end{tabularx}
 
