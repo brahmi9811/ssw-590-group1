@@ -8,7 +8,7 @@ This chapter answers the course manual's Chapter~2 \cite{DosManual}: the
 startup's Gitea work hub with a student domain, HTTPS, minimal public
 exposure, and persistent data. The eight numbered subsections below match the
 eight rubric rows (100 points) in the same order. Optional backup and restore
-evidence is a separate extra-credit subsection and is not part of the eight; it is optional and has no owner; the group will decide later whether time allows it.
+evidence is a separate extra-credit subsection and is not part of the eight; it is optional, and the group did not attempt it.
 
 \begin{devopsNote}[Provider status]
 The assignment specifies a DigitalOcean Droplet. Group~1 asked the instructor
@@ -35,7 +35,7 @@ Firewall and external exposure & 15 & BD & \StatusPending\\
 Startup team workflow & 20 & SD & \StatusPending\\
 Architecture and operation & 5 & SD & \StatusPending\\
 Manual quality and controls & 15 & SD & \StatusPending\\
-Extra credit: backup and restore (optional) & up to 20 & unassigned & \StatusPending\\
+Extra credit: backup and restore (optional) & up to 20 & none & Not attempted\\
 \end{tabularx}
 
 \section{Required Subsections}
@@ -112,7 +112,10 @@ turned off.
 \paragraph{Renewal tracking.}
 The group does not plan to renew: the domain is needed only through grading,
 and the TA and instructor must be able to reach the service until then. Expiry
-is October 15, 2027. \Todo{name the owner and calendar reminder for this date}
+is October 15, 2027. Brahmi Dalvi owns this date. It is recorded in the Hosts
+table (Table~\ref{Table:Hosts}), and issue \#6 in the product repository, assigned
+to her, tracks adding a calendar reminder; that issue was still open on October
+15, 2026, so no calendar event is claimed here.
 
 \paragraph{DNS record.}
 In Name.com's DNS manager the group created one record, \texttt{A git.ssw590-g1.tech
@@ -737,7 +740,7 @@ exists).
 \label{Listing:E41}
 \end{longlisting}
 
-The server's own SSH log gives a second view. It was read at 18:34 UTC, about an hour after the instance started. It lists only successful key logins from the two administrators' keys and 	extbf{zero} failed or invalid attempts (\ListRef{23}), which is consistent with port 22 being reachable only from the approved address. One hour of log is a weak measure, not proof.
+The server's own SSH log gives a second view. It was read at 18:34 UTC, about an hour after the instance started. It lists only successful key logins from the two administrators' keys and \textbf{zero} failed or invalid attempts (\ListRef{23}), which is consistent with port 22 being reachable only from the approved address. One hour of log is a weak measure, not proof.
 
 \begin{longlisting}
 \inputminted[fontsize=\scriptsize]{text}{../evidence/23-sshd-log-sakshi-key-login-verified-2026-10-15.txt}
@@ -1053,7 +1056,7 @@ Citations for external facts & \StatusPass & Course manual, Gitea, Caddy, Let's 
 Glossary and index entries for new terms & \StatusPass & Glossary, Acronyms, Index\\
 Secrets and addresses redacted & \StatusPass & Scripted scan of all chapter sources and of every command-output file printed in the PDF for private keys, access tokens, AWS keys and account numbers, passwords, e-mail addresses, and IPv4 addresses. Only expected addresses remain: the server's public Elastic IP (published in DNS anyway), public DNS resolvers, loopback, and private Docker and AWS addresses. Every screenshot was inspected by eye; the AWS console screenshot is redacted, and browser tab bars with unrelated personal tabs were cropped\\
 Hyperlinks to the Gitea service, organization, repositories, issues, and pull requests & \StatusPass & Repositories are public, so the links work for the TA and instructor without an account\\
-No \texttt{\string\Todo}, undefined references, or build errors & \StatusPending & SD's build of October 15, 2026 has no undefined or multiply defined references and no errors. Five \texttt{\string\Todo} markers remained outside SD's regions (domain calendar owner, extra-credit placeholder, Introduction link, and two AI-log review lines); they were sent to BD, who removes them and sets this row to PASS in the final build\\
+No \texttt{\string\Todo}, undefined references, or build errors & \StatusPass & Final build of October 15, 2026: no undefined or multiply defined references, no errors, and no \texttt{\string\Todo} marker in the sources or in the text of the PDF (both searched). Five markers that remained outside SD's regions (domain calendar owner, extra-credit placeholder, Introduction link, and two AI-log review lines) were removed by BD\\
 \end{tabularx}
 
 \subsubsection{Failed tests and corrective actions}
@@ -1087,18 +1090,8 @@ October 15, 2026 & A manual build failed: a single-character ellipsis in capture
 \section{Extra Credit}
 % ======================================================================
 % Region: giteaExtraCredit (single owner; edit only your own region)
-\subsection{Extra credit: verified backup and restore (up to 20 extra-credit points; optional, unassigned)}
+\subsection{Extra credit: verified backup and restore (up to 20 extra-credit points; not attempted)}
 \label{Section:giteaExtraCredit}
 \index{Gitea!optional extra credit: verified backup and restore}
-\textbf{Owner:} unassigned (decided later if time allows). \StatusPending{} No evidence recorded yet.
-
-\textbf{Required content (from the course manual):}
-\begin{itemize}[nosep]
-  \item Backup method, coverage, storage location, time (5)
-  \item Sanitized backup log/listing; DB and app data form one recoverable state (5)
-  \item Test repository and issue present and usable in a separate temporary restored instance, with restore log and screenshots (10)
-  \item Do not overwrite the working service; do not include archives, dumps, or keys
-\end{itemize}
-
-\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+\textbf{Status:} not attempted. The group did not carry out the optional backup and restore, and no backup, restore, or result is claimed here. The persistence test in the database subsection (a repository and an issue surviving the replacement of the Gitea container) is a different test and is not a backup.
 
