@@ -1,0 +1,20 @@
+Real output from the server (ssh ec2-user@git.ssw590-g1.tech), Oct 15, 2026, about 18:15 UTC. Run by Claude Code on Brahmi's request.
+Only PUBLIC key fingerprints are shown. No private key was seen or handled.
+
+Sakshi sent a public key (comment "sakshi-ssw590-g1"). Local validation before use:
+  one line, starts with "ssh-ed25519", no private-key text; ssh-keygen -lf:
+  256 SHA256:1oYCcSuCBcdksbkTTJ91uPmkJ8MQmvWDUJuENqtQfPo sakshi-ssw590-g1 (ED25519)
+
+Server ~/.ssh/authorized_keys (appended with ">>", a duplicate check first):
+  before: 1 line(s)
+  key appended
+  after: 2 line(s)
+  --- fingerprints now authorized ---
+  256 SHA256:Wb244wRaDU7Dd+q7qlh7Lr2g2838XDRUGSS+4zGYX34 ssw590-g1-gitea-key (ED25519)      (Brahmi; matches the key pair fingerprint AWS reported at creation)
+  256 SHA256:1oYCcSuCBcdksbkTTJ91uPmkJ8MQmvWDUJuENqtQfPo sakshi-ssw590-g1 (ED25519)         (Sakshi)
+  -rw------- 1 ec2-user ec2-user 199 Oct 15 18:15 authorized_keys
+
+Notes:
+- Both people log in as the same Linux user (ec2-user) with their own keys; the key comment/fingerprint identifies who.
+- ec2-user is in the docker group, which is root-equivalent on this server. Accepted for a two-person team; the manual's runner/secret boundary text should say so.
+- Not yet verified: that Sakshi can actually log in (she must try from her machine; her public IP is believed to equal Brahmi's, so the security group should allow it).
