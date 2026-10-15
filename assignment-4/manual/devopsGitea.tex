@@ -277,7 +277,26 @@ contains no credential: the password was typed at a hidden prompt. The
 reachable from the internet.
 \inputminted{text}{../evidence/20-persistence-test-container-replacement-sakshi-2026-10-15.txt}
 
-\Todo{add dated screenshots of \url{\GiteaURL/sakshi/persistence-check} and its issue \#1 after the test.}
+Figures~\ref{Fig:PersistenceRepo} and~\ref{Fig:PersistenceIssue} show the
+repository and the issue in the browser on October 15, 2026, a few minutes
+after the test finished (Gitea displays relative times such as ``2 minutes
+ago''; the absolute times are in the log above). The commit shown,
+\texttt{4f15f70000}, is the \texttt{main} commit recorded before and after the
+replacement.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../evidence/21-gitea-persistence-check-repo-after-test-commit-4f15f70000-2026-10-15.png}
+\caption{Repository \href{\GiteaURL/sakshi/persistence-check}{\texttt{sakshi/persistence-check}} after the container replacement, October 15, 2026: one commit, \texttt{4f15f70000}.}
+\label{Fig:PersistenceRepo}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{../evidence/22-gitea-persistence-check-issue-1-open-after-test-2026-10-15.png}
+\caption{Issue \href{\GiteaURL/sakshi/persistence-check/issues/1}{\#1} still open after the container replacement, October 15, 2026.}
+\label{Fig:PersistenceIssue}
+\end{figure}
 
 \subsubsection{Conclusion}
 The Gitea container was replaced (new container ID and creation time) while
