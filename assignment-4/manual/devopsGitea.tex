@@ -27,14 +27,14 @@ instructor until grading is complete.
 \endfirsthead
 \toprule \textbf{Subsection} & \textbf{Points} & \textbf{Owner} & \textbf{Status}\\ \midrule
 \endhead \bottomrule \endlastfoot
-Student Pack domain and DNS & 10 & BD & \StatusPending\\
-Pinned Gitea deployment & 10 & BD & \StatusPending\\
-Database and persistence & 10 & SD & \StatusPending\\
-HTTPS and certificate renewal & 15 & BD & \StatusPending\\
-Firewall and external exposure & 15 & BD & \StatusPending\\
-Startup team workflow & 20 & SD & \StatusPending\\
-Architecture and operation & 5 & SD & \StatusPending\\
-Manual quality and controls & 15 & SD & \StatusPending\\
+Student Pack domain and DNS & 10 & BD & \StatusPass\\
+Pinned Gitea deployment & 10 & BD & \StatusPass\\
+Database and persistence & 10 & SD & \StatusPass\\
+HTTPS and certificate renewal & 15 & BD & \StatusPass\\
+Firewall and external exposure & 15 & BD & \StatusPass\\
+Startup team workflow & 20 & SD & \StatusPass\\
+Architecture and operation & 5 & SD & \StatusPass\\
+Manual quality and controls & 15 & SD & \StatusPass\\
 Extra credit: backup and restore (optional) & up to 20 & none & Not attempted\\
 \end{tabularx}
 
@@ -44,7 +44,7 @@ Extra credit: backup and restore (optional) & up to 20 & none & Not attempted\\
 \subsection{Student Pack domain and DNS (10 points)}
 \label{Section:giteaDomainDns}
 \index{Gitea!student pack domain and dns}
-\textbf{Owner:} BD. Domain registration: \StatusPass{} (order confirmed, \$0.00). Stored card removed: \StatusPass{}. DNS record and public-resolver lookup: \StatusPass{}. Teammate lookup and HTTPS link: \StatusPending{}.
+\textbf{Owner:} BD. Domain registration: \StatusPass{} (order confirmed, \$0.00). Stored card removed: \StatusPass{}. DNS record, public-resolver lookup, and HTTPS link: \StatusPass{}. A teammate's separate-network lookup was not done (see below).
 
 \paragraph{Offer and eligibility.}
 The domain comes from the GitHub Student Developer Pack, which lists domain
@@ -232,7 +232,7 @@ was six days old and was not chosen. No image uses the \texttt{latest} tag.
 \paragraph{Compose and proxy configuration.}
 The files below are exactly what runs on the server (their SHA-256 prefixes
 were compared after copying, \ListRef{12}). They contain no secrets, so no
-redaction was needed. They are versioned in the team's course repository on
+redaction was needed. The first comment line of the Compose file still says it is a draft that has not been run; it was written before the first deployment and was left unchanged so that the file shown is exactly the one on the server. They are versioned in the team's course repository on
 GitHub, which was made public on October 15, 2026 so that graders can open it:
 \url{\RepoURL/tree/main/assignment-4/gitea}. A second copy of the same files is
 published in the team's own Gitea at

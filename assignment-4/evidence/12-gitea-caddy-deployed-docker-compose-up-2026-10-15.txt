@@ -51,4 +51,4 @@ Notes:
 - Caddy's published ports show IPv6 bindings ([::]) on the host, but the security group has no IPv6 rules and no AAAA record exists, so IPv6 is not reachable.
 - Port 2019/tcp in "ps" is Caddy's admin API inside the container; it is not published to the host.
 - Gitea port 3000 and 22 are only exposed inside the Compose network.
-- Not yet done: admin account, persistence test, renewal test, external test from a second network.
+- At the time of this capture (about 17:35 UTC) not yet done: admin account, persistence test, renewal test, external test from a second network. All were done later the same day (see the later listings).

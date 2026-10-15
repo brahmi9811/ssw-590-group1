@@ -38,4 +38,4 @@ port 22   : OPEN from this machine only because its IP is the approved admin IP
 Notes:
 - Expected vs actual: 443 open, 80 open (redirect only), 3000/2019/5432 closed -> as expected.
 - "closed/filtered" does not distinguish closed from firewall-dropped; both mean "not reachable".
-- Renewal: not tested yet. Caddy logged ACME renewal information (renewal window starts about 2026-12-14); a real renewal test is still pending.
+- Renewal: not tested at the time of this capture (17:35 UTC). Caddy logged ACME renewal information (renewal window starts about 2026-12-14). A staging dry run was done later the same day (see the renewal-test listing); the real renewal of this certificate is expected between December 13 and 15, 2026 and has not been observed.
