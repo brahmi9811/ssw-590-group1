@@ -44,6 +44,10 @@ _Last updated: Oct 15, 2026 (HTTPS live, admin `brahmi` works, Sakshi's `sd/gite
 | **Sakshi's Gitea account `sakshi` created and added to team `developers`** (team shows 2 members, brahmi + sakshi; org Members 2); message with the SSH host-key fingerprint sent to her | Oct 15 | Evidence 19. Waiting for her to confirm Gitea sign-in + password change and her SSH login |
 | **Manual regions drafted from real evidence:** `giteaDeployment` (versions table, config, Compose and Caddyfile included from the repo, repeatable steps, checks, problems met), `giteaHttps` (option comparison, TLS termination, certificate and redirect facts, renewal explanation), `giteaFirewall` (security group, rules, port mappings, new figure `TikZ/devopsGitea/devopsGiteaFirewall.tex`, exposure checks, why HTTPS is not a firewall). Full PDF build clean (51 pages, no undefined references) | Oct 15 | Open items are `\Todo`s in each region; see Pending #14 |
 | **Sakshi confirmed she can log in.** Verified on the server: her key logged in 5 times from 18:25:52 UTC; no failed SSH attempts in the log. Her Gitea sign-in is her own report (not independently checked) | Oct 15 | Evidence 23 (renumbered: Sakshi also used 20) |
+| **Pulled Sakshi's latest and pushed ours**: `main` at `5755c82`, in sync with `origin/main`; `origin/sd/gitea` is gone; combined manual builds clean (54 pages). Renumbering fix: her evidence 20-22 kept, my sshd log became **23** | Oct 15 | |
+| **Sakshi's row 3 (persistence) verified by Brahmi's Claude** against the pass conditions in `SAKSHI.md`: real run on the server at 18:29 UTC as user `sakshi`, repo id 1 / issue #1 / branch commit `4f15f700003e` identical before and after; container id changed `858a02ae8412` to `834924d4bc0a`; same volume `gitea_gitea_data`; used `up -d --force-recreate gitea` with no `-v`; cross-checks with the sshd log (her logins at 18:28 to 18:30 UTC) | Oct 15 | Her evidence 20-22. Screenshots 21-22 not opened by Claude |
+| **Hosts and Passwords tables filled in** (3 hosts: the Gitea server, the domain/DNS, the previous assignment's instance; 8 password/key hint rows; no secrets), a history entry that names both tables, and an AI Prompt Log record for Brahmi's work. Build clean (57 pages) | Oct 15 | Remaining `\Todo`s in the Passwords table are facts only you know: password-manager entry name, MFA status for Gitea/AWS/Name.com/GitHub, where the AWS and GitHub credentials are kept, Sakshi's key passphrase |
+| Row 6 split written down: your Gitea setup steps, issue table, CONTRIBUTING.md draft, and the two traces are in the new "Row 6" section of this file; evidence numbering rule (Sakshi 24 to 39, Brahmi 40+) added to `evidence/README.md` | Oct 15 | Nothing created in Gitea yet |
 | Budget already exists: "My Monthly Cost Budget", **$15.00/month**; used $3.13, forecast $3.12 (before the new instance) | Oct 15 | Evidence 07. Thresholds/email not visible in the screenshot |
 
 ### Pending (in order)
@@ -59,13 +63,60 @@ _Last updated: Oct 15, 2026 (HTTPS live, admin `brahmi` works, Sakshi's `sd/gite
 | 7 | ~~Deploy Gitea + Caddy, create first admin~~ (done) | |
 | 7a | ~~Hand-off to Sakshi~~ **done**. Left: delete the merged `sd/gitea` branch on GitHub (Branches page, trash icon) if not done yet | you |
 | 7b | **Write your three manual regions from real evidence:** `giteaDeployment` (evidence 09, 11, 12, 14), `giteaHttps` (certificate comparison + evidence 12, 13), `giteaFirewall` (evidence 08, 13 + a second-network test). Claude can draft these | you + Claude |
+| 7c | **Row 6 in Gitea:** wait for Sakshi to run `row6-setup.py` first (repo, issues, README PR); then you run it (protection, proof, CONTRIBUTING PR); review her README PR; she reviews yours; merge both; issue 6 calendar. Steps in the "Row 6" section above | Sakshi, then you |
 | 8 | Remaining HTTPS/exposure evidence: a real **renewal test** (e.g. temporarily use Let's Encrypt staging, or another honest method); external test from a **second network** (phone hotspot) for SSH/80/443/3000; confirm the hostname loads in a browser (screenshot) | after #7 |
 | 9 | Hand Sakshi access: URL, her public SSH key, a Gitea account (B7) | #8 |
 | 10 | Hosts and Passwords tables, history entry, prompt-log record (B8) | as things happen |
 | 11 | Final build, remove `\Todo`s, submit PDF only (Phase C) | everything |
 | 12 | Merge done. **Left:** tell Sakshi, then delete the merged branch on GitHub (Branches page, trash icon; or `git push origin --delete sd/gitea`), then locally `git fetch --prune`. From now on **nobody creates branches**: both work on `main` with `git pull --rebase` before pushing (rule 1 in `README.md`) | you |
-| 13 | Hosts and Passwords tables are still placeholders: add the server (hostname `git.ssw590-g1.tech`, AWS `us-east-1`, instance `i-0c68ec1bc1e16a414`, ports 443/80/22), and hint rows for the Gitea admin, AWS, Name.com, SSH key | you + Claude |
+| 13 | ~~Hosts and Passwords tables~~ drafted. **Left:** answer the `\Todo`s in the Passwords table (MFA status, password-manager entry name, where AWS/GitHub credentials live) and keep both tables current if anything changes | you |
 | 14 | **Open `\Todo`s in your three regions:** (a) deployment: confirm the instructor/TA can open the repo link or copy `gitea/` into the Gitea repository; verify AWS prices (t3.micro, gp3, public IPv4) and write the monthly estimate; (b) HTTPS: research option B (Name.com / Namecheap free certificate) properly, then run the **renewal test** with Let's Encrypt staging and record it; (c) firewall: **second-network test** from a phone hotspot, plus a sanitized console screenshot of the inbound rules; (d) **embed the key evidence in the PDF itself** (log excerpts as code blocks, screenshots as figures): the regions currently say "evidence file NN", but only the PDF is submitted, so graders cannot open those repo files | you + Claude |
+
+## Row 6 (startup team workflow): Brahmi's part, step by step
+Sakshi owns the row 6 text in the manual; you own the Gitea setup and two of the traces. Plan source: `sd/backlog-draft.md`. **Evidence numbering from now on: Sakshi uses 24 to 39, Brahmi uses 40 and up** (we collided on number 20 once). Save each dated screenshot in `evidence/` and add an index row.
+
+**Fast path (Claude cannot click in your browser, but the script `assignment-4/gitea/row6-setup.py` can do the setup through the API; it is split by person, and you run yours SECOND):** Sakshi runs it first (repo, 6 issues, README pull request for issue 1). Then you run `python assignment-4/gitea/row6-setup.py` from the repository root: it protects `main` (no direct pushes, also for admins, 1 approval), tries a direct commit to `main` and reports whether it was **refused** (proof for issue 4, which it then closes), and opens your pull request "Add CONTRIBUTING.md" with `Closes #2`. The script asks for a Gitea token at a **hidden prompt** (Gitea, Settings, Applications; scopes `read:user`, `write:organization`, `write:repository`, `write:issue`), never saves or prints it, and prints only safe results. **Delete the token afterwards.** Paste the output to Claude to record as evidence 40. Still done by a person: **review and approve Sakshi's README PR**, address her review comment on yours, merge, issue 6 (calendar), and the dated screenshots. The manual steps below are the fallback.
+
+**Setup (once, about 15 minutes), signed in as `brahmi`:**
+1. **Create the repository.** Organization `group1-startup`, then Repositories, then **New Repository**. Name `twintrack`. Description "TwinTrack: Group 1's startup product". Leave **private unchecked** (public, so the TA and instructor can open it). **Tick "Initialize Repository"** with a README so `main` exists. Default branch `main`. No license, no .gitignore. Create. Screenshot 40.
+2. **Create the 6 issues** (Issues, then New Issue). Titles, assignees and acceptance text are in the table below. Set the assignee in the right sidebar. Screenshot the issue list (41).
+3. **Protect `main` (this is issue 4).** Repo Settings, then Branches, then **Add Branch Protection Rule**: pattern `main`; **disable direct pushes**; **required approvals: 1**; tick the options that block merging on rejected reviews and dismiss stale approvals; save. Screenshot the saved rule (42).
+4. **Prove it works.** On `main`, click Add file, New file, any name, and commit **directly to main**. Gitea should refuse. Screenshot the refusal (43), cancel, then close issue 4 with a comment linking the screenshot (the proof is the setting, not a PR).
+5. **Tell Sakshi the repo is ready.**
+
+| # | Title | Assignee | Acceptance text to paste |
+|---|---|---|---|
+| 1 | Write the product README | sakshi | README states purpose, status, workflow and team. Delivered by a PR that closes this issue. |
+| 2 | Add CONTRIBUTING.md for the issue, branch, PR, review flow | brahmi | CONTRIBUTING.md merged via a PR reviewed and approved by Sakshi. |
+| 3 | Define the TwinTrack task data model | sakshi | `docs/data-model.md` lists fields, states and transitions. |
+| 4 | Protect `main`: require PR + 1 approval | brahmi | A direct push to `main` is rejected; screenshot of the setting and of the rejection. |
+| 5 | Document the Gitea restart and troubleshooting runbook | sakshi | `docs/runbook.md` matches the runbook in the manual. |
+| 6 | Add the domain expiry date (Oct 15, 2027) to the shared calendar and name its owner | brahmi | Calendar event exists with an owner and reminder. We do not plan to renew. |
+
+**Trace 2, your pull request (issue 2):**
+1. Open `twintrack`, Add file, New file, name `CONTRIBUTING.md`, paste the draft below.
+2. At the bottom choose **"Create a new branch for this commit and start a pull request"**, branch name `issue-2-contributing`, then Propose.
+3. On the pull request page: title "Add CONTRIBUTING.md", description including the exact line `Closes #2`. Create. Screenshot (44).
+4. Ask Sakshi to **review**: she must leave at least one review comment, you reply or fix it, then she **approves**. Screenshot the review with the comment and approval (45).
+5. **Merge** (after her approval). Confirm issue 2 closed automatically. Screenshot the merged PR and the closed issue (46).
+
+**Trace 1, you review Sakshi's pull request (issue 1):** when she opens "Add product README" with `Closes #1`, open it, Files changed, **Review, Approve** (add one comment first if you like). Screenshot (47). She merges or you merge; confirm issue 1 closes (48).
+
+**Issue 6 (calendar):** create the calendar event with the owner and reminder, screenshot it (49), close issue 6 with a comment.
+
+**Draft `CONTRIBUTING.md` (paste as is, edit if you like):**
+```markdown
+# Contributing to TwinTrack
+
+1. Every change starts as an issue. Pick or create one before you start.
+2. Branch from `main` as `issue-<number>-<short-name>`.
+3. Open a pull request with `Closes #<number>` in the description.
+4. The other team member reviews it, leaves at least one comment or question,
+   and approves once it is addressed. You cannot approve your own pull request.
+5. After approval, merge. The issue closes automatically.
+6. `main` is protected: no direct pushes.
+7. Never commit passwords, tokens, private keys or personal data.
+```
 
 ## What BD owns (and ONLY this)
 - `manual/devopsGitea.tex` regions: **`giteaDomainDns`, `giteaDeployment`, `giteaHttps`, `giteaFirewall`**, plus the chapter intro, the status table, and the provider note at the top.

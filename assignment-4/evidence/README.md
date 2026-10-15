@@ -4,6 +4,9 @@ Raw screenshots and captured output, saved as they happen so they can be used in
 Files here are **not** automatically in the PDF; the PDF must embed them with a caption and explanation.
 Before using any file in the PDF, check it for personal data, secrets, or IPs that need redacting.
 
+
+**Numbering rule (from Oct 15, 2026):** Sakshi uses file numbers 24 to 39, Brahmi uses 40 and up. Files 01 to 23 exist already. This avoids two people choosing the same number.
+
 | File | Date | What it shows | Rubric row | Notes |
 |---|---|---|---|---|
 | `01-namecom-cart-ssw590-g1-tech-total-0.00-2026-10-15.png` | Oct 15, 2026 | Name.com cart for `ssw590-g1.tech`, 1 year registration, regular price $89.99 struck through, shown as FREE via the GitHub Student Pack partner promo; Domain Safe ($0.00) selected, Domain Safe Pro ($7.99) declined; order total **$0.00**. Taken before payment, so it is the pre-purchase cart, not a receipt. | 1 (Student Pack domain and DNS) | Renewal price is not stated on this page; $89.99 is the struck-through regular price. Capture the real renewal price and expiry from the account page after checkout. |
