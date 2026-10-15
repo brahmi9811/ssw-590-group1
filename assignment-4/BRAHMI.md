@@ -42,6 +42,8 @@ _Last updated: Oct 15, 2026 (HTTPS live, admin `brahmi` works, Sakshi's `sd/gite
 | Brahmi joined the `developers` team herself (team now shows 1 member, badge Public) | Oct 15 | Evidence 17. Sakshi is not a member yet |
 | Sakshi's SSH public key validated and added to the server's `authorized_keys` (2 keys now: Brahmi, Sakshi); she also confirmed she pulled, switched to `main`, deleted her local `sd/gitea`, and will not sign in until told | Oct 15, 18:15 UTC | Evidence 18. Her login not yet verified. Her email is not stored in the repo |
 | **Sakshi's Gitea account `sakshi` created and added to team `developers`** (team shows 2 members, brahmi + sakshi; org Members 2); message with the SSH host-key fingerprint sent to her | Oct 15 | Evidence 19. Waiting for her to confirm Gitea sign-in + password change and her SSH login |
+| **Manual regions drafted from real evidence:** `giteaDeployment` (versions table, config, Compose and Caddyfile included from the repo, repeatable steps, checks, problems met), `giteaHttps` (option comparison, TLS termination, certificate and redirect facts, renewal explanation), `giteaFirewall` (security group, rules, port mappings, new figure `TikZ/devopsGitea/devopsGiteaFirewall.tex`, exposure checks, why HTTPS is not a firewall). Full PDF build clean (51 pages, no undefined references) | Oct 15 | Open items are `\Todo`s in each region; see Pending #14 |
+| **Sakshi confirmed she can log in.** Verified on the server: her key logged in 5 times from 18:25:52 UTC; no failed SSH attempts in the log. Her Gitea sign-in is her own report (not independently checked) | Oct 15 | Evidence 23 (renumbered: Sakshi also used 20) |
 | Budget already exists: "My Monthly Cost Budget", **$15.00/month**; used $3.13, forecast $3.12 (before the new instance) | Oct 15 | Evidence 07. Thresholds/email not visible in the screenshot |
 
 ### Pending (in order)
@@ -55,7 +57,7 @@ _Last updated: Oct 15, 2026 (HTTPS live, admin `brahmi` works, Sakshi's `sd/gite
 | 5 | ~~Security group, key pair, instance, Elastic IP~~ (all done) | |
 | 6 | ~~DNS record, lookup, SSH test~~ (done). Optional: Sakshi runs `nslookup git.ssw590-g1.tech 8.8.8.8` from her side | |
 | 7 | ~~Deploy Gitea + Caddy, create first admin~~ (done) | |
-| 7a | **Hand-off to Sakshi: done on your side.** Left: wait for her confirmation (Gitea sign-in with password change, and SSH login; verify fingerprint `SHA256:sJSqc/LAVTJundPSM4yrgJt7gbsQbYtyFO71buvgosM`); if SSH times out for her, add her public IP to the security group; delete the merged `sd/gitea` branch on GitHub | Sakshi / you |
+| 7a | ~~Hand-off to Sakshi~~ **done**. Left: delete the merged `sd/gitea` branch on GitHub (Branches page, trash icon) if not done yet | you |
 | 7b | **Write your three manual regions from real evidence:** `giteaDeployment` (evidence 09, 11, 12, 14), `giteaHttps` (certificate comparison + evidence 12, 13), `giteaFirewall` (evidence 08, 13 + a second-network test). Claude can draft these | you + Claude |
 | 8 | Remaining HTTPS/exposure evidence: a real **renewal test** (e.g. temporarily use Let's Encrypt staging, or another honest method); external test from a **second network** (phone hotspot) for SSH/80/443/3000; confirm the hostname loads in a browser (screenshot) | after #7 |
 | 9 | Hand Sakshi access: URL, her public SSH key, a Gitea account (B7) | #8 |
@@ -63,6 +65,7 @@ _Last updated: Oct 15, 2026 (HTTPS live, admin `brahmi` works, Sakshi's `sd/gite
 | 11 | Final build, remove `\Todo`s, submit PDF only (Phase C) | everything |
 | 12 | Merge done. **Left:** tell Sakshi, then delete the merged branch on GitHub (Branches page, trash icon; or `git push origin --delete sd/gitea`), then locally `git fetch --prune`. From now on **nobody creates branches**: both work on `main` with `git pull --rebase` before pushing (rule 1 in `README.md`) | you |
 | 13 | Hosts and Passwords tables are still placeholders: add the server (hostname `git.ssw590-g1.tech`, AWS `us-east-1`, instance `i-0c68ec1bc1e16a414`, ports 443/80/22), and hint rows for the Gitea admin, AWS, Name.com, SSH key | you + Claude |
+| 14 | **Open `\Todo`s in your three regions:** (a) deployment: confirm the instructor/TA can open the repo link or copy `gitea/` into the Gitea repository; verify AWS prices (t3.micro, gp3, public IPv4) and write the monthly estimate; (b) HTTPS: research option B (Name.com / Namecheap free certificate) properly, then run the **renewal test** with Let's Encrypt staging and record it; (c) firewall: **second-network test** from a phone hotspot, plus a sanitized console screenshot of the inbound rules; (d) **embed the key evidence in the PDF itself** (log excerpts as code blocks, screenshots as figures): the regions currently say "evidence file NN", but only the PDF is submitted, so graders cannot open those repo files | you + Claude |
 
 ## What BD owns (and ONLY this)
 - `manual/devopsGitea.tex` regions: **`giteaDomainDns`, `giteaDeployment`, `giteaHttps`, `giteaFirewall`**, plus the chapter intro, the status table, and the provider note at the top.

@@ -134,26 +134,133 @@ The HTTPS hostname link will resolve once Gitea and the proxy are deployed.
 Name.com required a card even for the \$0.00 order. To avoid an unintended
 renewal charge, the group turned automatic renewal off and deleted the stored
 payment profile; the billing page then reads ``No saved payment profiles''
-(evidence file \texttt{05-namecom-billing-no-saved-payment-profiles-2026-10-15.png}).
+(evidence file 05).
 The confirmation email shows order \#28974415 with an order total of \$0.00
-(evidence file \texttt{06-namecom-order-confirmed-email-order-28974415-received-2026-10-15-0036.png}). \Todo{after a few days, check the card statement and record whether any charge appeared}
+(evidence file 06). \Todo{after a few days, check the card statement and record whether any charge appeared}
 
 % ======================================================================
 % Region: giteaDeployment (single owner; edit only your own region)
 \subsection{Pinned Gitea deployment (10 points)}
 \label{Section:giteaDeployment}
 \index{Gitea!pinned gitea deployment}
-\textbf{Owner:} BD. \StatusPending{} No evidence recorded yet.
+\textbf{Owner:} BD. Deployed and checked on October 15, 2026: \StatusPass{}. Cost verification and the repository link are still open (see the end of this subsection).
 
-\textbf{Required content (from the course manual):}
+\paragraph{Provider and versions.}
+Gitea runs on one AWS EC2 instance instead of a DigitalOcean Droplet; the
+instructor approved this substitution (see the provider note at the start of
+this chapter). Table~\ref{Table:DeploymentFacts} records what was actually
+created. The instance was created with the AWS command line interface, not the
+web console, so every setting is repeatable.
+
+\begin{tabularx}{\linewidth}{L{3.6cm}Y}
+\caption{Deployed components and versions (October 15, 2026)\label{Table:DeploymentFacts}}\\
+\toprule \textbf{Item} & \textbf{Value}\\ \midrule
+\endfirsthead
+\toprule \textbf{Item} & \textbf{Value}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Cloud and region & AWS EC2, \texttt{us-east-1}, availability zone \texttt{us-east-1c}\\
+Instance & \texttt{i-0c68ec1bc1e16a414}, type \texttt{t3.micro} (2 vCPU, 1\,GiB RAM), Name tag \texttt{ssw590-g1-gitea}\\
+Operating system & Amazon Linux 2023 (\texttt{al2023-ami-2023.12.20261014.0-kernel-6.18-x86\_64}), image \texttt{ami-0ed59cbb87dfa8dba}, kernel \texttt{6.18.54-121.166.amzn2023.x86\_64}\\
+Disk and memory & 20\,GB gp3 root volume (deleted with the instance); 2\,GB swap file added at first boot\\
+Instance metadata & IMDSv2 only (\texttt{HttpTokens=required})\\
+Public address & Elastic IP \texttt{52.73.254.36}, named \texttt{\GiteaHost} in DNS\\
+Docker Engine & 25.0.14 (Amazon Linux repository)\\
+Docker Compose & v5.6.0 plugin, installed from the project's GitHub release and verified against a pinned SHA-256 (\texttt{40343e21\ldots e76a})\\
+git & 2.50.1\\
+Gitea image & \texttt{gitea/gitea:1.27.3} from Docker Hub, image ID \texttt{79814cfc668d}, 191\,MB \cite{GiteaDocker}\\
+Proxy image & \texttt{caddy:2.11.7} from Docker Hub, image ID \texttt{f77f856a30f0}, 66.3\,MB\\
+SSH key pair & \texttt{ssw590-g1-gitea-key} (ed25519); the private key stays on the administrator's computer, outside the repository\\
+\end{tabularx}
+Both image tags were confirmed to exist on Docker Hub on October 12, 2026.
+\texttt{1.27.3} was the newest 1.27 release that day; a 28.1 release existed but
+was six days old and was not chosen. No image uses the \texttt{latest} tag.
+
+\paragraph{How it is configured.}
 \begin{itemize}[nosep]
-  \item Droplet/EC2 and Gitea image versions, image source (Docker Hub \texttt{gitea/gitea})
-  \item Deployment commands, restart policy, persistent mounts, proxy connection
-  \item Redacted Compose excerpt and link to \texttt{gitea/docker-compose.yml} in the team repository
-  \item Steps another team could repeat
+  \item \textbf{Restart behavior:} both containers use \texttt{restart: unless-stopped}, so they return after a reboot or a Docker restart.
+  \item \textbf{Persistent data:} the named volume \texttt{gitea\_gitea\_data} holds Gitea's repositories and SQLite database at \texttt{/data}; \texttt{gitea\_caddy\_data} keeps Caddy's certificates and ACME account; \texttt{gitea\_caddy\_config} holds Caddy's saved configuration. The \texttt{Caddyfile} is mounted read-only from the project directory.
+  \item \textbf{Proxy connection:} Caddy and Gitea share the private Compose network \texttt{gitea\_web}; Caddy reaches Gitea at \texttt{gitea:3000} by service name. Gitea has no \texttt{ports:} entry, so it is not published on the host; only Caddy publishes 80 and 443.
+  \item \textbf{Non-secret configuration (environment variables):} SQLite database at \texttt{/data/gitea/gitea.db}; \texttt{DOMAIN} and \texttt{ROOT\_URL} set to the HTTPS hostname; Gitea's own SSH server disabled (Git over HTTPS only); web installer skipped (\texttt{INSTALL\_LOCK}); self-registration disabled.
+  \item \textbf{Secrets:} none appear in the Compose file, the \texttt{.env} file (hostname and image versions only), or this document. The first administrator password was generated once in the administrator's own terminal and stored in a password manager.
 \end{itemize}
 
-\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+\paragraph{Compose and proxy configuration.}
+The files below are exactly what runs on the server (their SHA-256 prefixes
+were compared after copying, evidence file 12). They contain no secrets, so no
+redaction was needed. They are kept in the team repository at
+\url{\RepoURL/tree/main/assignment-4/gitea}.
+\Todo{confirm the instructor and TA can open this link, or also copy the deployment files into the team's Gitea repository}
+
+\inputminted{yaml}{../gitea/docker-compose.yml}
+
+\inputminted{text}{../gitea/Caddyfile}
+
+\paragraph{Steps another team could repeat.}
+These are the commands as they were run (abridged to the settings that matter).
+Placeholders in angle brackets were filled with the values in
+Table~\ref{Table:DeploymentFacts}.
+
+\begin{minted}{bash}
+# 1. Firewall: security group with 443 and 80 open, 22 limited to the admin /32
+aws ec2 create-security-group --group-name ssw590-g1-gitea \
+  --description "SSW590 Group1 Gitea: 443/80 public, 22 admin only" --vpc-id <default VPC>
+aws ec2 authorize-security-group-ingress --group-id <sg> --ip-permissions <443, 80, 22 rules>
+# 2. SSH key pair; the private key is saved to a file outside the repository
+aws ec2 create-key-pair --key-name ssw590-g1-gitea-key --key-type ed25519 \
+  --query KeyMaterial --output text
+# 3. Instance with the versioned first-boot script (swap, Docker, git, pinned Compose)
+aws ec2 run-instances --image-id ami-0ed59cbb87dfa8dba --instance-type t3.micro \
+  --key-name ssw590-g1-gitea-key --security-group-ids <sg> \
+  --block-device-mappings DeviceName=/dev/xvda,Ebs={VolumeSize=20,VolumeType=gp3} \
+  --metadata-options HttpTokens=required \
+  --user-data file://assignment-4/gitea/aws/ec2-user-data.sh
+# 4. Fixed public address
+aws ec2 allocate-address --domain vpc
+aws ec2 associate-address --instance-id <instance> --allocation-id <allocation>
+# 5. DNS (Name.com web console): A record  git  ->  <Elastic IP>, TTL 300
+# 6. Copy the three non-secret files, create .env, and start the stack
+scp docker-compose.yml Caddyfile .env.example ec2-user@git.ssw590-g1.tech:~/gitea/
+sed 's/^GITEA_DOMAIN=.*/GITEA_DOMAIN=git.ssw590-g1.tech/' .env.example > .env
+chmod 600 .env
+docker compose config -q && docker compose pull && docker compose up -d
+# 7. First administrator, run interactively by the administrator (password printed once)
+docker compose exec -u git gitea gitea admin user create --admin \
+  --username brahmi --email <email> --random-password
+\end{minted}
+
+\paragraph{Expected versus actual.}
+\begin{tabularx}{\linewidth}{L{3.1cm}L{3.4cm}YL{1.5cm}}
+\caption{Deployment checks, October 15, 2026\label{Table:DeploymentChecks}}\\
+\toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual} & \textbf{Evidence}\\ \midrule
+\endfirsthead
+\toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual} & \textbf{Evidence}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Instance state & running, both status checks ok & running; instance and system checks ok & file 09\\
+First-boot script & finishes without error, Compose checksum matches & ``user-data finished OK'' at 17:17:40 UTC & file 09\\
+Installed tools & Docker, Compose, git, swap & Docker 25.0.14, Compose v5.6.0, git 2.50.1, 2\,GB swap & files 09, 11\\
+Files on the server & identical to the repository copies & SHA-256 prefixes match for all three files & file 12\\
+Containers & both up, Gitea healthy & \texttt{gitea} Up (healthy), \texttt{caddy} Up & file 12\\
+Gitea settings & HTTPS \texttt{ROOT\_URL}, SQLite & AppURL \texttt{https://\GiteaHost/}; database ping \texttt{sqlite3} & file 12\\
+Site and login & page loads, admin can sign in & HTTP 200 over HTTPS; signed in as the administrator & files 13, 14\\
+\end{tabularx}
+
+\paragraph{Problems met and corrections.}
+\begin{itemize}[nosep]
+  \item The AWS command line tool on Windows crashed while printing a non-ASCII character from the instance console log. An early check looked like ``still waiting'' because that error was hidden; the log was read again with UTF-8 forced and showed the script had finished.
+  \item The IAM user was not allowed to read the public image-lookup parameter (access denied), so the Amazon Linux image was found with \texttt{describe-images} instead.
+  \item Passing a multi-line script directly to \texttt{ssh} from Windows PowerShell 5.1 stripped quotes and failed with a shell syntax error; scripts are now copied to the server and run there.
+  \item One 502 error appeared in the Caddy log about a second after start: an internet scanner reached the site before Gitea was listening. It did not recur.
+\end{itemize}
+
+\paragraph{Cost and cleanup.}
+The running costs are the instance, the 20\,GB volume, and the Elastic IP. The
+group has not confirmed the exact prices on AWS's own pricing pages.
+\Todo{record verified hourly prices (t3.micro, gp3 storage, public IPv4 address) and the monthly estimate}
+The service must stay online until grading is finished because the instructor
+and TA test it. Teardown, after grading and only then: terminate the instance,
+release the Elastic IP, delete the security group and key pair, delete the DNS
+record, and let the domain expire (automatic renewal is already off, see the
+domain subsection).
 
 % ======================================================================
 % Region: giteaDatabase (single owner; edit only your own region)
@@ -314,37 +421,207 @@ still lose the data (see Section~\ref{Section:giteaArchitecture}).
 \subsection{HTTPS and certificate renewal (15 points)}
 \label{Section:giteaHttps}
 \index{Gitea!https and certificate renewal}
-\textbf{Owner:} BD. \StatusPending{} No evidence recorded yet.
+\textbf{Owner:} BD. Certificate issued, redirect and TLS checked on October 15, 2026: \StatusPass{}. Second-option research and the renewal test: \StatusPending{}.
 
-\textbf{Required content (from the course manual):}
-\begin{itemize}[nosep]
-  \item Comparison of two certificate options and the justification for the chosen one
-  \item Where TLS terminates; how private traffic reaches Gitea
-  \item Valid hostname certificate: issuer and expiry
-  \item HTTP-to-HTTPS redirect behaviour
-  \item Renewal automation plus a successful renewal test or dry run
-  \item Redacted proxy configuration and test output
-\end{itemize}
+\paragraph{Certificate options compared.}
+Two ways to get a certificate for \texttt{\GiteaHost} were considered.
+\begin{tabularx}{\linewidth}{L{2.8cm}YY}
+\caption{Certificate options\label{Table:CertOptions}}\\
+\toprule \textbf{Aspect} & \textbf{A. Let's Encrypt through Caddy} & \textbf{B. Free certificate offered with the Student Pack or domain bundle}\\ \midrule
+\endfirsthead
+\toprule \textbf{Aspect} & \textbf{A. Let's Encrypt through Caddy} & \textbf{B. Free certificate offered with the Student Pack or domain bundle}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Cost & Free \cite{CaddyAutoHTTPS} & Listed as free for one year on the Student Pack page and in the Name.com cart; later cost not checked\\
+Issuance & Automatic: Caddy proves control of the name to Let's Encrypt with an ACME challenge (TLS-ALPN-01 was used) \cite{LetsEncryptChallenges} & Not investigated: how it is requested, validated, and installed on this server\\
+Renewal & Automatic inside Caddy; certificates live in a persistent volume & Not investigated; a one-year certificate would need a manual renewal\\
+Fit for this project & Fits Docker Compose: no extra tool, no manual step, nothing to remember in a year & Unknown\\
+\end{tabularx}
+\Todo{research option B properly (what the Name.com and Namecheap free certificates are, validation type, installation steps, renewal) and complete its column; until then the comparison is incomplete}
 
-\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+\textbf{Choice:} option A. It is free, fully automatic, needs no extra software
+because Caddy is already the reverse proxy, and removes a manual renewal step.
+This justification rests on the documentation and on what the deployment
+actually did (a certificate was issued within seconds of the first start, see
+below), not on a full evaluation of option B.
+
+\paragraph{Where TLS terminates.}
+TLS ends at Caddy, which is the only container that publishes ports 80 and 443.
+Caddy then forwards the request over plain HTTP on the private Compose network
+\texttt{gitea\_web} to \texttt{gitea:3000}. That traffic never leaves the
+instance. Gitea's \texttt{ROOT\_URL} is \texttt{https://\GiteaHost/}, so the
+links and clone URLs it generates use HTTPS.
+
+\paragraph{Certificate issued.}
+On the first \texttt{docker compose up -d} (17:34 UTC) Caddy requested a
+certificate, completed the TLS-ALPN-01 challenge from several Let's Encrypt
+vantage points, and logged ``certificate obtained successfully'' within seconds of the stack
+starting (evidence file 12). The certificate served at 17:35 UTC was read
+directly from the live connection (evidence file 13).
+
+\begin{tabularx}{\linewidth}{L{3.3cm}Y}
+\caption{Certificate served by \texttt{\GiteaHost}, October 15, 2026\label{Table:CertDetails}}\\
+\toprule \textbf{Property} & \textbf{Value}\\ \midrule
+\endfirsthead
+\toprule \textbf{Property} & \textbf{Value}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Subject and name & \texttt{CN=\GiteaHost}; subject alternative name \texttt{\GiteaHost} only\\
+Issuer & Let's Encrypt, intermediate \texttt{YE2}\\
+Valid from / to & 2026-10-15 16:35:56 UTC to 2027-01-13 16:35:55 UTC (90 days)\\
+Key type and protocol & ECC key; TLS 1.3\\
+Chain & \texttt{YE2}, \texttt{Root YE}, \texttt{ISRG Root X2}; Windows built the chain successfully (valid)\\
+Client check & \texttt{curl} accepted the certificate without the insecure flag and received HTTP 200\\
+\end{tabularx}
+
+\paragraph{HTTP to HTTPS redirect.}
+Requesting \texttt{http://\GiteaHost/} returned \texttt{HTTP/1.1 308 Permanent
+Redirect} with \texttt{Location: https://\GiteaHost/} from Caddy (evidence file
+13, 17:35 UTC). Port 80 therefore serves only this redirect and certificate
+validation; it exposes no application.
+
+\paragraph{Renewal.}
+Caddy renews its certificates automatically before they expire; Let's Encrypt
+certificates last 90 days, so the first renewal is due about two months after
+issue \cite{CaddyAutoHTTPS}. Caddy's log already recorded the renewal window
+reported by the certificate authority (ACME Renewal Information), and the
+certificate and account are stored in the persistent volume
+\texttt{gitea\_caddy\_data}, so a container replacement does not lose them.
+This is configuration evidence only. \textbf{A successful renewal test has not
+been run yet.} Caddy has no dry-run command that we know of, so the plan is to
+point Caddy at Let's Encrypt's staging server temporarily and show that it
+obtains a certificate with the same configuration. Until that is done, this
+subsection does not claim that renewal works.
+\Todo{run the staging-server renewal test, record the exact commands, log lines, date, and result, then restore the production configuration and confirm the valid certificate is served again}
+
+\paragraph{Proxy configuration.}
+The proxy configuration is the \texttt{Caddyfile} shown in the deployment
+subsection: one site block for \texttt{\GiteaHost} with a
+\texttt{reverse\_proxy} to \texttt{gitea:3000}. No certificate settings are
+needed because Caddy's automatic HTTPS is the default. The file contains no
+secrets.
+
+\paragraph{Expected versus actual.}
+\begin{tabularx}{\linewidth}{L{3.3cm}L{3.4cm}YL{1.4cm}}
+\caption{HTTPS checks, October 15, 2026, 17:35 UTC, from the administrator's computer\label{Table:HttpsChecks}}\\
+\toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual} & \textbf{Evidence}\\ \midrule
+\endfirsthead
+\toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual} & \textbf{Evidence}\\ \midrule
+\endhead \bottomrule \endlastfoot
+HTTP on port 80 & redirect to HTTPS & 308 to \texttt{https://\GiteaHost/} & file 13\\
+HTTPS on port 443 & valid certificate, page served & HTTP 200, certificate accepted & file 13\\
+Certificate identity & issued for the hostname by a public CA & Let's Encrypt, subject and SAN match the hostname & file 13\\
+Validity & not expired, about 90 days & expires 2027-01-13 & file 13\\
+Renewal & automatic renewal works & not tested yet & pending\\
+\end{tabularx}
 
 % ======================================================================
 % Region: giteaFirewall (single owner; edit only your own region)
 \subsection{Firewall and external exposure (15 points)}
 \label{Section:giteaFirewall}
 \index{Gitea!firewall and external exposure}
-\textbf{Owner:} BD. \StatusPending{} No evidence recorded yet.
+\textbf{Owner:} BD. Security group created and first outside checks run on October 15, 2026: \StatusPass{}. Test from a second network and a console screenshot: \StatusPending{}.
 
-\textbf{Required content (from the course manual):}
+\paragraph{The firewall.}
+The public boundary is an AWS security group, a stateful firewall attached to
+the instance's network interface. Docker-published ports can bypass a host
+firewall such as \texttt{ufw} \cite{DockerFirewall}, so the group did not rely
+on any host firewall; none was configured on the instance.
+
+\begin{tabularx}{\linewidth}{L{3.3cm}Y}
+\caption{Security group\label{Table:SecurityGroup}}\\
+\toprule \textbf{Property} & \textbf{Value}\\ \midrule
+\endfirsthead
+\toprule \textbf{Property} & \textbf{Value}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Name and ID & \texttt{ssw590-g1-gitea}, \texttt{sg-0415c75429368eb85}\\
+Network & default VPC (\texttt{vpc-08a308ecc88120f9f}) in \texttt{us-east-1}\\
+Attached to & instance \texttt{i-0c68ec1bc1e16a414}; this is the only security group passed at launch\\
+Created & October 15, 2026, with the AWS command line interface (evidence file 08)\\
+Default network ACL & left unchanged and not examined\\
+\end{tabularx}
+
+\paragraph{Rules.}
+\begin{tabularx}{\linewidth}{L{1.9cm}L{3.0cm}L{2.3cm}Y}
+\caption{Inbound rules, IPv4 (IPv6 has no rules)\label{Table:InboundRules}}\\
+\toprule \textbf{Port} & \textbf{Source} & \textbf{Purpose} & \textbf{Notes}\\ \midrule
+\endfirsthead
+\toprule \textbf{Port} & \textbf{Source} & \textbf{Purpose} & \textbf{Notes}\\ \midrule
+\endhead \bottomrule \endlastfoot
+443/TCP & \texttt{0.0.0.0/0} & HTTPS to Caddy & the one public application entry point\\
+80/TCP & \texttt{0.0.0.0/0} & redirect and certificate validation & only a 308 redirect is served\\
+22/TCP & the administrator's public IPv4 address, one /32 (redacted) & administrator SSH & key login only; the two administrators share one home network address\\
+\end{tabularx}
+No other inbound rule exists, so everything else is dropped: Gitea's port
+3000, Caddy's administration port 2019, and port 5432 (no database service
+exists because SQLite is used). \textbf{IPv6:} the security group has no IPv6
+rules and no AAAA DNS record was created, so the service is IPv4 only. Caddy's
+published ports show IPv6 bindings (\texttt{[::]}) on the host, but they are not
+reachable because nothing admits IPv6 traffic. \textbf{UDP:} Caddy advertises
+HTTP/3 on UDP 443, but the group admits only TCP, so clients fall back to
+HTTPS over TCP. \textbf{Outbound:} the AWS default (all traffic allowed) was
+kept, because the instance must reach Docker Hub, GitHub releases, package
+mirrors, DNS, time servers, and Let's Encrypt.
+
+\paragraph{Host and Compose port mappings.}
+\texttt{docker compose ps} on the server (evidence file 12) shows:
 \begin{itemize}[nosep]
-  \item Cloud firewall / security group name and attachment, inbound rules, source ranges, IPv4 and IPv6
-  \item Host and Compose port mappings
-  \item Small network diagram
-  \item External test (source, time, expected vs.\ actual) for 443, 80, admin SSH, Gitea backend 3000, database port
-  \item Corrections made; why HTTPS does not replace a firewall
+  \item \texttt{caddy}: publishes \texttt{0.0.0.0:80}, \texttt{0.0.0.0:443}, their \texttt{[::]} equivalents, and \texttt{443/udp}; port \texttt{2019/tcp} (Caddy's administration interface) is only exposed inside the container and is not published.
+  \item \texttt{gitea}: \texttt{22/tcp} and \texttt{3000/tcp} are exposed only to the Compose network; nothing is published on the host.
 \end{itemize}
 
-\Todo{write the explanation, then add dated, labeled, sanitized evidence (expected vs.\ actual). A screenshot alone does not replace an explanation. Never claim a test that was not run.}
+\paragraph{Network diagram.}
+Figure~\ref{Figure:GiteaFirewall} shows what the security group admits and
+drops. The request path through the proxy is in
+Figure~\ref{Figure:GiteaArchitecture}.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\linewidth}{!}{\input{TikZ/devopsGitea/devopsGiteaFirewall.tex}}
+\caption{What the security group admits (green) and drops (red, dashed) for the Gitea VM
+\cite{DosManual,DockerFirewall}.}
+\label{Figure:GiteaFirewall}
+\end{figure}
+
+\paragraph{External tests.}
+The first outside checks ran at 17:35 UTC on October 15, 2026 from the
+administrator's computer, which is not the server (evidence file 13).
+\textbf{Limitation:} that computer uses the approved administrator address, so
+it cannot show that SSH is blocked for anyone else.
+
+\begin{tabularx}{\linewidth}{L{2.2cm}L{3.0cm}L{3.2cm}Y}
+\caption{External exposure checks\label{Table:ExposureChecks}}\\
+\toprule \textbf{Port} & \textbf{Expected} & \textbf{Actual} & \textbf{Result}\\ \midrule
+\endfirsthead
+\toprule \textbf{Port} & \textbf{Expected} & \textbf{Actual} & \textbf{Result}\\ \midrule
+\endhead \bottomrule \endlastfoot
+443 & open, HTTPS & open, HTTP 200 & \StatusPass\\
+80 & open, redirect only & open, 308 redirect & \StatusPass\\
+3000 (Gitea) & not reachable & closed or filtered & \StatusPass\\
+2019 (Caddy API) & not reachable & closed or filtered & \StatusPass\\
+5432 (database) & not reachable & closed or filtered & \StatusPass\\
+22 from the admin IP & open & open & \StatusPass\\
+22 from another network & blocked & not tested yet & \StatusPending\\
+\end{tabularx}
+``Closed or filtered'' means the connection attempt failed; the test cannot tell
+a refused connection from a dropped one, and both mean the port is not usable
+from outside.
+\Todo{second-network test: join the administrator's computer to a phone hotspot (a different public address) and repeat the probes for 22, 80, 443, 3000, 2019; record the time, source, expected and actual results}
+\Todo{add a sanitized screenshot of the security group's inbound rules from the AWS console (hide the administrator's IP address)}
+
+\paragraph{Corrections.}
+None have been needed so far. The only exposure found beyond the plan is
+informational: internet scanners reached the HTTPS port within seconds of the
+site coming online (evidence file 12) and probed for unrelated software, which
+returned 404 responses. Nobody could create an account, because registration
+is disabled.
+
+\paragraph{Why HTTPS does not replace a firewall.}
+HTTPS protects the content of a connection between a browser and Caddy; it says
+nothing about which ports exist or who may connect to them. Without the
+security group, ports such as 22, 3000, or 2019 would accept connections from
+the whole internet, and encryption on port 443 would not help. The firewall
+decides which services can be reached at all; TLS only protects the ones that
+are reachable. The two address different risks, so both are needed
+\cite{DosManual}.
 
 % ======================================================================
 % Region: giteaWorkflow (single owner; edit only your own region)
