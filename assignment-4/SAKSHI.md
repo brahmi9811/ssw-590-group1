@@ -127,6 +127,7 @@ Covers the whole manual, so do it last and after Brahmi's regions have real cont
 2. Add glossary/index entries and citations for new terms; remove all `\Todo` in your regions; build the PDF locally and check the last pass for `undefined`/`multiply defined`/`!`.
 3. `git pull --rebase`, then push to `main`, and tell Brahmi what you pushed. Brahmi does the final build and submits.
 
-## SD done-list
-- [ ] Row 8 quality pass · [ ] Local rehearsal done (not used as evidence) · [ ] row 3 real evidence · [ ] row 6 workflow with Brahmi · [ ] row 7 diagram + runbook
-[ ] history + prompt-log entries · [ ] pushed to `main`, Brahmi notified
+## SD done-list (updated Oct 15, 2026)
+- [x] Row 8 quality pass (`8bc37d5`) · [x] Local rehearsal done (not used as evidence; stack stopped) · [x] row 3 real evidence (E20-E22) · [x] row 6 workflow with Brahmi (E25-E30) · [x] row 7 diagram + runbook (E24)
+[x] history + prompt-log entries · [x] pushed to `main`, Brahmi notified
+- Handed to Brahmi: 5 remaining `\Todo` markers outside SD's regions, the broken `\textbf` in the firewall region, `\GiteaRepoURL`/`\DocumentStatus`, and two Passwords-table facts about Sakshi (SSH key passphrase, Gitea MFA). After the Todos are gone, set the last row of Table "Manual quality controls" to PASS.
