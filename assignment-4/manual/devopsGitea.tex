@@ -44,7 +44,7 @@ Extra credit: backup and restore (optional) & up to 20 & unassigned & \StatusPen
 \subsection{Student Pack domain and DNS (10 points)}
 \label{Section:giteaDomainDns}
 \index{Gitea!student pack domain and dns}
-\textbf{Owner:} BD. Domain registration: \StatusPass{} (order confirmed, \$0.00). Stored card removed: \StatusPass{}. DNS record and independent lookup: \StatusPending{} (no server exists yet).
+\textbf{Owner:} BD. Domain registration: \StatusPass{} (order confirmed, \$0.00). Stored card removed: \StatusPass{}. DNS record and public-resolver lookup: \StatusPass{}. Teammate lookup and HTTPS link: \StatusPending{}.
 
 \paragraph{Offer and eligibility.}
 The domain comes from the GitHub Student Developer Pack, which lists domain
@@ -64,7 +64,7 @@ only'' and was accepted.
 \toprule \textbf{Item} & \textbf{Value}\\ \midrule
 \endhead \bottomrule \endlastfoot
 Domain & \texttt{ssw590-g1.tech}, registered at Name.com, order \#28974415. The confirmation email arrived Thursday, October 15, 2026 at 00:36 (mailbox local time) and gives the order date as October 14, 2026; the one-day difference is consistent with Name.com stamping the date in a different time zone, which we did not confirm\\
-Planned Gitea hostname & \texttt{\GiteaHost} (DNS not yet created)\\
+Planned Gitea hostname & \texttt{\GiteaHost} (A record created, see below)\\
 First-year cost & \$0.00 (cart total \$0.00; the regular price shown struck through in the cart was \$89.99)\\
 Renewal cost & \$89.99 (``Renew for \$89.99'' on the domain page)\\
 Expiration & October 15, 2027\\
@@ -97,8 +97,38 @@ The group does not plan to renew: the domain is needed only through grading,
 and the TA and instructor must be able to reach the service until then. Expiry
 is October 15, 2027. \Todo{name the owner and calendar reminder for this date}
 
-\paragraph{Still to do in this subsection.}
-\Todo{after the server exists: DNS record screenshot, independent lookup result (for example \texttt{nslookup} against 8.8.8.8 run by a teammate), and the HTTPS hostname link}.
+\paragraph{DNS record.}
+In Name.com's DNS manager the group created one record, \texttt{A git.ssw590-g1.tech
+52.73.254.36} with TTL 300 (Figure~\ref{Fig:DnsRecord}). The address is the Elastic
+IP of the EC2 instance described in the deployment subsection. No AAAA record was
+created, because the deployment is IPv4 only. The domain uses Name.com's own
+nameservers (\texttt{ns1bqx}, \texttt{ns2kry}, \texttt{ns3jmt}, \texttt{ns4ksy}
+\texttt{.name.com}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.6\linewidth]{../evidence/10-namecom-dns-a-record-git-ssw590-g1-tech-2026-10-15.png}
+\caption{Name.com DNS records for \texttt{ssw590-g1.tech}, October 15, 2026: one A record for \texttt{git}.}
+\label{Fig:DnsRecord}
+\end{figure}
+
+\paragraph{Lookup result.}
+At 17:30:34 UTC on October 15, 2026 the name resolved to the expected address
+through three public resolvers (expected: \texttt{52.73.254.36}; actual: the same).
+\begin{center}
+\begin{tabular}{lll}
+\toprule \textbf{Resolver} & \textbf{Result for \texttt{\GiteaHost}} & \textbf{TTL}\\ \midrule
+8.8.8.8 (Google) & A 52.73.254.36 & 300\\
+1.1.1.1 (Cloudflare) & A 52.73.254.36 & 300\\
+9.9.9.9 (Quad9) & A 52.73.254.36 & 300\\ \bottomrule
+\end{tabular}
+\end{center}
+These lookups were run from Brahmi Dalvi's computer through public resolvers; they
+were not run by a teammate on a separate network, so the independent-lookup
+wording of the assignment is met only in that sense.
+\Todo{optional: a teammate repeats the lookup (for example \texttt{nslookup \GiteaHost{} 8.8.8.8}) from another network and the result is added}.
+The HTTPS hostname link will resolve once Gitea and the proxy are deployed.
+\Todo{add the clickable HTTPS link once the site is live}
 
 \paragraph{Payment safeguards.}
 Name.com required a card even for the \$0.00 order. To avoid an unintended

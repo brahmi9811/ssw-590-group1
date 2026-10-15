@@ -1,0 +1,27 @@
+AWS CLI output, run from Brahmi's machine (PowerShell, aws-cli 2.37.9), region us-east-1, Oct 15, 2026.
+SANITIZED: the admin's public IPv4 address was replaced by <ADMIN-IP>. Nothing else was edited.
+The commands were run by Claude Code on Brahmi's go-ahead; no credentials appear in this output.
+
+=== Step 1: default VPC (read-only) ===
+VPC: vpc-08a308ecc88120f9f
+=== Step 2: create security group ===
+  aws ec2 create-security-group --group-name ssw590-g1-gitea \
+     --description "SSW590 Group1 Gitea: 443/80 public, 22 admin only" --vpc-id <default VPC> \
+     --tag-specifications Name=ssw590-g1-gitea, Project=ssw590-group1-assignment4
+SG: sg-0415c75429368eb85
+=== Step 3: ingress rules (authorize-security-group-ingress, one call per rule) ===
+sgr-07ffad0f8d05c8f97	443
+sgr-09bfd2a236c9aa42a	80
+sgr-071a77a76f43108d2	22
+=== Step 4: verify (describe-security-groups) ===
+80	80	tcp	0.0.0.0/0	HTTP redirect and ACME validation only
+22	22	tcp	<ADMIN-IP>/32	Admin SSH from Brahmi only
+443	443	tcp	0.0.0.0/0	HTTPS to Caddy
+--- egress ---
+-1	0.0.0.0/0
+
+Notes:
+- Inbound IPv4 only; no IPv6 rules and no AAAA DNS record are planned.
+- Egress is the AWS default (all outbound allowed).
+- This security group is not attached to any instance yet (no instance exists).
+- This output proves the rules exist on the group. It is NOT an external exposure test.

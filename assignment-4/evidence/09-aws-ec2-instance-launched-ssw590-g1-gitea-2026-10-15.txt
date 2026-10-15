@@ -1,0 +1,41 @@
+AWS CLI output and EC2 console log excerpts, Oct 15, 2026 (UTC times from the console). Region us-east-1.
+Commands were run by Claude Code on Brahmi's explicit go-ahead from Brahmi's machine (PowerShell, aws-cli 2.37.9).
+No credentials or private keys appear below. The admin's public IP is not part of this file.
+
+=== Launch (aws ec2 run-instances, summarized) ===
+image:         ami-0ed59cbb87dfa8dba  (Amazon Linux 2023, al2023-ami-2023.12.20261014.0-kernel-6.18-x86_64)
+type:          t3.micro (2 vCPU, 1 GiB RAM)
+disk:          20 GB gp3 root volume, DeleteOnTermination=true
+key pair:      ssw590-g1-gitea-key (ed25519; private key kept on the admin's machine, outside the repo)
+security grp:  sg-0415c75429368eb85 (ssw590-g1-gitea)
+IMDS:          HttpTokens=required (IMDSv2 only)
+user-data:     assignment-4/gitea/aws/ec2-user-data.sh (swap, Docker, git, pinned Compose)
+tags:          Name=ssw590-g1-gitea, Project=ssw590-group1-assignment4
+
+Instance: i-0c68ec1bc1e16a414
+Elastic IP allocation: eipalloc-0dee5296b5382f367  (association eipassoc-0ea58688cb7153571)
+
+=== Summary (describe-instances / describe-addresses) ===
+i-0c68ec1bc1e16a414  running  t3.micro  ami-0ed59cbb87dfa8dba  us-east-1c  52.73.254.36  sg-0415c75429368eb85  ssw590-g1-gitea-key  IMDS tokens: required
+52.73.254.36  eipalloc-0dee5296b5382f367  i-0c68ec1bc1e16a414
+
+=== Status checks (describe-instance-status) ===
+running  instance-status: ok  system-status: ok
+
+=== Boot script result (EC2 console output, snapshot 2026-10-15T17:22:54Z) ===
+Oct 15 17:17:37 user-data: Complete!
+Oct 15 17:17:40 user-data: Docker version 25.0.14, build 0bab007
+Oct 15 17:17:40 user-data: Docker Compose version v5.6.0
+Oct 15 17:17:40 user-data: git version 2.50.1
+Oct 15 17:17:40 user-data: Mem:             913         254         121           0         537         498
+Oct 15 17:17:40 user-data: Swap:           2047          16        2031
+Oct 15 17:17:40 user-data: user-data finished OK
+cloud-init v. 22.2.2 finished at Thu, 15 Oct 2026 17:17:40 +0000 (up 89.67 seconds)
+
+Notes:
+- Compose binary checksum: the script runs "sha256sum -c" with set -e; the script reached "finished OK", so the check passed.
+  Expected SHA-256 40343e21ca777173e69cff5dbafeb37c6f81f3b0d57d9e597f036e95eb63e76a (GitHub asset digest and .sha256 file agreed).
+- Gitea is NOT deployed yet; DNS is not created yet; no external exposure test has been run yet.
+- Problems met: the AWS CLI on Windows crashed printing a non-ASCII character from the console log (charmap codec);
+  an earlier poll looked like "still waiting" because that error was suppressed. Fixed by forcing UTF-8 (PYTHONIOENCODING/PYTHONUTF8).
+- The IAM user could not read the public SSM AMI parameter (AccessDenied); the AMI was found with describe-images instead.

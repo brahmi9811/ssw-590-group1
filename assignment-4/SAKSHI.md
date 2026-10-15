@@ -3,6 +3,26 @@
 Read `README.md` first (decisions, gates, working agreement, rules). This file is for Sakshi and her Claude session.
 Course manual `dosManual-V1.18.pdf` Chapters 1–2 is the source of truth (ask Brahmi/Canvas for the PDF); if a step here conflicts with it, the manual wins.
 
+## Status and what to do NOW (updated Oct 15, 2026 by Brahmi's Claude)
+
+**The shared server is live (gate G3 reached).** Gitea 1.27.3 (SQLite) + Caddy 2.11.7 run on AWS EC2 at **https://git.ssw590-g1.tech** with a Let's Encrypt certificate. Brahmi owns it and has already created the first admin account (`brahmi`). Facts you will need (all in `evidence/`, files 08 to 14): Compose project directory on the server is `~/gitea` (only `docker-compose.yml`, `Caddyfile`, `.env` there, not the repo); containers are named `gitea` and `caddy`; volumes are `gitea_gitea_data`, `gitea_caddy_data`, `gitea_caddy_config`; SQLite file is `/data/gitea/gitea.db` in the Gitea container; Gitea's own ports are not published; SSH to the server is key-only as `ec2-user`, allowed only from your shared home IP (same as Brahmi's); Docker works for `ec2-user`.
+
+### Already done (from your branch `sd/gitea`, Oct 15)
+- Draft of your four regions (`giteaDatabase`, `giteaWorkflow`, `giteaArchitecture`, `giteaManualQuality`), a TikZ architecture figure, `sd/persistence-test.sh`, `sd/backlog-draft.md`, history, glossary, bibliography and AI-log lines. All VM results are still marked pending, which is correct. A local rehearsal was run and is labeled "not graded".
+- Brahmi has checked your branch: it only touches your regions and the shared append-only files, and a trial merge into `main` predicts no conflicts. She will merge it after she commits her own work.
+
+### Do next, in this order
+1. **Give Brahmi your SSH public key** (never the private one). On your machine: `ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\ssw590-g1-sakshi"`, then send her the contents of the `.pub` file. She adds it to the server. Until that is done you cannot SSH in.
+2. **Wait for Brahmi to create** (a) your Gitea account and (b) the organization `group1-startup`, and for her message that they are ready. Sign in at https://git.ssw590-g1.tech and change the temporary password. Keep it in a password manager; send Brahmi only a one-line hint for the Passwords table.
+3. **Row 3, persistence on the real server.** Copy `sd/persistence-test.sh` to the server (it expects to run from the Compose directory; adapt paths: the server directory is `~/gitea`, not `assignment-4/gitea`). Run it against `https://git.ssw590-g1.tech` (not `-k`, the certificate is valid). Record exact commands, IDs, before/after, dates, and put the output in `evidence/` with an index row. The local rehearsal does not count.
+4. **Row 6 with Brahmi.** Create the product repository, README, members and roles, the 5 or more issues from `sd/backlog-draft.md`, and two issue-linked pull requests reviewed by the other person, merged, issues closed. Capture links and dated screenshots. Brahmi is the second member for peer review.
+5. **Row 7.** Replace the draft architecture text with the real deployment (use evidence 09, 11, 12, 13) and finish the restart/troubleshooting runbook with commands you actually ran.
+6. **Row 8, last.** After Brahmi's regions (2, 4, 5) have real content: version bump, history entries, Hosts/Passwords check, citations, redaction scan across the whole PDF, failed-test log, final `\Todo` scan.
+7. **Extra credit (backup/restore): unassigned.** Do nothing on it unless Brahmi says there is time.
+
+### Before you start working
+`git pull --rebase` after Brahmi pushes her commit, so you get the new `evidence/` folder, the AWS boot script `gitea/aws/ec2-user-data.sh`, and her manual edits. Do not edit `gitea/`, her regions, or the cloud.
+
 ## What SD owns (and ONLY this)
 - `manual/devopsGitea.tex` regions: **`giteaDatabase`, `giteaWorkflow`, `giteaArchitecture`, `giteaManualQuality`**. (Rows 3, 6, 7, 8 = 50 pts.) The `giteaExtraCredit` region is **unassigned**; do not edit it or start that work unless Brahmi says time is available.
 - In `devopsITManual.tex` only the `\DocumentVersion` and `\DocumentDate` lines (row 8 version bump). Nothing else in that file.

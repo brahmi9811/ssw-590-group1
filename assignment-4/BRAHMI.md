@@ -4,7 +4,7 @@ Read `README.md` first (decisions, gates, working agreement, rules). This file i
 Course manual `dosManual-V1.18.pdf` Chapters 1–2 is the source of truth; if a step here conflicts with it, the manual wins.
 
 ## Progress tracker (kept up to date as we work)
-_Last updated: Oct 15, 2026._ Evidence files are in `evidence/` (see its `README.md` index).
+_Last updated: Oct 15, 2026 (Gitea + Caddy live over HTTPS, admin `brahmi` works; Sakshi's branch `sd/gitea` exists, unmerged)._ Evidence files are in `evidence/` (see its `README.md` index).
 
 ### Done
 | Item | Date | Notes / evidence |
@@ -23,23 +23,40 @@ _Last updated: Oct 15, 2026._ Evidence files are in `evidence/` (see its `README
 | PDF builds (34 pages, no errors) | Oct 15 | `manual/devopsITManual.pdf` |
 | Decision: use the **AWS CLI** (not the console) for EC2 work; instance specs OK "as long as it works and doesn't cost more" | Oct 15 | |
 | Read-only AWS checks: CLI v2.37.9 works, region `us-east-1`, credentials valid. Existing: 1 running instance (`ssw590-group1-web`, `t3.micro`, last assignment, untouched), 0 Elastic IPs, 1 old key pair, 1 old security group | Oct 15 | CLI is **not on PATH**: run `C:\Program Files\Amazon\AWSCLIV2\aws.exe` from PowerShell |
-| Finding: IAM user `ssw-590` is **not allowed** to view or create AWS Budgets | Oct 15 | A budget alert must be created in the console by the account owner |
+| Finding: IAM user `ssw-590` is **not allowed** to view or create AWS Budgets | Oct 15 | Budgets must be managed in the console by the account owner |
+| **Security group `ssw590-g1-gitea` created** (`sg-0415c75429368eb85`, default VPC, us-east-1): 443 and 80 from anywhere (IPv4), 22 from Brahmi's single IP only, egress all. Not attached to anything yet | Oct 15 | Evidence 08 (admin IP redacted). IPv4 only, no AAAA planned |
+| **EC2 instance launched**: `i-0c68ec1bc1e16a414`, `t3.micro`, Amazon Linux 2023 (`ami-0ed59cbb87dfa8dba`), 20 GB gp3, IMDSv2 required, `us-east-1c`; new key pair `ssw590-g1-gitea-key` (private key at `C:\Users\BRAHMI\.ssh\ssw590-g1-gitea-key.pem`, outside the repo, never commit) | Oct 15 | Evidence 09 |
+| **Elastic IP** `52.73.254.36` attached to the instance | Oct 15 | Evidence 09. Billed hourly; release it at teardown |
+| Boot script `gitea/aws/ec2-user-data.sh` ran OK: 2 GB swap, Docker 25.0.14, Compose v5.6.0 (SHA-256 pinned), git 2.50.1 | Oct 15 | Evidence 09 |
+| **DNS A record created**: `git.ssw590-g1.tech` -> `52.73.254.36`, TTL 300 (no AAAA) | Oct 15 | Evidence 10 |
+| DNS verified via 8.8.8.8, 1.1.1.1, 9.9.9.9 (all return `52.73.254.36`); SSH by hostname works with the verified host key; server matches plan (AL2023, Docker 25.0.14, Compose v5.6.0, 2 GB swap) | Oct 15, 17:30 UTC | Evidence 11. Lookups were from Brahmi's machine, not a teammate's |
+| Manual `giteaDomainDns` updated with DNS record, lookup table, figure | Oct 15 | Remaining there: optional teammate lookup, HTTPS link |
+| **Gitea 1.27.3 + Caddy 2.11.7 deployed** on the server in `~/gitea` via `docker compose up -d` (files copied from `assignment-4/gitea/`, checksums match; `.env` has only non-secret values). Gitea healthy; only Caddy publishes 80/443 | Oct 15, 17:34 UTC | Evidence 12 |
+| **Let's Encrypt certificate obtained automatically** (TLS-ALPN-01), issuer `YE2`, valid 2026-10-15 to 2027-01-13, TLS 1.3, chain valid; HTTP gives 308 redirect to HTTPS; HTTPS 200 | Oct 15, 17:35 UTC | Evidence 12, 13 |
+| First external probes from the admin machine: 443 and 80 open; 3000, 2019, 5432 not reachable | Oct 15 | Evidence 13. From the **admin IP**, so a second-network test is still needed |
+| **First Gitea admin created** by Brahmi in her own terminal (username `brahmi`; password in her password manager, never shared) and sign-in at `https://git.ssw590-g1.tech` works | Oct 15 | Evidence 14 |
+| Checked the remote: `main` has nothing new. Sakshi pushed branch **`sd/gitea`** (1 commit, "draft rows 3, 6, 7, 8"): touches only her regions and shared append-only files; a trial merge into `main` predicts no conflicts | Oct 15 | Not merged yet; see Pending #12 |
+| Budget already exists: "My Monthly Cost Budget", **$15.00/month**; used $3.13, forecast $3.12 (before the new instance) | Oct 15 | Evidence 07. Thresholds/email not visible in the screenshot |
 
 ### Pending (in order)
 | # | Item | Blocked by |
 |---|---|---|
 | 1 | Check card statement a few days after Oct 15 for any Name.com charge; record result in the manual | time |
 | 2 | Name the owner of the Oct 15, 2027 renewal reminder; add to the manual | you |
-| 3a | Create a **new budget alert in the AWS console** (account owner/root; the CLI user lacks permission) | you |
+| 3a | _Optional, deferred by Brahmi (Oct 15): not needed for grading._ Check the existing $15 budget's alert thresholds/email; it may fire once the second instance runs | you, whenever |
 | 3b | Confirm final instance specs: recommended `t3.micro` + 2 GB swap, 20 GB gp3, new key pair + new security group, Elastic IP (cost estimates in chat; verify on AWS pricing) | you |
 | 4 | Certificate comparison (A3), firewall rule table (A4), review compose files (A5) | nothing, can do now |
-| 5 | Create Security Group, key pair, Elastic IP, launch the new instance (B1, B2) | #3, your OK per paid step |
-| 6 | DNS `A` record for `git.ssw590-g1.tech`, independent lookup (B3) | #5 |
-| 7 | Install Docker, deploy Gitea + Caddy, create admin yourself (B4) | #6 |
-| 8 | HTTPS evidence and renewal test (B5); external exposure tests (B6) | #7 |
+| 5 | ~~Security group, key pair, instance, Elastic IP~~ (all done) | |
+| 6 | ~~DNS record, lookup, SSH test~~ (done). Optional: Sakshi runs `nslookup git.ssw590-g1.tech 8.8.8.8` from her side | |
+| 7 | ~~Deploy Gitea + Caddy, create first admin~~ (done) | |
+| 7a | **Hand-off to Sakshi (B7), now unblocked:** (1) ask her for her SSH **public** key and add it to `~/.ssh/authorized_keys` on the server (her public IP is the same as yours, so the security group already allows her); (2) create her Gitea account in the admin UI (site administration, user accounts, "must change password"), give her the temporary password through a password manager, never chat; (3) create the Gitea organization `group1-startup` (her backlog draft names you as owner) and add her; (4) tell her it is ready | you |
+| 7b | **Write your three manual regions from real evidence:** `giteaDeployment` (evidence 09, 11, 12, 14), `giteaHttps` (certificate comparison + evidence 12, 13), `giteaFirewall` (evidence 08, 13 + a second-network test). Claude can draft these | you + Claude |
+| 8 | Remaining HTTPS/exposure evidence: a real **renewal test** (e.g. temporarily use Let's Encrypt staging, or another honest method); external test from a **second network** (phone hotspot) for SSH/80/443/3000; confirm the hostname loads in a browser (screenshot) | after #7 |
 | 9 | Hand Sakshi access: URL, her public SSH key, a Gitea account (B7) | #8 |
 | 10 | Hosts and Passwords tables, history entry, prompt-log record (B8) | as things happen |
-| 11 | Merge Sakshi's work, remove `\Todo`s, final build, submit PDF only (Phase C) | everything |
+| 11 | Final build, remove `\Todo`s, submit PDF only (Phase C) | everything |
+| 12 | **Commit and push** your own uncommitted work first (evidence 07-14, `gitea/aws/ec2-user-data.sh`, manual and tracker edits), then review and merge Sakshi's `sd/gitea` branch; tell her to `git pull --rebase` afterwards | you |
+| 13 | Hosts and Passwords tables are still placeholders: add the server (hostname `git.ssw590-g1.tech`, AWS `us-east-1`, instance `i-0c68ec1bc1e16a414`, ports 443/80/22), and hint rows for the Gitea admin, AWS, Name.com, SSH key | you + Claude |
 
 ## What BD owns (and ONLY this)
 - `manual/devopsGitea.tex` regions: **`giteaDomainDns`, `giteaDeployment`, `giteaHttps`, `giteaFirewall`**, plus the chapter intro, the status table, and the provider note at the top.
