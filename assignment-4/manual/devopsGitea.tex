@@ -449,32 +449,35 @@ ssh -t -i ~/.ssh/ssw590-g1-sakshi ec2-user@git.ssw590-g1.tech \
   'cd ~/gitea && GITEA_URL=https://git.ssw590-g1.tech GITEA_USER=sakshi \
    bash ~/persistence-test.sh | tee ~/persistence.log'
 \end{minted}
-The complete, unedited log follows (evidence file
-\path{20-persistence-test-container-replacement-sakshi-2026-10-15.txt}). It
-contains no credential: the password was typed at a hidden prompt. The
-\texttt{host:} line is the instance's AWS-internal name, which is not
-reachable from the internet.
-\inputminted{text}{../evidence/20-persistence-test-container-replacement-sakshi-2026-10-15.txt}
+\ListRef{20} is the complete, unedited log. It contains no credential: the
+password was typed at a hidden prompt. The \texttt{host:} line is the
+instance's AWS-internal name, which is not reachable from the internet.
 
-Figures~\ref{Fig:PersistenceRepo} and~\ref{Fig:PersistenceIssue} show the
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/20-persistence-test-container-replacement-sakshi-2026-10-15.txt}
+\caption{Persistence test on the EC2 instance, October 15, 2026, 18:29:19--18:29:52~UTC (real, unedited output of \texttt{persistence-test.sh}).}
+\label{Listing:E20}
+\end{longlisting}
+
+\FigRef{21} and \FigRef{22} show the
 repository and the issue in the browser on October 15, 2026, a few minutes
 after the test finished (Gitea displays relative times such as ``2 minutes
-ago''; the absolute times are in the log above). The commit shown,
+ago''; the absolute times are in \ListRef{20}). The commit shown,
 \texttt{4f15f70000}, is the \texttt{main} commit recorded before and after the
 replacement.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\linewidth]{../evidence/21-gitea-persistence-check-repo-after-test-commit-4f15f70000-2026-10-15.png}
+\includegraphics[width=0.9\linewidth]{../evidence/21-gitea-persistence-check-repo-after-test-commit-4f15f70000-2026-10-15.png}
 \caption{Repository \href{\GiteaURL/sakshi/persistence-check}{\texttt{sakshi/persistence-check}} after the container replacement, October 15, 2026: one commit, \texttt{4f15f70000}.}
-\label{Fig:PersistenceRepo}
+\label{Fig:E21}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\linewidth]{../evidence/22-gitea-persistence-check-issue-1-open-after-test-2026-10-15.png}
+\includegraphics[width=0.9\linewidth]{../evidence/22-gitea-persistence-check-issue-1-open-after-test-2026-10-15.png}
 \caption{Issue \href{\GiteaURL/sakshi/persistence-check/issues/1}{\#1} still open after the container replacement, October 15, 2026.}
-\label{Fig:PersistenceIssue}
+\label{Fig:E22}
 \end{figure}
 
 \subsubsection{Conclusion}
@@ -842,7 +845,7 @@ review, and a closed issue.}
 \index{runbook}
 \textbf{Owner:} SD. \textbf{Status:} figure and text describe the live
 deployment of October 15, 2026 \StatusPass; runbook commands run on the
-server (evidence~24) \StatusPass.
+server (\ListRef{24}) \StatusPass.
 
 \subsubsection{Architecture}
 Figure~\ref{Figure:GiteaArchitecture} shows the deployment, adapted from the
@@ -932,11 +935,15 @@ docker compose up -d                   # re-apply the Compose file after a chang
 curl -sS -o /dev/null -w "%{http_code}\n" https://git.ssw590-g1.tech/api/healthz
 \end{minted}
 The read-only commands were run on October 15, 2026 at 18:50~UTC
-(evidence~24, below). Container replacement was exercised by the row~3 test
+(\ListRef{24}). Container replacement was exercised by the row~3 test
 (Table~\ref{Table:PersistenceTest}): Gitea was back and healthy about
 30~seconds later. A plain \texttt{docker compose restart} was not run
 separately, because it does strictly less than that replacement.
-\inputminted{text}{../evidence/24-runbook-readonly-checks-on-server-sakshi-2026-10-15.txt}
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{../evidence/24-runbook-readonly-checks-on-server-sakshi-2026-10-15.txt}
+\caption{Read-only runbook commands on the EC2 instance, October 15, 2026, 18:50~UTC (real output; client addresses removed from the Caddy lines).}
+\label{Listing:E24}
+\end{longlisting}
 The Caddy warnings ``aborting with incomplete response'' appear when a
 response stream to a client is cut off (for example, a browser closing the
 connection); users did not see errors, and the health check returned 200.
