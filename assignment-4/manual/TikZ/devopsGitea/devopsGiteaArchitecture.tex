@@ -9,31 +9,31 @@
   pub/.style={->, thick},
   lbl/.style={font=\scriptsize, align=center}]
   % Outside the VM
-  \node[box] (browser) at (0,0) {$\langle\langle$device$\rangle\rangle$\\Team browser};
-  \node[box] (admin) at (0,-3.3) {Team admin\\(approved IP)};
-  \node[box] (fw) at (3.0,0) {Cloud\\firewall};
+  \node[box] (browser) at (-1.2,0) {$\langle\langle$device$\rangle\rangle$\\Team browser};
+  \node[box] (admin) at (-1.2,-3.3) {Team admin\\(approved IP)};
+  \node[box] (fw) at (2.4,0) {Security group\\\texttt{ssw590-g1-gitea}};
 
   % Inside the VM
-  \node[box] (caddy) at (6.6,0) {$\langle\langle$container$\rangle\rangle$\\Caddy TLS proxy\\publishes 80, 443};
-  \node[box] (gitea) at (10.9,0) {$\langle\langle$container$\rangle\rangle$\\Gitea\\3000 (private)};
-  \node[store, anchor=west] (data) at (12.7,0) {volume \texttt{gitea\_data}\\\texttt{/data/git/repositories}\\\texttt{/data/gitea/gitea.db}};
-  \node[store] (certs) at (6.6,-2.1) {volume \texttt{caddy\_data}\\certificates, ACME};
-  \node[box] (host) at (10.9,-3.3) {VM host OS\\Docker Engine, sshd};
+  \node[box] (caddy) at (7.6,0) {$\langle\langle$container$\rangle\rangle$\\Caddy TLS proxy\\publishes 80, 443};
+  \node[box] (gitea) at (11.9,0) {$\langle\langle$container$\rangle\rangle$\\Gitea\\3000 (private)};
+  \node[store, anchor=west] (data) at (13.6,0) {volume \texttt{gitea\_gitea\_data}\\\texttt{/data/git/repositories}\\\texttt{/data/gitea/gitea.db}};
+  \node[store] (certs) at (7.6,-2.1) {volume \texttt{gitea\_caddy\_data}\\Let's Encrypt cert, ACME};
+  \node[box] (host) at (11.9,-3.3) {Amazon Linux 2023\\Docker 25, sshd (keys only)};
 
-  \draw[dashed, rounded corners] (4.6,1.45) rectangle (16.8,-4.1);
-  \node[anchor=north west, font=\scriptsize] at (4.65,1.4)
-    {$\langle\langle$device$\rangle\rangle$ Cloud VM (single host)};
-  \draw[dotted, rounded corners] (5.05,0.8) rectangle (12.25,-0.85);
-  \node[font=\scriptsize, anchor=north east] at (12.25,-0.85) {Compose network \texttt{web}};
+  \draw[dashed, rounded corners] (5.6,1.45) rectangle (18.3,-4.1);
+  \node[anchor=north west, font=\scriptsize] at (5.65,1.4)
+    {$\langle\langle$device$\rangle\rangle$ AWS EC2 \texttt{ssw590-g1-gitea} (t3.micro, Elastic IP)};
+  \draw[dotted, rounded corners] (6.05,0.8) rectangle (13.25,-0.85);
+  \node[font=\scriptsize, anchor=north east] at (13.25,-0.85) {Compose network \texttt{gitea\_web}};
 
   % Web request path (public, then private)
-  \draw[pub] (browser) -- node[lbl, above] {HTTPS} (fw);
+  \draw[pub] (browser) -- node[lbl, above] {HTTPS} node[lbl, below] {IPv4} (fw);
   \draw[pub] (fw) -- node[lbl, above] {443 / 80} (caddy);
   \draw[priv] (caddy) -- node[lbl, above] {HTTP to\\\texttt{gitea:3000}} (gitea);
   \draw[priv] (gitea) -- (data);
   \draw[priv] (caddy) -- (certs);
 
   % Admin path, separate from the web path
-  \draw[pub] (admin.east) -| node[lbl, above, pos=0.3] {SSH 22} (fw.south west);
+  \draw[pub] (admin.east) -| node[lbl, right, pos=0.75] {SSH 22} (fw.south west);
   \draw[pub, dashed] (fw.south east) |- node[lbl, above, pos=0.8] {SSH 22, approved IPs only} (host.west);
 \end{tikzpicture}

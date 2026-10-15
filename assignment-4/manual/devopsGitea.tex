@@ -690,99 +690,130 @@ review, and a closed issue.}
 \label{Section:giteaArchitecture}
 \index{Gitea!architecture and operation}
 \index{runbook}
-\textbf{Owner:} SD. \textbf{Status:} design and runbook written and rehearsed
-locally; the figure must be confirmed against the live VM \StatusPending.
+\textbf{Owner:} SD. \textbf{Status:} figure and text describe the live
+deployment of October 15, 2026 \StatusPass; runbook commands run on the
+server (evidence~24) \StatusPass.
 
 \subsubsection{Architecture}
 Figure~\ref{Figure:GiteaArchitecture} shows the deployment, adapted from the
 course reference design \cite{DosManual} for the SQLite path only. Black
-arrows cross the public internet; blue arrows stay inside the VM.
+arrows cross the public internet; blue arrows stay inside the instance. The
+facts come from the deployment evidence (Sections~\ref{Section:giteaDeployment}
+to~\ref{Section:giteaFirewall}): one AWS EC2 instance
+\texttt{ssw590-g1-gitea} (\texttt{t3.micro}, Amazon Linux 2023, region
+\texttt{us-east-1}) with an Elastic IP, security group
+\texttt{ssw590-g1-gitea}, and Docker Compose project \texttt{gitea} in
+\texttt{\textasciitilde/gitea}.
 
 \begin{figure}[htbp]
 \centering
 \resizebox{\linewidth}{!}{\input{TikZ/devopsGitea/devopsGiteaArchitecture.tex}}
-\caption{Group~1 Gitea deployment on one cloud VM. The cloud firewall admits
-HTTPS (443) and HTTP (80, redirect and certificate validation only) from
-anyone, and SSH (22) only from approved team IPs. Only Caddy publishes ports;
-Gitea's port 3000 and the SQLite file are private
+\caption{Group~1 Gitea deployment on one AWS EC2 instance, October 15, 2026.
+The security group admits HTTPS (443) and HTTP (80, redirect only) from
+anyone over IPv4, and SSH (22) only from the approved team address. Only
+Caddy publishes ports; Gitea's port 3000, its container \texttt{sshd}, Caddy's
+admin port 2019, and the SQLite file are private. There is no IPv6 path
 \cite{DosManual,GiteaDocker,CaddyAutoHTTPS}.}
 \label{Figure:GiteaArchitecture}
 \end{figure}
 
 \subsubsection{Request path}
 \begin{enumerate}[nosep]
-  \item The browser resolves \GiteaHost{} through public DNS to the VM's
-  address and connects on 443.
-  \item The cloud firewall admits 443 (and 80) and drops every other port
-  except SSH from approved IPs.
-  \item Caddy terminates TLS with the hostname certificate stored in
-  \texttt{caddy\_data}. A request on port 80 is redirected to HTTPS.
+  \item The browser resolves \GiteaHost{} through public DNS (an \texttt{A}
+  record at Name.com, TTL 300; no \texttt{AAAA} record) to the instance's
+  Elastic IP and connects on 443.
+  \item The security group admits 443 and 80 from anywhere and 22 only from
+  the approved address; everything else is dropped.
+  \item Caddy terminates TLS with a Let's Encrypt certificate for
+  \GiteaHost{}, obtained with the TLS-ALPN-01 challenge on port 443 and
+  stored in the \texttt{gitea\_caddy\_data} volume. A request on port 80
+  receives \texttt{308 Permanent Redirect} to HTTPS.
   \item Caddy forwards the request as plain HTTP over the private Compose
-  network \texttt{web} to \texttt{gitea:3000}, found by service name.
+  network \texttt{gitea\_web} to \texttt{gitea:3000}, found by service name.
   \item Gitea reads and writes the SQLite file and the bare Git repositories
-  in the \texttt{gitea\_data} volume and returns the page through Caddy.
+  in the \texttt{gitea\_gitea\_data} volume and answers through Caddy.
 \end{enumerate}
-Git clone and push use the same HTTPS path; Gitea's built-in SSH clone is
-disabled (\texttt{DISABLE\_SSH=true}). The image's own \texttt{sshd} still
-listens on port 22 \emph{inside} the container, but that port is not
-published, so it is unreachable from outside the VM.
+Git clone and push use the same HTTPS path; Gitea's own SSH clone is disabled
+(\texttt{DISABLE\_SSH=true}). The image's \texttt{sshd} still listens on port
+22 \emph{inside} the container, but that port is not published.
+
+\subsubsection{Administration path}
+Administrators connect with SSH keys only, as \texttt{ec2-user}, from the
+approved address. Each member has a separate key, and the server's
+\texttt{sshd} log tells them apart by key fingerprint. Before the first
+connection, each member compared the server's host key with the one published
+by the administrator (\texttt{SHA256:sJSqc/LAVTJ\ldots buvgosM}). Docker is
+run by \texttt{ec2-user}, which is in the \texttt{docker} group.
 
 \subsubsection{Public and private interfaces}
-\begin{tabularx}{\linewidth}{L{3.3cm}L{2.2cm}Y}
+\begin{tabularx}{\linewidth}{L{3.4cm}L{2.2cm}Y}
 \caption{Interfaces and exposure\label{Table:GiteaInterfaces}}\\
 \toprule \textbf{Interface} & \textbf{Exposure} & \textbf{Notes}\\ \midrule
 \endfirsthead
 \toprule \textbf{Interface} & \textbf{Exposure} & \textbf{Notes}\\ \midrule
 \endhead \bottomrule \endlastfoot
-Caddy 443/TCP & public & HTTPS for the web UI and Git\\
-Caddy 80/TCP & public & redirect to HTTPS and ACME HTTP-01 only\\
-Host SSH 22/TCP & restricted & approved team IPs only (Section~\ref{Section:giteaFirewall})\\
+Caddy 443/TCP & public & HTTPS for the web UI, API, and Git\\
+Caddy 80/TCP & public & \texttt{308} redirect to HTTPS only\\
+Host SSH 22/TCP & restricted & approved address only (Section~\ref{Section:giteaFirewall})\\
 Gitea 3000/TCP & private & Compose network only, no host port mapping\\
-Container sshd 22 & private & not published\\
+Container \texttt{sshd} 22 & private & not published\\
+Caddy admin 2019/TCP & private & inside the Caddy container, not published\\
 SQLite & none & a file, not a network service\\
+IPv6 & none & no security-group rule and no \texttt{AAAA} record\\
 \end{tabularx}
 
 \subsubsection{Where data lives}
-All Gitea state is in the named volume \texttt{gitea\_data}
+All Gitea state is in the named volume \texttt{gitea\_gitea\_data}
 (Table~\ref{Table:GiteaDataLocations}); TLS certificates and the ACME account
-are in \texttt{caddy\_data}. The volumes are on the VM's disk. Containers hold
-no state and can be replaced at any time.
+are in \texttt{gitea\_caddy\_data}, and Caddy's runtime configuration in
+\texttt{gitea\_caddy\_config}. The volumes are on the instance's 20\,GB
+\texttt{gp3} root disk. Containers hold no state and can be replaced at any
+time; row~3 did exactly that.
 
 \subsubsection{Operating runbook}
-All commands run on the VM from \texttt{assignment-4/gitea}.
+All commands run on the instance from \texttt{\textasciitilde/gitea}.
 \begin{minted}{bash}
 docker compose ps                      # both services Up; gitea (healthy)
 docker compose logs --tail=100 gitea   # application errors
 docker compose logs --tail=100 caddy   # TLS issuance/renewal, proxy errors
 docker compose restart gitea           # restart without recreating
+docker compose up -d --force-recreate gitea   # replace the container, keep volumes
 docker compose up -d                   # re-apply the Compose file after a change
-docker compose pull && docker compose up -d   # after changing a pinned tag in .env
-curl -sI https://<host>/api/healthz    # end-to-end check through Caddy
+curl -sS -o /dev/null -w "%{http_code}\n" https://git.ssw590-g1.tech/api/healthz
 \end{minted}
+The read-only commands were run on October 15, 2026 at 18:50~UTC
+(evidence~24, below). Container replacement was exercised by the row~3 test
+(Table~\ref{Table:PersistenceTest}): Gitea was back and healthy about
+30~seconds later. A plain \texttt{docker compose restart} was not run
+separately, because it does strictly less than that replacement.
+\inputminted{text}{../evidence/24-runbook-readonly-checks-on-server-sakshi-2026-10-15.txt}
+The Caddy warnings ``aborting with incomplete response'' appear when a
+response stream to a client is cut off (for example, a browser closing the
+connection); users did not see errors, and the health check returned 200.
+
 \begin{tabularx}{\linewidth}{L{4.4cm}Y}
 \caption{Troubleshooting\label{Table:GiteaTroubleshooting}}\\
 \toprule \textbf{Symptom} & \textbf{Check}\\ \midrule
 \endfirsthead
 \toprule \textbf{Symptom} & \textbf{Check}\\ \midrule
 \endhead \bottomrule \endlastfoot
-Browser cannot connect & DNS points at the VM; firewall allows 443; \texttt{docker compose ps} shows Caddy Up\\
-502 Bad Gateway & Gitea is down or unhealthy: \texttt{docker compose logs gitea}\\
-Certificate error & \texttt{docker compose logs caddy}; port 80/443 reachable for ACME; \texttt{caddy\_data} still mounted\\
-Data appears missing & \texttt{docker volume ls} still lists \texttt{gitea\_gitea\_data}; the Compose project name has not changed\\
+Browser cannot connect & DNS still resolves to the Elastic IP; security group allows 443; \texttt{docker compose ps} shows Caddy Up\\
+502 Bad Gateway & Gitea is down or still starting: \texttt{docker compose logs gitea}; one transient 502 was seen at first start (Section~\ref{Section:giteaDeployment})\\
+Certificate error & \texttt{docker compose logs caddy}; port 443 reachable for TLS-ALPN-01; \texttt{gitea\_caddy\_data} still mounted\\
+SSH refused or times out & the member's public address has changed; ask the administrator to update the security group\\
+Data appears missing & \texttt{docker volume ls} still lists \texttt{gitea\_gitea\_data}; Compose is run from \texttt{\textasciitilde/gitea} so the project name is still \texttt{gitea}\\
 \end{tabularx}
 \textbf{Never run} \texttt{docker compose down -v} or \texttt{docker volume rm}
-on the VM: they delete the volumes and all data.
+on the instance: they delete the volumes and all data.
 
 \subsubsection{Persistence is not backup}
 The persistence test (Section~\ref{Section:giteaDatabase}) proves data
 survives a \emph{container} replacement because it lives on a volume. A backup
 is a separate copy of that data, stored elsewhere, that has been restored
-successfully. Without one, deleting the volume, losing the VM disk, or
-corrupting the database still loses everything. A verified backup and restore
-is the optional extra credit (Section~\ref{Section:giteaExtraCredit}).
-
-\Todo{after G3: confirm provider, VM name, and hostname in the figure and text
-match the live deployment.}
+successfully. Without one, deleting the volume, terminating the instance (its
+root disk has \texttt{DeleteOnTermination=true}), or corrupting the database
+still loses everything. A verified backup and restore is the optional extra
+credit (Section~\ref{Section:giteaExtraCredit}).
 
 % ======================================================================
 % Region: giteaManualQuality (single owner; edit only your own region)
