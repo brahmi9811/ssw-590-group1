@@ -1,0 +1,68 @@
+Real output from the server (ssh ec2-user@git.ssw590-g1.tech) and from Brahmi's computer, Oct 15, 2026, 19:03 to 19:08 UTC.
+Run by Claude Code on Brahmi's go-ahead ("do the renewal test, she is not working right now").
+SANITIZED: remote addresses in Caddy log lines replaced by <masked>; long JSON lines trimmed.
+
+PURPOSE: show that Caddy, with this setup, can complete the full ACME certificate process. Caddy has no "renew now" or "dry run" command that we know of.
+Method: run the same ACME process against Let's Encrypt's STAGING server (the idea behind "certbot renew --dry-run").
+IMPORTANT LIMIT: this is a certificate ISSUANCE test for a different, throwaway hostname. It is NOT a renewal of the production certificate.
+
+=== 0. Baseline (19:03:58 UTC): production certificate before the test ===
+Issuer CN=YE2, O=Let's Encrypt | NotBefore 2026-10-15 16:35:56 | NotAfter 2027-01-13 16:35:55
+Thumbprint 62AC575CAC34B6E3D61F581D5DCFFB321EB7C4AF | chain trusted: True
+
+=== 1. ATTEMPT 1: global staging CA for the real hostname (19:04:08 UTC) ===  RESULT: INCONCLUSIVE
+Caddyfile: added a global block { acme_ca https://acme-staging-v02.api.letsencrypt.org/directory }, then "caddy reload".
+After 30 s and again at 19:04:54: the only certificate-related log line was "enabling automatic TLS certificate management";
+no staging certificate was requested, storage held only the production certificate directory,
+and the served certificate was still the production one (same thumbprint 62AC575C...C4AF).
+Reading: Caddy already held a valid certificate for the name, so a reload with a different CA did not start a new order.
+Nothing about renewal was demonstrated. Production config restored at 19:05:28 UTC (Caddyfile sha256 prefix 7705e125f84a2c82 = repo copy).
+
+=== 2. ATTEMPT 2a: invalid syntax (19:05:52 UTC) ===
+Test block used "ca <url>" inside "issuer acme { }".  caddy reload -> error:
+  adapting config using caddyfile: parsing caddyfile tokens for 'tls': unrecognized ACME issuer property: ca
+Caddy refused the reload and kept the previous working configuration, so the live site was not affected. Correct directive is "dir <url>".
+
+=== 3. ATTEMPT 2b: throwaway hostname with a staging-only issuer (19:06:44 UTC) ===  RESULT: SUCCESS
+Hostname: 52-73-254-36.sslip.io (public wildcard DNS service; resolves to the server's Elastic IP, checked via 8.8.8.8).
+Caddyfile = production block UNCHANGED + this block:
+  52-73-254-36.sslip.io {
+      tls { issuer acme { dir https://acme-staging-v02.api.letsencrypt.org/directory } }
+      respond "renewal test" 200
+  }
+caddy validate -> "Valid configuration"; caddy reload -> no error.
+Caddy log (ACME lines, trimmed):
+  using ACME account  https://acme-staging-v02.api.letsencrypt.org/acme/acct/353835223
+  trying to solve challenge  identifier 52-73-254-36.sslip.io  challenge_type tls-alpn-01  ca .../acme-staging-v02.api.letsencrypt.org/directory
+  served key authentication certificate (tls-alpn-01) x5   (remote <masked>)
+  authorization finalized  authz_status valid
+  validations succeeded; finalizing order  https://acme-staging-v02.api.letsencrypt.org/acme/order/353835223/51532536033
+  got renewal info (ACME Renewal Information) x3   names 52-73-254-36.sslip.io  window_start 1795720004  window_end 1795830526
+  successfully downloaded available certificate chains  count 3
+  tls.obtain: certificate obtained successfully  issuer acme-staging-v02.api.letsencrypt.org-directory
+Time from reload (ts 1792091205) to "certificate obtained successfully" (ts 1792091210): about 5 seconds.
+Storage after: .../acme-v02.api.letsencrypt.org-directory/git.ssw590-g1.tech  (production)  and
+               .../acme-staging-v02.api.letsencrypt.org-directory/52-73-254-36.sslip.io  (test)
+
+=== 4. Certificates served at 19:07:40 UTC (read with .NET SslStream, validation bypass ON for this inspection only) ===
+SNI 52-73-254-36.sslip.io : Issuer CN=(STAGING) Artificial Amaranth YE1, O=Let's Encrypt | NotBefore 2026-10-15 18:08:16 | NotAfter 2026-12-18 18:08:15
+                            Thumbprint 44202E6BCB0E5097A10AAD60D95B695E1DD9153F | trusted by Windows: False (expected: staging CA is not trusted)
+SNI git.ssw590-g1.tech    : Issuer CN=YE2, O=Let's Encrypt | Thumbprint 62AC575CAC34B6E3D61F581D5DCFFB321EB7C4AF (IDENTICAL to baseline) | trusted: True
+Production site during the test: https://git.ssw590-g1.tech/ -> HTTP/1.1 200 OK
+
+=== 5. Restore and cleanup (19:07:56 UTC) ===
+cat Caddyfile.prod > Caddyfile ; sha256 prefix 7705e125f84a2c82 (equals the repo copy)
+caddy validate -> "Valid configuration" ; caddy reload ; throwaway staging certificate directory removed from storage;
+backup file Caddyfile.prod removed. ~/gitea contains only .env, .env.example, Caddyfile, docker-compose.yml.
+containers: caddy Up 2 hours, gitea Up 38 minutes (healthy).
+
+=== 6. Final public checks (19:08:02 UTC, normal certificate validation, no bypass) ===
+http://git.ssw590-g1.tech/  -> HTTP/1.1 308 Permanent Redirect
+https://git.ssw590-g1.tech/ -> HTTP/1.1 200 OK
+production certificate: issuer CN=YE2, O=Let's Encrypt; thumbprint 62AC575CAC34B6E3D61F581D5DCFFB321EB7C4AF (unchanged)
+
+Notes:
+- What it shows: Caddy as deployed (same image, same ports, TLS-ALPN-01 challenge reachable from the internet, writable certificate storage) completes a full ACME order, a fresh certificate is stored and served, and the process takes seconds.
+- What it does NOT show: that the production certificate has been renewed. That certificate was issued 2026-10-15 17:34 UTC; Caddy logged a renewal window starting at Unix time 1797189600 (2026-12-13 19:20:00 UTC) and ending 1797345050 (2026-12-15 14:30:50 UTC), so the first automatic renewal is expected between December 13 and 15, 2026. That is a prediction from Caddy's log, not a test result.
+- The test used a third-party service (sslip.io) for DNS and Let's Encrypt's staging server; no production certificate was requested and no rate limit on the real hostname was used.
+- Live-site impact: no downtime, no change to the production certificate; Caddy reloaded its configuration four times (reload at 19:04:08 and 19:05:28 and 19:06:44 and 19:07:56).

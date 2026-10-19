@@ -1,0 +1,28 @@
+Real output from the server (journalctl for sshd), Oct 15, 2026, read at 18:34:18 UTC. Run by Claude Code on Brahmi's go-ahead.
+SANITIZED: source addresses replaced by <masked>; remote port numbers replaced by <n>. Only public key fingerprints are shown.
+
+--- successful key logins, newest 12 ---
+2026-10-15T17:55:28+0000 ... Accepted publickey for ec2-user from <masked> port <n> ssh2: ED25519 SHA256:Wb244wRaDU7Dd+q7qlh7Lr2g2838XDRUGSS+4zGYX34   (Brahmi's key)
+2026-10-15T17:55:29+0000 ... same key
+2026-10-15T18:15:23+0000 ... same key
+2026-10-15T18:15:24+0000 ... same key (two lines)
+2026-10-15T18:25:52+0000 ... Accepted publickey for ec2-user from <masked> port <n> ssh2: ED25519 SHA256:1oYCcSuCBcdksbkTTJ91uPmkJ8MQmvWDUJuENqtQfPo   (Sakshi's key: FIRST LOGIN)
+2026-10-15T18:28:39+0000 ... Sakshi's key
+2026-10-15T18:28:40+0000 ... Sakshi's key
+2026-10-15T18:29:10+0000 ... Sakshi's key
+2026-10-15T18:30:33+0000 ... Sakshi's key
+2026-10-15T18:34:17+0000 ... Brahmi's key (this check)
+2026-10-15T18:34:18+0000 ... Brahmi's key (this check)
+
+--- count of successful logins by key fingerprint (whole log since boot) ---
+      5 SHA256:1oYCcSuCBcdksbkTTJ91uPmkJ8MQmvWDUJuENqtQfPo     (Sakshi)
+     18 SHA256:Wb244wRaDU7Dd+q7qlh7Lr2g2838XDRUGSS+4zGYX34     (Brahmi, including the AI assistant's checks run with her key)
+
+--- failed or invalid SSH attempts in the same log (count) ---
+0
+
+Notes:
+- Proves: Sakshi's key authenticates to the server (first success 18:25:52 UTC); the security group admitted her connection.
+- The zero count means no failed, invalid-user, or pre-authentication-close lines appeared since boot (about 1 hour). It is consistent with port 22 being reachable only from the approved address, but it is one hour of logs, not a long-term measure.
+- Does NOT prove Sakshi's Gitea sign-in (she reported it works; not independently checked).
+- Both administrators use the same Linux account (ec2-user); the key fingerprint in the log is what tells them apart.

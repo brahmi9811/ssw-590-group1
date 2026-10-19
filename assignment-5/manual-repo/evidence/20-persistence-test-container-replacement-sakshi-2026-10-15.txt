@@ -1,0 +1,39 @@
+=== Gitea persistence test, started 2026-10-15T18:29:19Z ===
+host: ip-172-31-29-240.ec2.internal  url: https://git.ssw590-g1.tech  user: sakshi
+$ POST https://git.ssw590-g1.tech/api/v1/user/repos  (name=persistence-check, auto_init=true)
+$ POST https://git.ssw590-g1.tech/api/v1/repos/sakshi/persistence-check/issues
+--- BEFORE container replacement (2026-10-15T18:29:20Z) ---
+$ docker inspect gitea --format {{.Id}} created={{.Created}}
+858a02ae8412 created=2026-10-15T17:34:23.469902499Z
+$ docker inspect gitea --format (mounts: type name -> destination)
+volume gitea_gitea_data -> /data
+
+$ docker compose exec gitea ls -l /data/gitea/gitea.db
+-rw-r--r--    1 git      git        2187264 Oct 15 18:29 /data/gitea/gitea.db
+$ GET https://git.ssw590-g1.tech/api/v1/repos/sakshi/persistence-check
+repo id=1 full_name=sakshi/persistence-check created=2026-10-15T18:29:20Z
+$ GET https://git.ssw590-g1.tech/api/v1/repos/sakshi/persistence-check/issues/1
+issue #1 id=1 state=open title='Persistence check: this issue must survive container replacement'
+$ GET https://git.ssw590-g1.tech/api/v1/repos/sakshi/persistence-check/branches/main
+branch main commit=4f15f700003e
+--- replacing container (2026-10-15T18:29:21Z) ---
+$ docker compose up -d --force-recreate gitea
+ Container gitea Recreate 
+ Container gitea Recreated 
+ Container gitea Starting 
+ Container gitea Started 
+--- AFTER container replacement (2026-10-15T18:29:52Z) ---
+$ docker inspect gitea --format {{.Id}} created={{.Created}}
+834924d4bc0a created=2026-10-15T18:29:21.291713393Z
+$ docker inspect gitea --format (mounts: type name -> destination)
+volume gitea_gitea_data -> /data
+
+$ docker compose exec gitea ls -l /data/gitea/gitea.db
+-rw-r--r--    1 git      git        2187264 Oct 15 18:29 /data/gitea/gitea.db
+$ GET https://git.ssw590-g1.tech/api/v1/repos/sakshi/persistence-check
+repo id=1 full_name=sakshi/persistence-check created=2026-10-15T18:29:20Z
+$ GET https://git.ssw590-g1.tech/api/v1/repos/sakshi/persistence-check/issues/1
+issue #1 id=1 state=open title='Persistence check: this issue must survive container replacement'
+$ GET https://git.ssw590-g1.tech/api/v1/repos/sakshi/persistence-check/branches/main
+branch main commit=4f15f700003e
+=== finished 2026-10-15T18:29:52Z ===

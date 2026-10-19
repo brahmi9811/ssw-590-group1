@@ -1,0 +1,106 @@
+\chapter{AI Prompt Log}
+\ChapterLabel{AIPromptLog}
+\index{AI prompt log}
+\section{How to Use This Appendix}
+Record AI assistance that materially affects wording, automation, evidence
+interpretation, troubleshooting, or feedback: enough context for a reviewer to
+see the input, output, assumptions, and human corrections. Never record
+credentials or personal data.
+
+\section{Record: IT Manual Skeleton and Gitea Chapter Outline}
+Date: October 12, 2026; Tool and model: Claude Code (Claude Sonnet 5.5);
+Task: set up this separate IT manual and prepare the Gitea chapter before any
+infrastructure exists. Inputs: the course manual \cite{DosManual} (Version
+1.18, Chapters 1 and 2 read in full; it is logged here as the governing
+source), and the conventions of the earlier \texttt{report/} document. Output
+used: the manual skeleton, the Gitea chapter outline with eight rubric-aligned
+subsections and an extra-credit subsection, the Hosts and Passwords tables,
+a draft cloud-agnostic Compose configuration under \texttt{gitea/}, and a work
+split between the two members. The assistant created no cloud resources,
+executed no deployment, and recorded no test results; every evidence item is
+\StatusPending. The first draft of the skeleton was derived from
+\texttt{report/} because the course template was not yet available; it was
+rebuilt from the Canvas template (version 1.3) after Brahmi Dalvi supplied it,
+which also required merging the per-section files into the single
+\texttt{devopsGitea.tex} chapter file the template's AI guide requires. Human
+decisions recorded: SQLite is the final database choice; Brahmi Dalvi owns the
+cloud deployment, DNS, HTTPS, and firewall work; the 20-point backup/restore
+extra credit is optional and unassigned (it was later not attempted). Human
+review and corrections: Brahmi Dalvi reviewed the skeleton, supplied the Canvas
+template to replace it, and set the decisions listed above. Each author's own
+review of the later drafts is recorded in that author's record below.
+
+\section{Record: SD Regions of the Gitea Chapter (Draft)}
+Date: October 12, 2026; Tool and model: Claude Code (Claude Opus 5.5);
+Task: carry out Phase~A of SD's plan (\texttt{assignment-4/SAKSHI.md}) without
+any cloud resources: local rehearsal of the Gitea and Caddy stack, a
+persistence rehearsal, and drafts of the \texttt{giteaDatabase},
+\texttt{giteaWorkflow}, \texttt{giteaArchitecture}, and
+\texttt{giteaManualQuality} regions. Inputs: the course manual
+\cite{DosManual} Chapters 1--2 and Appendix~A, the team's
+\texttt{README.md} and \texttt{SAKSHI.md}, and the draft files in
+\texttt{gitea/}. Output used: the four region drafts, the architecture
+figure, the script \texttt{assignment-4/sd/persistence-test.sh}, a backlog
+draft, and glossary, bibliography, and history lines. The assistant ran the
+stack on SD's workstation at \texttt{https://localhost} with Caddy's local
+certificate authority, created a throwaway local administrator whose generated
+password was kept in a private file outside the repository and never printed,
+and ran the persistence script twice (the first run failed on a quoting bug,
+recorded in Table~\ref{Table:FailedTests}). Only the rehearsal's container and
+object IDs are quoted, inside a box marked as not graded; every VM result is
+\StatusPending. The assistant did not edit BD's regions, \texttt{gitea/}, or
+the root file, and created no cloud resources. Human review and corrections:
+SD read each draft in the built PDF and approved every push. She ran the
+server tests herself: the persistence test, with her password typed at a
+hidden prompt, and the row~6 setup script, with her own token. She took
+the Gitea screenshots and, with BD, chose a lighter evidence set for row~6
+(one public API listing plus three screenshots instead of one screenshot
+per step). Later work in the same tool and model, October 15, 2026: the
+row~3 results and figures, the row~7 rewrite for the live AWS deployment
+(read-only commands run on the server with SD's key), the row~6
+subsection, and the row~8 quality pass, including the secrets and address
+scan. Once during the session SD pasted a Gitea access token into the chat;
+the assistant did not use it and asked her to delete it in Gitea. The token
+is not recorded anywhere in this manual or the repository.
+
+\section{Record: BD Deployment, Evidence, and Drafted Regions}
+Date: October 12--15, 2026; Tool and model: Claude Code (Claude Sonnet 5.5);
+Task: carry out Brahmi Dalvi's part of the Gitea assignment: claim the Student
+Pack domain, create the AWS resources, deploy Gitea and Caddy, verify them,
+capture evidence, and draft the domain, deployment, HTTPS, and firewall
+subsections and the Hosts and Passwords tables. Inputs: the course manual
+\cite{DosManual}, BD's screenshots, BD's answers and go-ahead before each step,
+and real command output from BD's computer and the server. Output used: the
+security group, key pair, \texttt{t3.micro} instance, Elastic IP, first-boot
+script \texttt{gitea/aws/ec2-user-data.sh}, the deployed Compose stack, the
+evidence files under \texttt{evidence/}, and the drafted text.
+
+What the assistant did and did not do. It ran the AWS command line and SSH
+commands from BD's computer, each after BD's explicit approval, and saved
+the real output (Chapter~\ref{Chapter:Gitea}). It never saw a password or
+private key: BD created the first Gitea administrator in her own terminal, the
+SSH private keys were written to files outside the repository and never
+printed, and the temporary password for Sakshi's account was shared by BD
+outside the chat. The assistant verified Sakshi's SSH login from the server's
+log and read her persistence-test output against the pass conditions in
+\texttt{assignment-4/SAKSHI.md}; it did not verify her Gitea sign-in.
+
+Human decisions the assistant did not make: use AWS (instructor approved), a new
+instance rather than reusing the earlier one, SQLite, declining the Namecheap
+authorization because it asked for read and write access to all repositories,
+declining the paid domain protection, the card handling, and which tests to run.
+Problems the assistant met and reported rather than hid: a Windows character
+encoding crash in the AWS tool that made a first check look like a wait, an
+access-denied on a public image parameter, PowerShell quoting that broke a
+remote script, a numbering clash in the evidence files, and layout errors in the
+first draft of the firewall figure. Unverified items are marked pending in the
+text, notably the certificate renewal test, the second-network firewall test,
+AWS prices, and the second certificate option. Human review and corrections:
+Brahmi Dalvi approved each paid or external step before the assistant ran it,
+supplied every screenshot, and performed the account-creation and token steps
+herself, so the assistant never handled a password or token. She made the
+decisions listed above, corrected her mailbox's time zone (which had made an
+order date look a day off), and chose to turn automatic renewal off and delete the
+stored card. Assistant errors found and fixed during the group's review were an
+evidence-numbering clash, a mangled formatting command in the firewall section,
+and two assumptions about where passwords are stored that nobody had stated.

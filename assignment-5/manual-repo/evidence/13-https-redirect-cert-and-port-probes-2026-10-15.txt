@@ -1,0 +1,41 @@
+Real output, Oct 15, 2026, 17:35 UTC, from Brahmi's Windows machine (outside the server) using curl.exe, Test-NetConnection, and .NET SslStream.
+Run by Claude Code on Brahmi's go-ahead. The admin's own public IP is not in this file.
+Limitation: this machine's IP is the ADMIN IP allowed to use SSH, so it cannot show that SSH is blocked for others.
+A test from a second network (for example a phone hotspot) is still needed for the firewall row.
+
+=== HTTP (port 80), curl -I http://git.ssw590-g1.tech/ ===
+HTTP/1.1 308 Permanent Redirect
+Location: https://git.ssw590-g1.tech/
+Server: Caddy
+Date: Thu, 15 Oct 2026 17:35:19 GMT
+
+=== HTTPS (port 443), curl -I https://git.ssw590-g1.tech/ (no -k flag; certificate accepted) ===
+HTTP/1.1 200 OK
+Alt-Svc: h3=":443"; ma=2592000
+
+=== Served certificate (read with .NET SslStream) ===
+TLS protocol  : Tls13
+Subject       : CN=git.ssw590-g1.tech
+Issuer        : CN=YE2, O=Let's Encrypt, C=US
+Not before    : 2026-10-15 16:35:56 UTC
+Not after     : 2027-01-13 16:35:55 UTC      (90-day certificate)
+SANs          : DNS Name=git.ssw590-g1.tech
+Key algorithm : ECC
+Chain valid   : True
+  chain: CN=git.ssw590-g1.tech
+  chain: CN=YE2, O=Let's Encrypt, C=US
+  chain: CN=Root YE, O=ISRG, C=US
+  chain: CN=ISRG Root X2, O=Internet Security Research Group, C=US
+
+=== TCP probes from this machine (Test-NetConnection) ===
+port 443  : OPEN
+port 80   : OPEN
+port 3000 : closed/filtered   (Gitea backend, expected not reachable)
+port 2019 : closed/filtered   (Caddy admin API, expected not reachable)
+port 5432 : closed/filtered   (PostgreSQL is not used; expected not reachable)
+port 22   : OPEN from this machine only because its IP is the approved admin IP
+
+Notes:
+- Expected vs actual: 443 open, 80 open (redirect only), 3000/2019/5432 closed -> as expected.
+- "closed/filtered" does not distinguish closed from firewall-dropped; both mean "not reachable".
+- Renewal: not tested at the time of this capture (17:35 UTC). Caddy logged ACME renewal information (renewal window starts about 2026-12-14). A staging dry run was done later the same day (see the renewal-test listing); the real renewal of this certificate is expected between December 13 and 15, 2026 and has not been observed.

@@ -1,0 +1,107 @@
+\chapter{AI Agent Usage Guide}
+\ChapterLabel{AIAgentGuide}
+\index{AI agent}
+\index{AI agent!DevOps workflow}
+\index{Appendix!AI Agent Usage Guide}
+
+\section{How to Use This Appendix}
+An AI agent that creates, reviews, or maintains an assignment shall read this
+file first. It shall identify the task in the routing table, read the minimum
+authoritative sources, and expand context only for a discovered dependency or
+inconsistency. This guide is maintained in LaTeX so it is visible, versioned,
+and reviewable with the assignment.
+
+\section{Governing Principles}
+The authored LaTeX files, versioned automation, and approved assignment
+materials are authoritative. The PDF is a review artifact and shall not be
+edited directly. AI may draft, explain, analyze, check consistency, and assist
+with builds. It shall not invent completion, evidence, access, costs, grades,
+approvals, command output, security posture, or operational results.
+
+\section{Chapter File Convention}
+\index{AI agent!chapter file convention}
+Every assignment chapter shall be stored in exactly one file named with the
+\texttt{devops} prefix, a PascalCase chapter name, and the \texttt{.tex}
+suffix. For example, Chapter~2 is fully contained in
+\path{devopsExampleAssignment.tex}. A chapter file shall begin with its
+\texttt{\string\chapter\{...\}} command and contain all of that chapter's
+sections and subsections. Do not split one chapter across files, create
+section-only \texttt{.tex} files, or use \texttt{\string\input} or
+\texttt{\string\include} to assemble a chapter from smaller fragments.
+
+Supporting non-chapter files may use a different name only when they are not
+chapter content: \texttt{prologue.tex}, \texttt{abstract.tex},
+\texttt{devopsGlossary.tex}, and \texttt{devopsReferences.bib} are examples.
+Appendix chapters follow the same chapter-file convention.
+
+\section{AI Quick Start}
+\begin{enumerate}
+\item Read this guide and identify the requested outcome.
+\item Select the closest task below and load only its listed sources.
+\item Inspect supplied facts and report consequential gaps or assumptions.
+\item Make narrowly scoped changes; preserve stable IDs, glossary terms, and history.
+\item Never request, print, store, or commit credentials, tokens, personal data, or production data.
+\item Build the complete PDF, inspect the log, visually inspect affected pages, and record material AI use in \ChapterRef{AIPromptLog}.
+\end{enumerate}
+
+\section{Task Routing}
+\small
+\begin{tabularx}{\linewidth}{L{4.0cm}Y}
+\caption{AI Task-Routing Table\label{Table:AITaskRouting}}\\
+\toprule \textbf{Task} & \textbf{Minimum authoritative sources}\\ \midrule
+Initialize an assignment & \texttt{devopsAssignment.tex}, \texttt{prologue.tex}, \texttt{devopsIntroduction.tex}, \texttt{devopsExampleAssignment.tex}, and the instructor's assignment facts.\\
+Develop a workflow & \texttt{devopsExampleAssignment.tex}, source repository materials, and authorized environment constraints.\\
+Define evidence & \texttt{devopsExampleAssignment.tex} and controlled execution outputs.\\
+Review a retrospective & \texttt{devopsExampleAssignment.tex} and the submitted workflow or runbook.\\
+Edit AI guidance & \texttt{devopsAIAgentGuide.tex}, \texttt{devopsAIPromptLog.tex}, \texttt{devopsDocumentGuide.tex}, and \texttt{devopsAssignment.tex}.\\
+Compile or troubleshoot & \texttt{devopsAssignment.tex}, \texttt{devopsDocumentGuide.tex}, the affected chapter, and the build log.\\ \bottomrule
+\end{tabularx}
+\normalsize
+
+\section{DevOps-Specific Rules}
+\begin{enumerate}
+\item Prefer versioned, repeatable automation over undocumented manual steps.
+\item Treat deployment output, monitoring data, and screenshots as evidence only when they reflect an actual execution.
+\item Design failure exercises to be isolated, reversible, and authorized.
+\item Apply least privilege and never place secrets in LaTeX, source control, prompts, screenshots, or logs.
+\item State expected cloud cost, cleanup action, and resource ownership for each remote-environment activity.
+\item Identify whether a recommendation is a proposal, an instructor directive, or demonstrated evidence.
+\end{enumerate}
+
+\section{Example AI Requests}
+\subsection{Create an Assignment Brief}
+\begin{verbatim}
+Read devopsAIAgentGuide.tex and use the Initialize an Assignment context.
+From the supplied SSW 590 objective and constraints, fill only supported
+placeholders in the introduction and activity brief. Propose clear, observable
+completion criteria, a safe cleanup action, and a rubric. Do not invent cloud
+access, due dates, policy, costs, or approved tools. Update history, compile,
+and report instructor decisions still needed.
+\end{verbatim}
+
+\subsection{Review a Student Workflow}
+\begin{verbatim}
+Read devopsAIAgentGuide.tex and the workflow, evidence, and retrospective
+chapters. Review the supplied repository and sanitized evidence for
+reproducibility, least privilege, observability, rollback, and cleanup.
+Separate verified facts from gaps and recommendations. Do not claim that an
+unexecuted command passed, and do not request credentials or operate resources.
+\end{verbatim}
+
+\section{Human Decisions and Information Boundaries}
+The instructor retains authority over assignment scope, grading, due dates,
+approved tooling, access, budgets, security posture, exceptions, and policy.
+An AI agent shall surface alternatives and evidence, not represent a decision
+as approved. Record material prompts, assumptions, corrections, and unresolved
+issues in \ChapterRef{AIPromptLog}.
+
+\section{Completion Checklist}
+\begin{itemize}
+\item Scope, deliverables, environment, constraints, and cleanup are clear.
+\item Activity identifiers and evidence references are valid and unique.
+\item Examples contain no secrets, personal data, or unsafe production actions.
+\item New controlled terms are added to the glossary and indexed.
+\item The newest approved change is recorded in document history.
+\item The complete build succeeds with no unresolved references or missing files.
+\item A human reviews all decisions requiring instructional or operational authority.
+\end{itemize}

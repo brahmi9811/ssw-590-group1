@@ -34,6 +34,30 @@ Passwords tables (SD only reports her own hints). If something there looks wrong
 ## Waits for BD
 - Runner online (G2) before the first real run; repo `group1-startup/manual` created before pushing the source.
 
+## Progress (Oct 19, 2026)
+Staged in `assignment-5/manual-repo/` = exactly what gets pushed to `group1-startup/manual` once BD creates it:
+- Standalone source: copy of the Assignment 4 manual; the 27 evidence files it prints are in `evidence/`, the two printed
+  Gitea config files in `config/gitea/`; no `../` paths left.
+- `ci/Dockerfile`: `texlive/texlive@sha256:7334b00b…` (TeX Live 2026) + Node.js 24 (needed by checkout/upload actions).
+- `.gitea/workflows/build.yml`: push to `main` (+ manual dispatch), `runs-on: manual-builder`, checkout, toolchain versions,
+  build ID `+build.<run>.<sha7>` via `latexmk -usepretex`, fail on LaTeX error / missing PDF / unresolved refs / missing ID,
+  upload `it-manual-pdf` (`if-no-files-found: error`). Never commits back.
+- `ci/local-build.sh`: same commands in the same image on a clean copy. Tested: clean build 18 s, title page and footers show
+  `Version 1.0+build.42.a1b2c3d`; a deliberate undefined command exits 1 with no PDF.
+- `devopsAutomatedBuild.tex`: new chapter, 8 regions; rows 3, 4 drafted (real local facts, run evidence pending), row 6 table
+  and row 8 troubleshooting procedure drafted; BD's rows are placeholders for her.
+
+### Notes for BD (runner)
+1. Label: register the runner with `manual-builder:docker://group1/texlive-node:2026.09`, and build that image on the
+   server from `ci/Dockerfile` (base layer ~2.7 GB download, ~9 GB on disk; server had 16 GB free on Oct 19). The image is
+   local-only, so the runner must not force-pull it (check `act_runner`'s `container.force_pull` setting), or push it to a
+   registry first (Gitea has a container registry).
+2. `actions/upload-artifact@v4` is assumed to work with Gitea 1.27.3; if the first run fails at upload, switch to `@v3`.
+3. `actions/checkout@v4` / `upload-artifact@v4` are fetched from github.com (Gitea default `DEFAULT_ACTIONS_URL=github`).
+4. Root-file edits by SD for row 4 (please keep): `\BuildSuffix`/`\BuildRun`/`\BuildCommit` defaults, `\VERSION` includes
+   `\BuildSuffix`, `\typeout` of the identifier, and `\include{devopsAutomatedBuild}`. The Introduction's repository-layout
+   block still says `assignment-4/manual/` (yours to update).
+
 ## Checklist
-- [ ] standalone manual source · [ ] `build.yml` drafted and tested locally · [ ] first green run (G3) · [ ] build ID visible in PDF
+- [x] standalone manual source · [x] `build.yml` drafted and tested locally · [ ] first green run (G3) · [ ] build ID visible in PDF
 - [ ] two changes + failure + repair · [ ] rows 3, 4, 6 written with inline evidence · [ ] row 8 pass · [ ] history + AI-log lines

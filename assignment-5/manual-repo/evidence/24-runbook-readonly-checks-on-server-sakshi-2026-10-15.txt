@@ -1,0 +1,28 @@
+Real output from the server, run by Claude Code from Sakshi's machine (ssh ec2-user@git.ssw590-g1.tech, Sakshi's key), Oct 15, 2026.
+Purpose: the read-only commands of the row 7 runbook, run for real. Restart command not run here (see the manual).
+SANITIZED: Caddy log lines reduced to level, logger, message and upstream, so client IP addresses are not shown. The only addresses left are 0.0.0.0 (listen on all), 127.0.0.1 (loopback) and 172.18.0.x (the private Docker network). The single-character ellipsis (U+2026) that docker prints in the COMMAND column is written as "...".
+
+$ date -u
+2026-10-15T18:50:22Z
+$ docker compose ps
+NAME      IMAGE                COMMAND                  SERVICE   CREATED             STATUS                    PORTS
+caddy     caddy:2.11.7         "caddy run --config ..."   caddy     About an hour ago   Up About an hour          0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 443/udp, 2019/tcp
+gitea     gitea/gitea:1.27.3   "/usr/bin/entrypoint..."   gitea     21 minutes ago      Up 21 minutes (healthy)   22/tcp, 3000/tcp
+$ docker compose logs --tail=3 gitea
+gitea  | 2026/10/15 18:49:54 HTTPRequest [I] router: completed GET /api/healthz for 127.0.0.1:55688, 200 OK in 0.4ms @ healthcheck/check.go:76(healthcheck.Check)
+gitea  | 2026/10/15 18:50:10 .../src/net/http/server.go:2286:HandlerFunc.ServeHTTP() [I] PING DATABASE sqlite3
+gitea  | 2026/10/15 18:50:10 HTTPRequest [I] router: completed GET /api/healthz for 172.18.0.3:32964, 200 OK in 0.5ms @ healthcheck/check.go:76(healthcheck.Check)
+$ docker compose logs --tail=3 caddy   (fields: level, logger, msg, upstream)
+warn http.handlers.reverse_proxy aborting with incomplete response upstream=gitea:3000
+warn http.handlers.reverse_proxy aborting with incomplete response upstream=gitea:3000
+warn http.handlers.reverse_proxy aborting with incomplete response upstream=gitea:3000
+$ curl -sS -o /dev/null -w "%{http_code}" https://git.ssw590-g1.tech/api/healthz
+healthz HTTP 200
+$ docker volume ls --filter name=gitea_
+DRIVER    VOLUME NAME
+local     gitea_caddy_config
+local     gitea_caddy_data
+local     gitea_gitea_data
+$ docker network ls --filter name=gitea_
+NETWORK ID     NAME        DRIVER    SCOPE
+ea58c8a1e342   gitea_web   bridge    local

@@ -1,0 +1,34 @@
+\chapter{Introduction}
+\ChapterLabel{Introduction}
+\index{introduction}
+\index{IT manual}
+
+\section{Purpose}
+This is Group~1's operational IT manual for the SSW~590 startup. It is a living
+record: one chapter is added per delivered capability, and the compiled PDF is
+the only artifact submitted for each assignment. It is separate from the
+earlier assignment report in the \texttt{report/} folder of the repository.
+
+\section{Team and Repository}
+\begin{tabularx}{\linewidth}{L{3.6cm}Y}
+\toprule \textbf{Item} & \textbf{Value}\\ \midrule
+Group & Group 1\\
+Members & Brahmi Dalvi (BD), Sakshi Deshpande (SD)\\
+Course repository & \url{\RepoURL}\\
+Team Gitea & \href{\GiteaURL}{\texttt{\GiteaURL}}; organization \href{\GiteaURL/group1-startup}{\texttt{group1-startup}}, product repository \href{\GiteaRepoURL}{\texttt{twintrack}}\\ \bottomrule
+\end{tabularx}
+
+\section{Chapter Map}
+\begin{tabularx}{\linewidth}{L{3.6cm}Y}
+\toprule \textbf{Where} & \textbf{Content}\\ \midrule
+\ChapterRef{HostsPasswords} & Hosts and Passwords tables (hints only)\\
+\ChapterRef{Gitea} & Startup foundation with Gitea (course Chapter~2)\\ \bottomrule
+\end{tabularx}
+
+\section{Repository Layout}
+\begin{minted}{text}
+assignment-4/manual/   this LaTeX manual (source stays in the team; submit only the PDF)
+assignment-4/gitea/    versioned, non-secret deployment files (compose, proxy config)
+assignment-4/*.md      work split and per-person instructions
+report/                earlier submitted assignment (do not modify)
+\end{minted}

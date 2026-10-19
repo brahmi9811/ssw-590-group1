@@ -1,0 +1,142 @@
+\chapter{Document Authoring Guide}
+\ChapterLabel{DocumentGuide}
+\index{LaTeX}
+\index{document conventions}
+\index{Appendix!Document Authoring Guide}
+
+\section{How to Use This Appendix}
+Use this appendix to maintain the template's file conventions, build process,
+and review rules. Update it when the document structure or toolchain changes.
+
+\section{Template Provenance}
+This template was developed by \textbf{Darian Muresan, Ph.D.}, in conjunction
+with \textbf{OpenAI Codex} and \textbf{Anthropic Claude Code}. Keep this
+attribution distinct from the assignment-specific instructor metadata.
+
+\section{File Naming and Responsibilities}
+Every chapter file shall use the \texttt{devops} prefix, a PascalCase chapter
+name, and the \texttt{.tex} suffix. Each such file shall contain one complete
+chapter, beginning with \texttt{\string\chapter\{...\}}, and all of its
+sections and subsections. Do not split one chapter into section-level
+\texttt{.tex} files. For example, all of Chapter~2 is contained in
+\path{devopsExampleAssignment.tex}. Do not add requirements or
+architecture-design chapters; this template records a DevOps learning activity
+and its operational evidence.
+
+\section{Synonyms and Controlled Terms}
+\index{synonyms}
+Use one preferred term for each important concept. If an assignment uses
+equivalent terms, record them here before release. For example, state whether
+``continuous delivery'' refers to \gls{cd} generally or specifically excludes
+automatic production deployment. Add important terms to
+\texttt{devopsGlossary.tex} and index them where used.
+
+\section{Building the PDF}
+The template requires a LaTeX distribution with \texttt{pdflatex},
+\texttt{bibtex}, \texttt{makeglossaries}, and \texttt{makeindex}.
+Install the tools using the platform instructions below, then run one of the
+following platform builds.
+
+\subsection{macOS and Linux Build}
+\begin{verbatim}
+make -f makefileMacLinux pdf
+\end{verbatim}
+
+\subsection{Windows PowerShell Build}
+\begin{verbatim}
+.\makefilePowerShell.ps1 -Action pdf
+\end{verbatim}
+The completed build regenerates references, bibliography, glossary, and index.
+Review the log and visually inspect affected PDF pages. Do not edit generated
+auxiliary files or the PDF directly.
+
+\section{Install LaTeX Tools on macOS}
+\index{macOS}
+\index{MacTeX}
+\subsection{Recommended Installation}
+Install the current full \href{https://www.tug.org/mactex/}{MacTeX}
+distribution. It includes TeX Live, \texttt{pdflatex}, \texttt{bibtex},
+\texttt{latexmk}, \texttt{makeglossaries}, \texttt{makeindex}, and useful
+applications such as TeXShop and TeX Live Utility. The full distribution is the
+least troublesome choice for this template because it includes the packages
+used by the glossary, table, listing, color, and hyperlink features.
+
+Either download the signed installer from the MacTeX web site and complete the
+macOS installation dialog, or, if Homebrew is already installed, run:
+\begin{verbatim}
+brew install --cask mactex
+\end{verbatim}
+Close and reopen Terminal after installation. If the TeX commands are not
+found, add the MacTeX binary directory to the current shell session:
+\begin{verbatim}
+export PATH="/Library/TeX/texbin:$PATH"
+\end{verbatim}
+Do not place this command in a shell profile until it has been verified on the
+local computer.
+
+\subsection{Verification and Compilation}
+From the template directory, verify the tools:
+\begin{verbatim}
+command -v pdflatex bibtex latexmk makeglossaries makeindex
+\end{verbatim}
+Each command should print a path. Then create the PDF:
+\begin{verbatim}
+make -f makefileMacLinux pdf
+\end{verbatim}
+To remove generated intermediate files while keeping the PDF, run:
+\begin{verbatim}
+make -f makefileMacLinux clean
+\end{verbatim}
+
+\section{Install LaTeX Tools on Windows}
+\index{Windows}
+\index{MiKTeX}
+\subsection{Recommended Installation}
+Install the current Basic MiKTeX distribution using the official
+\href{https://miktex.org/howto/install-miktex}{MiKTeX Windows installation
+guide}. During installation, choose a per-user installation when appropriate
+and set missing-package installation to \emph{Ask me first} or \emph{Yes}.
+The latter is convenient for a student machine with Internet access; the former
+makes each package installation explicit.
+
+Open MiKTeX Console after installation, apply available updates, and install
+the \texttt{latexmk} package if the verification command below cannot find it.
+On an organization-managed computer, obtain approval before installing software
+or changing execution policy.
+
+\subsection{Verification and Compilation}
+Open a new PowerShell window in the template directory and verify:
+\begin{verbatim}
+Get-Command pdflatex,bibtex,latexmk,makeglossaries,makeindex
+\end{verbatim}
+Each command should display a command record. Build the PDF with:
+\begin{verbatim}
+.\makefilePowerShell.ps1 -Action pdf
+\end{verbatim}
+If PowerShell blocks the script under a managed execution policy, ask the
+system administrator for the approved procedure. Do not bypass institutional
+security policy. To remove intermediate build files, run:
+\begin{verbatim}
+.\makefilePowerShell.ps1 -Action clean
+\end{verbatim}
+
+\section{Common Build Problems}
+\begin{tabularx}{\linewidth}{L{3.0cm}Y}
+\toprule \textbf{Symptom} & \textbf{Resolution}\\ \midrule
+Command not found & Close and reopen the terminal. On macOS, verify the TeX
+binary path; on Windows, verify MiKTeX completed installation and is on the user PATH.\\
+Missing LaTeX package & Use MiKTeX Console or its approved on-the-fly package
+installation prompt on Windows. On macOS, install the full MacTeX distribution
+or use TeX Live Utility to add the missing package.\\
+References or glossary incomplete & Run the supplied platform build instead of
+a single \texttt{pdflatex} command; it runs BibTeX, the glossary tool, and the
+index tool in the required order.\\
+Script is blocked & Follow the institution's approved PowerShell policy or run
+the documented build commands with an approved administrator.\\ \bottomrule
+\end{tabularx}
+
+\section{Authoring and Review Rules}
+Replace bracketed placeholders with assignment facts. Keep operational examples
+safe, bounded, and free of credentials. Link activities to evidence, retain
+history, and state unknowns or instructor decisions explicitly. Rebuild after
+structural, cross-reference, table, glossary, or index changes.

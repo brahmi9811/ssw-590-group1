@@ -1,0 +1,55 @@
+# Gitea (SQLite) behind a Caddy TLS reverse proxy. Cloud-agnostic: works on a
+# DigitalOcean Droplet or an AWS EC2 instance. DRAFT: not yet run on a server.
+# Copy .env.example to .env (untracked) and set the values before `docker compose up -d`.
+services:
+  gitea:
+    image: gitea/gitea:${GITEA_VERSION}          # pinned in .env
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      GITEA__database__DB_TYPE: sqlite3           # FINAL team decision (Oct 12, 2026): SQLite
+      GITEA__database__PATH: /data/gitea/gitea.db # inside the persistent /data volume
+      GITEA__server__DOMAIN: ${GITEA_DOMAIN}
+      GITEA__server__ROOT_URL: https://${GITEA_DOMAIN}/
+      GITEA__server__HTTP_PORT: "3000"
+      GITEA__server__DISABLE_SSH: "true"          # HTTPS-only Git; no SSH listener
+      GITEA__security__INSTALL_LOCK: "true"       # skip web installer; create admin via CLI
+      GITEA__service__DISABLE_REGISTRATION: "true"
+    volumes:
+      - gitea_data:/data                          # repos, attachments, SQLite file
+    networks:
+      - web
+    # No `ports:` on purpose: Gitea (3000) is reachable only from the proxy.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/api/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  caddy:
+    image: caddy:${CADDY_VERSION}                 # pinned in .env
+    container_name: caddy
+    restart: unless-stopped
+    depends_on:
+      - gitea
+    ports:
+      - "80:80"     # HTTP-to-HTTPS redirect and ACME HTTP-01 validation only
+      - "443:443"
+    environment:
+      GITEA_DOMAIN: ${GITEA_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data                          # certificates + ACME account: persist!
+      - caddy_config:/config
+    networks:
+      - web
+
+networks:
+  web:
+
+volumes:
+  gitea_data:
+  caddy_data:
+  caddy_config:

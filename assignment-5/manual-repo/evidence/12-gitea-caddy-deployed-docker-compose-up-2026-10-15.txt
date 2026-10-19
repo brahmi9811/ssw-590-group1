@@ -1,0 +1,54 @@
+Real output from the server (ssh ec2-user@git.ssw590-g1.tech), Oct 15, 2026 (UTC). Run by Claude Code on Brahmi's go-ahead.
+SANITIZED: log lines trimmed to the relevant ones; remote client IPs in the Caddy request/ACME lines are omitted. No secrets involved:
+the server .env holds only non-secret values and no Gitea admin exists yet.
+
+=== Files copied to ~/gitea on the server (scp), SHA-256 prefix identical to the repo copies ===
+ed23b4136370d08a  docker-compose.yml
+7705e125f84a2c82  Caddyfile
+f42b0bd6bee72df6  .env.example
+(source in the repo: assignment-4/gitea/)
+
+=== ~/gitea/.env on the server (created from .env.example, chmod 600; no secrets) ===
+GITEA_VERSION=1.27.3
+CADDY_VERSION=2.11.7
+GITEA_DOMAIN=git.ssw590-g1.tech
+
+=== docker compose config -q  ->  "compose config OK" ===
+
+=== docker compose pull (pinned images) ===
+caddy:2.11.7        f77f856a30f0   66.3MB
+gitea/gitea:1.27.3  79814cfc668d   191MB
+
+=== docker compose up -d  (start: 2026-10-15 17:34:23 UTC) ===
+Volume gitea_caddy_config Created, Network gitea_web Created
+Container gitea Created/Started; Container caddy Created/Started
+(volumes gitea_gitea_data, gitea_caddy_data, gitea_caddy_config; project directory name "gitea")
+
+=== docker compose ps (about 40 s after start) ===
+caddy  caddy:2.11.7          Up 40 seconds             0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 443/udp, 2019/tcp
+gitea  gitea/gitea:1.27.3    Up 40 seconds (healthy)   22/tcp, 3000/tcp          (not published to the host)
+
+=== Caddy log excerpts (JSON, trimmed) ===
+acme_client: trying to solve challenge, identifier git.ssw590-g1.tech, challenge_type tls-alpn-01, ca https://acme-v02.api.letsencrypt.org/directory
+tls: served key authentication certificate (tls-alpn-01) x5   (Let's Encrypt validation from several vantage points)
+acme_client: authorization finalized, authz_status valid
+acme_client: validations succeeded; finalizing order
+acme_client: got renewal info (ACME Renewal Information), window_start 1797189600, window_end 1797345050
+tls.obtain: certificate obtained successfully, issuer acme-v02.api.letsencrypt.org-directory
+http.log.error: dial tcp 172.18.0.2:3000: connect: connection refused ... status 502
+   -> one early 502: an internet scanner hit the site about a second before Gitea was listening. Transient; Gitea was up moments later.
+
+=== Gitea log excerpts ===
+cmd/web.go: Listen: http://0.0.0.0:3000
+cmd/web.go: AppURL(ROOT_URL): https://git.ssw590-g1.tech/
+HTTPRequest: GET / -> 200 OK (via the proxy)
+HTTPRequest: GET /wp-json/ -> 404, GET /xmlrpc.php?rsd -> 404   (automated scanners probing the new site within seconds)
+PING DATABASE sqlite3
+HTTPRequest: GET /api/healthz -> 200 OK   (container healthcheck)
+
+Notes:
+- Certificate challenge used: TLS-ALPN-01 (port 443). Port 80 is still open for the HTTP-to-HTTPS redirect.
+- Caddy's published ports show IPv6 bindings ([::]) on the host, but the security group has no IPv6 rules and no AAAA record exists, so IPv6 is not reachable.
+- Port 2019/tcp in "ps" is Caddy's admin API inside the container; it is not published to the host.
+- Gitea port 3000 and 22 are only exposed inside the Compose network.
+- At the time of this capture (about 17:35 UTC) not yet done: admin account, persistence test, renewal test, external test from a second network. All were done later the same day (see the later listings).

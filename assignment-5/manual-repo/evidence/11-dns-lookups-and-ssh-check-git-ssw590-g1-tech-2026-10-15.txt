@@ -1,0 +1,42 @@
+Real command output, Oct 15, 2026, run from Brahmi's machine (Windows PowerShell) by Claude Code on Brahmi's go-ahead.
+Time of the DNS lookups: 2026-10-15 17:30:34 UTC. The admin's own public IP does not appear in this file.
+These lookups were made from the admin's machine through three PUBLIC resolvers. They were not run by a teammate
+on a separate network (the manual's wording for "independent lookup"); a teammate lookup can still be added.
+
+=== Authoritative nameservers for ssw590-g1.tech (queried via 8.8.8.8) ===
+ns4ksy.name.com
+ns2kry.name.com
+ns1bqx.name.com
+ns3jmt.name.com
+
+=== A record lookups for git.ssw590-g1.tech ===
+via 8.8.8.8 (Google):     git.ssw590-g1.tech  A  TTL 300  52.73.254.36
+via 1.1.1.1 (Cloudflare): git.ssw590-g1.tech  A  TTL 300  52.73.254.36
+via 9.9.9.9 (Quad9):      git.ssw590-g1.tech  A  TTL 300  52.73.254.36
+AAAA via 8.8.8.8: no record returned (expected: IPv4 only by design)
+
+=== SSH host-key verification before the first connection ===
+Host key printed in the EC2 console log (ed25519): AAAAC3NzaC1lZDI1NTE5AAAAIP7bthP0bP6lOQ24+z2zzul/kB+xh4COxobDdf2gLDgY
+Host key presented by 52.73.254.36 via ssh-keyscan: same key -> MATCH
+(Connected with StrictHostKeyChecking=yes against a known_hosts file holding that verified key; key auth only, BatchMode.)
+
+=== Read-only SSH check: ssh ec2-user@git.ssw590-g1.tech (connected by hostname) ===
+ec2-user
+ip-172-31-29-240.ec2.internal
+PRETTY_NAME="Amazon Linux 2023.12.20261014"
+6.18.54-121.166.amzn2023.x86_64
+Docker version 25.0.14, build 0bab007
+Docker Compose version v5.6.0
+git version 2.50.1
+active                      (systemctl is-active docker)
+               total        used        free      shared  buff/cache   available
+Mem:             913         259          77           0         575         492
+NAME      TYPE SIZE USED PRIO
+/swapfile file   2G 352K   -2
+/dev/nvme0n1p1   20G  4.1G   16G  21% /
+ec2-user adm wheel systemd-journal docker
+exit code: 0
+
+Notes:
+- Proves: the A record is live on public resolvers, SSH by hostname works from the admin IP, the instance matches the planned setup.
+- Does NOT prove: external exposure (ports 80/443 closed/open from other networks), HTTPS, or anything about Gitea (not deployed yet).

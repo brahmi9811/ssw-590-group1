@@ -1,0 +1,32 @@
+% Owner: BD. Network exposure of the Group 1 Gitea VM: what the AWS security group admits.
+% Included by devopsGitea.tex (giteaFirewall region). Only the tikzpicture lives here.
+\begin{tikzpicture}[
+  font=\footnotesize, >={Stealth[length=2.2mm]},
+  box/.style={draw, rounded corners=2pt, fill=devopsLightBlue, align=center,
+    minimum height=0.9cm, inner sep=3pt},
+  who/.style={draw, rounded corners=2pt, fill=white, align=center,
+    minimum height=0.9cm, minimum width=3.0cm, inner sep=3pt},
+  ok/.style={->, thick, devopsGreen},
+  no/.style={->, thick, devopsRed, dashed},
+  lbl/.style={font=\scriptsize, align=center, fill=white, inner sep=1pt}]
+  % Sources
+  \node[who] (any) at (0,1.8) {Anyone on the\\internet (IPv4)};
+  \node[who] (adm) at (0,0) {Admin IP\\(one /32 address)};
+  \node[who] (oth) at (0,-1.8) {Any other address};
+
+  % Security group
+  \node[box, minimum height=4.8cm, minimum width=2.8cm] (sg) at (8.0,0)
+    {AWS security group\\\texttt{ssw590-g1-gitea}\\[2pt]stateful,\\inbound rules only\\for 443, 80, 22};
+
+  % VM services
+  \node[box, fill=white, minimum width=3.6cm] (https) at (14.6,1.8) {Caddy\\443 (HTTPS), 80 (redirect)};
+  \node[box, fill=white, minimum width=3.6cm] (ssh) at (14.6,0) {sshd\\22 (key login only)};
+  \node[box, fill=white, minimum width=3.6cm] (priv) at (14.6,-1.8) {Not reachable:\\3000 Gitea, 2019 Caddy API,\\5432 (no database service)};
+
+  \draw[ok] (any.east) -- node[lbl, above] {443, 80} (sg.west |- any);
+  \draw[ok] (adm.east) -- node[lbl, above] {22} (sg.west |- adm);
+  \draw[no] (oth.east) -- node[lbl, above] {22, 3000, 2019, 5432} (sg.west |- oth);
+  \draw[ok] (sg.east |- https) -- (https.west);
+  \draw[ok] (sg.east |- ssh) -- (ssh.west);
+  \draw[no] (sg.east |- priv) -- node[lbl, above] {dropped} (priv.west);
+\end{tikzpicture}

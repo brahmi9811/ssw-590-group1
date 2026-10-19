@@ -1,0 +1,25 @@
+Real output, Oct 15, 2026, 18:57:54 UTC, from Brahmi's Windows laptop connected to her PHONE HOTSPOT (a different network and public IPv4 address from the approved admin address).
+Run by Claude Code on Brahmi's go-ahead. Checked before probing: the laptop's public IPv4 differs from the approved admin address (neither address is printed here).
+Target: git.ssw590-g1.tech (Elastic IP of the instance). Tools: Test-NetConnection, curl.exe, OpenSSH client.
+
+=== TCP probes (Test-NetConnection) ===
+port 443  : OPEN
+port 80   : OPEN
+port 22   : closed/filtered (no connection)
+port 3000 : closed/filtered (no connection)
+port 2019 : closed/filtered (no connection)
+port 5432 : closed/filtered (no connection)
+
+=== HTTP and HTTPS ===
+curl -I http://git.ssw590-g1.tech/   ->  HTTP/1.1 308 Permanent Redirect   Location: https://git.ssw590-g1.tech/
+curl -I https://git.ssw590-g1.tech/  ->  HTTP/1.1 200 OK
+
+=== SSH with the VALID private key from this unapproved address ===
+ssh -i <valid key> -o StrictHostKeyChecking=yes -o BatchMode=yes -o ConnectTimeout=10 ec2-user@git.ssw590-g1.tech "echo connected"
+ssh: connect to host git.ssw590-g1.tech port 22: Connection timed out      (exit 255, about 20 s)
+
+Notes:
+- Expected vs actual: 443 open, 80 open (redirect only), 22 blocked, 3000/2019/5432 not reachable -> all as expected.
+- SSH failed at the network level (timeout), not at authentication, even though the key is valid: the security group drops the packets from addresses other than the approved admin /32.
+- "closed/filtered" cannot tell a refused connection from a dropped one; both mean the port is not usable from this network.
+- This closes the second-network row in the firewall section. It is one test, from one mobile network, at one moment; it does not test IPv6 (no AAAA record exists).
