@@ -1,0 +1,14 @@
+Real output. Run by Claude Code on Brahmi's go-ahead from Brahmi's Windows machine, with no cookie and no login.
+Purpose: show that the artifact of run #2 can be downloaded without signing in (the repository is public).
+Time: 2026-10-20 03:16 UTC
+
+$ curl -sL -o art.zip -w "HTTP %{http_code} bytes %{size_download} type %{content_type}" https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/2/artifacts/it-manual-pdf
+HTTP 200 bytes 4087975 type application/zip
+
+$ unzip -l art.zip
+Archive:  /tmp/anon2/art.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+  4228180  1980-00-00 00:00   IT-manual+build.2.a5f3446.pdf
+---------                     -------
+  4228180                     1 file

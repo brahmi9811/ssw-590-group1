@@ -16,13 +16,13 @@ subsections match the eight rubric rows in order.
 \endfirsthead
 \toprule \textbf{Subsection} & \textbf{Points} & \textbf{Owner} & \textbf{Status}\\ \midrule
 \endhead \bottomrule \endlastfoot
-Source and trigger & 15 & BD & \StatusPending\\
-Runner setup & 15 & BD & \StatusPending\\
+Source and trigger & 15 & BD & \StatusPass\\
+Runner setup & 15 & BD & \StatusPass\\
 Reproducible compilation & 20 & SD & \StatusPending\\
 PDF version traceability & 15 & SD & \StatusPending\\
-Downloadable artifact & 10 & BD & \StatusPending\\
+Downloadable artifact & 10 & BD & \StatusPass\\
 Change, failure, and repair evidence & 10 & SD & \StatusPending\\
-Runner and secret boundary & 5 & BD & \StatusPending\\
+Runner and secret boundary & 5 & BD & \StatusPass\\
 Manual quality and controls & 10 & SD & \StatusPending\\
 \end{tabularx}
 
@@ -31,15 +31,137 @@ Manual quality and controls & 10 & SD & \StatusPending\\
 % Region: buildSourceTrigger (single owner; edit only your own region)
 \subsection{Source and trigger (15 points)}
 \label{Section:buildSourceTrigger}
-\textbf{Owner:} BD. \StatusPending{}
-\Todo{repository, main file and workflow links; branch and push event; HTTPS remote, port 443, Caddy, private port 3000; why the runner needs no public port; a run started by a push.}
+\textbf{Owner:} BD. \textbf{Status:} two push-triggered runs observed on October 19--20, 2026 \StatusPass.
+
+\paragraph{What is where.}
+The source of this manual lives in the Gitea repository
+\href{\GiteaURL/group1-startup/manual}{\texttt{group1-startup/manual}} (public, created by BD on
+October 19, 2026). The main file is \texttt{devopsITManual.tex}; the compile command is the \texttt{latexmk}
+command in the workflow
+\href{\GiteaURL/group1-startup/manual/src/branch/main/.gitea/workflows/build.yml}{\texttt{.gitea/workflows/build.yml}}.
+The workflow runs on a \texttt{push} to the branch \texttt{main} (and on a manual start). The repository's two
+members, BD (organization owner) and SD (collaborator with write access), push over HTTPS; the course's Chapter~2
+repository \texttt{twintrack} is the product, and this repository holds the manual (Table~\ref{Table:BuildPorts}).
+
+\begin{tabularx}{\linewidth}{L{3.2cm}L{2.6cm}Y}
+\caption{Network path of a push and of a runner job, with public and private ports\label{Table:BuildPorts}}\\
+\toprule \textbf{Step} & \textbf{Port} & \textbf{Detail}\\ \midrule
+\endfirsthead
+\toprule \textbf{Step} & \textbf{Port} & \textbf{Detail}\\ \midrule
+\endhead \bottomrule \endlastfoot
+\texttt{git push} from a laptop & \textbf{443/TCP, public} & HTTPS remote \texttt{\GiteaURL/\allowbreak group1-startup/\allowbreak manual.git}; the AWS security group admits 443 from anyone.\\
+TLS termination & 443 (Caddy) & Caddy terminates TLS with the Let's Encrypt certificate and forwards the request to Gitea.\\
+Caddy to Gitea & \textbf{3000/TCP, private} & Only on the private Docker network \texttt{gitea\_web}; not published to the host and not reachable from the internet (\ChapterRef{Gitea}).\\
+Gitea Git over SSH & none & Disabled (\texttt{DISABLE\_SSH}); HTTPS-only Git.\\
+Runner to Gitea & 443 (outbound) & The runner calls \texttt{\GiteaURL} like a browser does. \textbf{No inbound port exists for the runner.}\\
+\end{tabularx}
+
+\paragraph{Why the runner needs no public submission port.}
+The runner works by pulling: it connects out to Gitea over HTTPS, asks for waiting jobs, and reports the log and
+result back over the same connection. Gitea never opens a connection to the runner, and a push goes to Gitea, not to
+the runner. The runner container therefore publishes no port at all (the \texttt{Ports} column of \texttt{docker ps}
+is empty for it, and the only published ports on the host remain Caddy's 80 and 443).
+
+\paragraph{A run started by a push.}
+SD's first push, commit \texttt{1fb4e15}, started run~\#1, and her second push, commit \texttt{a5f3446}, started
+run~\#2; both appear in the repository's Actions list (\FigRef{52}). Run~\#2's summary shows ``Triggered via push''
+on \texttt{main} and \texttt{build.yml (on: push)} (\FigRef{53}). Run~\#1 compiled the manual but failed at the
+upload step, which is explained with the other failed attempts in Section~\ref{Section:buildCompilation}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{evidence/52-gitea-manual-actions-list-run1-failure-run2-success-2026-10-19.png}
+\caption{Actions tab of \texttt{group1-startup/manual}, October 19, 2026 (evening, US Eastern): run~\#1 for commit \texttt{1fb4e15} failed, run~\#2 for commit \texttt{a5f3446} succeeded; both were started by a push to \texttt{main}.}
+\label{Fig:E52}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{evidence/53-gitea-manual-run2-summary-success-1m11s-artifact-it-manual-pdf-2026-10-19.png}
+\caption{Run~\#2 summary: triggered via push, status Success, duration 1~minute 11~seconds, workflow \texttt{build.yml} (\texttt{on: push}), one artifact \texttt{it-manual-pdf}.}
+\label{Fig:E53}
+\end{figure}
 
 % ======================================================================
 % Region: buildRunner (single owner; edit only your own region)
 \subsection{Runner setup (15 points)}
 \label{Section:buildRunner}
-\textbf{Owner:} BD. \StatusPending{}
-\Todo{runner version, location, scope, label \texttt{manual-builder}, execution mode, network path, capacity; runner online and a job assigned; isolation; no public ports.}
+\textbf{Owner:} BD. \textbf{Status:} runner online and two jobs run on it, October 19--20, 2026 \StatusPass.
+
+\begin{tabularx}{\linewidth}{L{3.4cm}Y}
+\caption{The Gitea Actions runner\label{Table:BuildRunner}}\\
+\toprule \textbf{Property} & \textbf{Value}\\ \midrule
+\endfirsthead
+\toprule \textbf{Property} & \textbf{Value}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Name and version & \texttt{group1-runner-1}, \texttt{act\_runner} v0.6.1 (Docker image \texttt{gitea/act\_runner:0.6.1}, pinned) \cite{GiteaRunnerDocker}\\
+Location & A Docker container named \texttt{gitea-runner} on the same EC2 \texttt{t3.micro} host as Gitea (single-host layout of the course's Figure~3.2)\\
+Scope & Global: registered with the instance-level registration token from Site Administration, so it can serve any repository of this Gitea (\FigRef{50}); only \texttt{group1-startup/manual} uses it\\
+Label & \texttt{manual-builder:docker://group1/texlive-node:2026.09} \cite{GiteaRunnerLabels}; the workflow selects it with \texttt{runs-on: manual-builder}\\
+Execution mode & \texttt{docker://}: every job runs in a temporary job container created from the label's image, not directly in the runner\\
+Job image & Built on the host from \texttt{ci/Dockerfile} in the manual repository (TeX Live 2026 pinned by digest plus Node.js), 5.82~GB; it is local only, so the runner is configured with \texttt{force\_pull: false} and never downloads it\\
+Network path & Runner and job container $\rightarrow$ \texttt{\GiteaURL} (public name, port 443). The host reaches its own public address; this was checked before installing (HTTP 200 on \texttt{/api/healthz})\\
+Capacity & One job at a time (\texttt{capacity: 1}) because the host has 2~vCPUs, about 1~GB of RAM and 2~GB of swap; 20~GB disk with about 9.4~GB free after the image\\
+Restart behavior & \texttt{restart: unless-stopped}; the registration is kept in the Docker volume \texttt{runner\_runner\_data}\\
+Published ports & None\\
+\end{tabularx}
+
+\paragraph{Decision: same host.}
+Three options were compared on October 19, 2026: the runner on the Gitea host (chosen), a larger instance, or a
+laptop. The Gitea host costs nothing extra and stays online for the instructor and TA; the risks are the small
+memory and the shared disk. Observed: run~\#2 took 1~minute 11~seconds, Gitea stayed healthy, and swap use was
+about 110~MB afterwards.
+
+\paragraph{Registered and online, with a job assigned.}
+The runner shows as \emph{Idle} with its label in the administration page (\FigRef{50}). After SD's push, the
+first lines of run~\#2's \emph{Set up job} log show the runner receiving the job and starting the pinned image
+without pulling it (\FigRef{57}): \texttt{group1-runner-1(version:v0.6.1) received task 2 of job build, be
+triggered by event: push}, \texttt{forcePull=false}, \texttt{Image exists? true}, then a new container on its own
+network. The container is removed after the job.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{evidence/50-gitea-admin-runners-group1-runner-1-idle-manual-builder-2026-10-19.png}
+\caption{Site Administration, Actions, Runners, October 19, 2026: \texttt{group1-runner-1}, version v0.6.1, type Global, label \texttt{manual-builder}, status Idle, last online ``now''.}
+\label{Fig:E50}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{evidence/57-gitea-run2-set-up-job-log-group1-runner-1-received-task-2-2026-10-19.png}
+\caption{Log of run~\#2, step \emph{Set up job}: the job is assigned to \texttt{group1-runner-1}, runs in a temporary container from \texttt{group1/texlive-node:2026.09}, and the image is not pulled (\texttt{forcePull=false}). The first action fetched is \texttt{actions/checkout} from github.com.}
+\label{Fig:E57}
+\end{figure}
+
+\paragraph{Isolation and ports.}
+The runner container publishes no port; the only host ports open to the internet are still 80 and 443 on Caddy.
+Jobs run in their own containers on a fresh network per job; the runner is not run in privileged mode, and no host
+volumes are allowed for jobs (the configuration sets no \texttt{valid\_volumes}). Whether a workflow can still
+reach the Docker socket was \emph{not} tested; the risk is discussed in Section~\ref{Section:buildSecretBoundary}.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/runner/docker-compose.yml}
+\caption{Runner Compose file (non-secret; also in the repository's \texttt{config/runner/} folder). The registration token is read from a root-only file that is emptied after registration.}
+\label{Listing:RunnerCompose}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/runner/config.yaml}
+\caption{Runner configuration (non-secret): one job at a time, no cache server, no privileged jobs, never re-pull the local image.}
+\label{Listing:RunnerConfig}
+\end{longlisting}
+
+\paragraph{Failed attempts and corrections.}
+Registration took four attempts on October 19, 2026; the first three failed. Attempt~1 was rejected: Gitea
+answered ``runner registration token not found'' and the runner retried in a loop; the container was stopped and
+the token file on the server was emptied. The script was changed to report how many characters it received, and
+attempt~2 showed the cause: only \emph{one} character of the 40-character token arrived, because pasting into a
+hidden terminal prompt kept only the first character. The script was changed again to read the token one key at a
+time, but attempt~3 still read one character; the script stopped on the administrator's machine before sending
+anything. The third change reads the token from the clipboard (which holds the full 40 characters, as checked
+with a length-only command) and refuses to send anything shorter than 20 characters. Attempt~4 printed
+\texttt{Runner registered successfully}. Afterwards the token file was emptied again (0~bytes, mode 600) and the
+runner restarted without it. The token itself is never written in this manual.
 
 % ======================================================================
 % Region: buildCompilation (single owner; edit only your own region)
@@ -172,8 +294,54 @@ attempt number (``attempt 1'' in \ListRef{62}), which tells re-runs apart.
 % Region: buildArtifact (single owner; edit only your own region)
 \subsection{Downloadable artifact (10 points)}
 \label{Section:buildArtifact}
-\textbf{Owner:} BD. \StatusPending{}
-\Todo{link the \texttt{it-manual-pdf} artifact on a successful run; show the downloaded file opens; retention (Gitea default 90 days unless configured); not a backup.}
+\textbf{Owner:} BD. \textbf{Status:} artifact of run~\#2 downloaded without signing in and opened, October 19--20, 2026 \StatusPass.
+
+\paragraph{Where it is.}
+The workflow's last step uploads \texttt{out/*.pdf} as the artifact \texttt{it-manual-pdf} (the step fails if no file
+matches, so a missing PDF cannot pass silently). On the successful
+\href{\GiteaURL/group1-startup/manual/actions/runs/2}{run~\#2} the artifact is listed under \emph{Artifacts} in the
+left column of the run summary (\FigRef{53}). A team member opens the \texttt{group1-startup/manual} repository,
+chooses \emph{Actions}, opens the run, and clicks the artifact name; the browser downloads a zip file that holds
+the PDF. A direct link, which also works without signing in because the repository is public, is
+\href{\GiteaURL/group1-startup/manual/actions/runs/2/artifacts/it-manual-pdf}{\texttt{\GiteaURL/\allowbreak group1-startup/\allowbreak manual/\allowbreak actions/\allowbreak runs/2/\allowbreak artifacts/\allowbreak it-manual-pdf}}.
+
+\paragraph{Downloaded and opened.}
+The download of run~\#2 is a 4.0~MiB zip with one file, \texttt{IT-manual+build.2.a5f3446.pdf}. Opened in a PDF
+viewer, its title page reads \texttt{Version 1.0+build.2.a5f3446}, the same run number and commit as the run
+(\FigRef{54}). An anonymous download (no login, no cookie) from the administrator's machine on October 20, 2026
+at 03:16~UTC returned HTTP~200, 4,087,975 bytes, content type \texttt{application/zip}, and the same file name
+(\ListRef{58}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\linewidth]{evidence/54-downloaded-artifact-title-page-version-1.0-build.2.a5f3446-2026-10-19.png}
+\caption{Title page of the PDF downloaded from the artifact of run~\#2 and opened in a viewer: \texttt{Version 1.0+build.2.a5f3446}.}
+\label{Fig:E54}
+\end{figure}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/58-anonymous-artifact-download-test-run2-2026-10-19.txt}
+\caption{Anonymous download of the run~\#2 artifact, October 20, 2026, 03:16~UTC (real output): HTTP~200, a zip that contains the versioned PDF.}
+\label{Listing:E58}
+\end{longlisting}
+
+\paragraph{Retention.}
+No retention setting was configured by the team. The observed default is shown in the artifact's tooltip: the
+artifact of run~\#2 \emph{expires at January 17, 2027, 22:01} (\FigRef{55}), about 90~days after the run, and is
+4.0~MiB. This is the observed value on this Gitea 1.27.3 installation, not a documented guarantee.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\linewidth]{evidence/55-gitea-run2-artifact-tooltip-expires-jan-17-2027-4.0-MiB-2026-10-19.png}
+\caption{Run~\#2 summary with the tooltip of \texttt{it-manual-pdf}: ``Expires at Jan 17, 2027, 22:01'' and 4.0~MiB.}
+\label{Fig:E55}
+\end{figure}
+
+\paragraph{An artifact is not a backup.}
+Artifacts expire and live on the same disk as Gitea; deleting the run or the repository removes them, and the
+server has no backup (the optional backup test of Chapter~2 was not attempted). The permanent copies are the
+LaTeX source in Git (which can rebuild any version from its commit) and the PDF that the team submits to the
+course. The artifact is a delivery path, not storage.
 
 % ======================================================================
 % Region: buildChangeFailure (single owner; edit only your own region)
@@ -235,8 +403,62 @@ Gitea service & unaffected & unaffected: the failing commit changed only the LaT
 % Region: buildSecretBoundary (single owner; edit only your own region)
 \subsection{Runner and secret boundary (5 points)}
 \label{Section:buildSecretBoundary}
-\textbf{Owner:} BD. \StatusPending{}
-\Todo{workflow edit rights, registration token storage (hint only), runner isolation, Docker socket risk, link to non-secret runner configuration.}
+\textbf{Owner:} BD. \textbf{Status:} described from the observed configuration; the Docker-socket limits below were not tested \StatusPass.
+
+\paragraph{Who can edit the workflow.}
+A workflow is code that the runner executes, so whoever can push to \texttt{group1-startup/manual} controls what
+runs. Two people can: BD (organization owner) and SD (collaborator with \emph{Write}, \FigRef{51}). The team
+\texttt{developers} also has the Actions unit, and registration on this Gitea is closed
+(\texttt{DISABLE\_REGISTRATION}), so no outsider can create an account, fork the repository, or open a pull
+request. \textbf{Limitation:} \texttt{main} of this repository has no branch protection (unlike \texttt{twintrack}),
+so either member can push a workflow change that runs immediately without review; this is accepted for a
+two-person team and was not changed.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{evidence/51-gitea-manual-repo-collaborators-sakshi-write-teams-owners-developers-2026-10-19.png}
+\caption{Settings, Collaborators of \texttt{group1-startup/manual}, October 19, 2026: \texttt{sakshi} with Write; teams \texttt{Owners} (Owner) and \texttt{developers} (unit permissions Code, Issues, Pull Requests, Releases, Wiki, Projects, Packages, Actions).}
+\label{Fig:E51}
+\end{figure}
+
+\paragraph{Where the secrets are.}
+\begin{itemize}
+\item \emph{Runner registration token} (hint only): shown in Gitea's Site Administration, Actions, Runners page;
+  BD copies it into the clipboard and a script on BD's machine sends it over SSH to a root-only file on the
+  server (mode 600). After a successful registration the file was emptied (0~bytes) and the runner was restarted
+  without it; the registration itself is kept in the Docker volume. The token is not in the repository, the
+  workflow, the logs, or this PDF. If it leaks, reset it on the same page.
+\item \emph{Repository secrets:} none. The workflow uses no secret and no access token of its own.
+\item \emph{Gitea access token} used once to create the repository: deleted right after use.
+\end{itemize}
+
+\paragraph{Docker privilege risk.}
+The runner container mounts the host's Docker socket (Listing~\ref{Listing:RunnerCompose}) so that it can create job
+containers. Anyone who controls the runner process can start any container on the host, which also holds Gitea's
+data volume; that is root-equivalent on this host, the same host that serves the team's Gitea
+\cite{GiteaRunnerDocker}. The jobs themselves are not given the socket: the configuration sets
+\texttt{privileged: false} and no \texttt{valid\_volumes}, which by design keeps a workflow from mounting host
+paths. \emph{This was not tested}, so the manual does not claim it as verified. Compensating controls: only two
+trusted people can edit workflows, there are no outside accounts, no repository secrets exist to steal, and the
+runner publishes no port. A stronger design would use a separate runner host, which was not chosen because of
+cost.
+
+\paragraph{Why untrusted workflow changes must not get privileged access or secrets.}
+A pull request from a stranger could rewrite the workflow to run any command in the job, read every secret the
+job can see, and, with Docker access, attack the host and the other containers. Therefore this runner is
+registered only for this repository's trusted authors, holds no secrets, and must never be given privileged mode,
+host mounts, or secrets while outsiders can propose workflow changes.
+
+\paragraph{Third-party code in the build.}
+The workflow's two steps \texttt{actions/checkout} and \texttt{actions/upload-artifact} are fetched from
+github.com at the time of each run (the \emph{Set up job} log, \FigRef{57}, shows the clone), selected by a version
+tag that its owner can move. This is a supply-chain dependency that was accepted for simplicity; pinning each
+action to a commit hash is a possible improvement.
+
+\paragraph{Non-secret configuration.}
+The runner's Compose file and configuration are printed in Section~\ref{Section:buildRunner}
+(Listings~\ref{Listing:RunnerCompose} and~\ref{Listing:RunnerConfig}) and are kept in the repository under
+\texttt{config/runner/}. Hosts and Passwords tables: \textbf{updated} for the runner (\ChapterRef{HostsPasswords}).
 
 % ======================================================================
 % Region: buildManualQuality (single owner; edit only your own region)
