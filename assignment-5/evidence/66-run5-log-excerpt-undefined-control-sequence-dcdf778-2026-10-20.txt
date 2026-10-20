@@ -1,0 +1,25 @@
+Gitea Actions run #5, read anonymously 2026-10-20 03:13:48 UTC
+commit dcdf778  event push  runner group1-runner-1  label manual-builder
+started 2026-10-20T03:13:02Z  finished 2026-10-20T03:13:16Z  conclusion failure
+steps:
+  Check out the triggering commit                         success  03:13:04 -> 03:13:06
+  Record the toolchain                                    success  03:13:06 -> 03:13:07
+  Compute the build identifier                            success  03:13:07 -> 03:13:07
+  Compile the manual (fails on any LaTeX error)           failure  03:13:07 -> 03:13:14
+  Verify the PDF exists and carries the build identifier  skipped  03:13:15 -> 03:13:15
+  Upload the PDF artifact                                 skipped  03:13:15 -> 03:13:15
+
+Key lines from the job log (timestamps UTC):
+  03:13:06 pdfTeX 3.141592653-2.6-1.40.29 (TeX Live 2026)
+  03:13:07 Latexmk, John Collins, 9 March 2026. Version 4.88
+  03:13:07 Pygments version 2.20.0, (c) 2006-present by Georg Brandl, Matthaus Chajdas and contributors.
+  03:13:07 v24.21.0
+  03:13:07 Build identifier: +build.5.dcdf778 (attempt 1)
+  03:13:07 Latexmk: This is Latexmk, John Collins, 9 March 2026. Version 4.88.
+  03:13:09 Build identifier: Version 1.0+build.5.dcdf778
+  03:13:14 ! Undefined control sequence.
+  03:13:14 l.199 \ControlledFailureForRowSix
+  03:13:14 !  ==> Fatal error occurred, no output PDF file produced!
+  03:13:14 Failure - Main Compile the manual (fails on any LaTeX error)
+  03:13:15 exitcode '12': failure
+  03:13:16 Job failed

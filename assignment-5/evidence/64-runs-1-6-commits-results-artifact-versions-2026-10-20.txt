@@ -1,0 +1,18 @@
+Runs of group1-startup/manual, read anonymously (no token) 2026-10-20 03:15:08 UTC
+Artifact checked by downloading it-manual-pdf and reading the PDF title page.
+
+run  commit   result   started (UTC)         artifact file                        title-page version
+#1   1fb4e15  failure  2026-10-20 02:56:10   (none)                               -
+#2   a5f3446  success  2026-10-20 02:59:52   IT-manual+build.2.a5f3446.pdf        Version 1.0+build.2.a5f3446
+#3   c59a784  success  2026-10-20 03:10:16   IT-manual+build.3.c59a784.pdf        Version 1.0+build.3.c59a784
+#4   34ae070  success  2026-10-20 03:11:45   IT-manual+build.4.34ae070.pdf        Version 1.0+build.4.34ae070
+#5   dcdf778  failure  2026-10-20 03:13:02   (none)                               -
+#6   a9636e4  success  2026-10-20 03:13:56   IT-manual+build.6.a9636e4.pdf        Version 1.0+build.6.a9636e4
+
+Commit messages:
+  1fb4e15  Initial import of the Group 1 IT manual with the Gitea Actions build
+  a5f3446  Use upload-artifact@v3: v4 is not supported by Gitea 1.27.3 (run #1)
+  c59a784  Row 3: record the first server builds (runs #1 and #2) with evidence 61-62
+  34ae070  Row 4: trace run #2 to its PDF identifier (evidence 63)
+  dcdf778  Row 6: deliberate LaTeX error (undefined command) to show a failed build
+  a9636e4  Row 6: repair the deliberate LaTeX error from dcdf778

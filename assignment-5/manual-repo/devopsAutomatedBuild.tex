@@ -90,8 +90,8 @@ and a copy with an undefined command inserted exited with code~1, reported
 
 \subsubsection{Checkout and artifact path}
 The runner polls Gitea over HTTPS for work. In the job container,
-\texttt{actions/checkout} fetches the triggering commit from
-\texttt{https://git.ssw590-g1.tech}, and \texttt{actions/upload-artifact} sends
+\path{actions/checkout} fetches the triggering commit from
+\path{https://git.ssw590-g1.tech}, and \path{actions/upload-artifact} sends
 the PDF back to the same run over HTTPS. Gitea and the job share no
 filesystem.
 
@@ -179,21 +179,57 @@ attempt number (``attempt 1'' in \ListRef{62}), which tells re-runs apart.
 % Region: buildChangeFailure (single owner; edit only your own region)
 \subsection{Change, failure, and repair evidence (10 points)}
 \label{Section:buildChangeFailure}
-\textbf{Owner:} SD. \textbf{Status:} plan ready; runs \StatusPending.
+\textbf{Owner:} SD. \textbf{Status:} two successive changes, one controlled
+failure, and its repair, all built on the Gitea runner on October 20, 2026
+\StatusPass.
 
-\begin{tabularx}{\linewidth}{L{1.7cm}YL{2.0cm}L{2.0cm}L{2.0cm}}
-\caption{Successive changes, a controlled failure, and its repair\label{Table:BuildSeries}}\\
+Each row is a separate push to \texttt{main}. The PDF identifier was read from
+the title page of the artifact downloaded from that run (\ListRef{64}); times
+are UTC.
+
+\begin{tabularx}{\linewidth}{L{1.4cm}YL{1.5cm}L{2.0cm}L{3.9cm}}
+\caption{Successive changes, a controlled failure, and its repair, October 20, 2026\label{Table:BuildSeries}}\\
 \toprule \textbf{Step} & \textbf{Change} & \textbf{Commit} & \textbf{Run / result} & \textbf{PDF identifier}\\ \midrule
 \endfirsthead
 \toprule \textbf{Step} & \textbf{Change} & \textbf{Commit} & \textbf{Run / result} & \textbf{PDF identifier}\\ \midrule
 \endhead \bottomrule \endlastfoot
-Change 1 & \Todo{first real content change} & \Todo{} & \Todo{} & \Todo{}\\
-Change 2 & \Todo{second change} & \Todo{} & \Todo{} & \Todo{}\\
-Failure & an undefined command added on purpose to one line & \Todo{} & expected: failed, no artifact & none\\
-Repair & the line removed & \Todo{} & expected: success & \Todo{}\\
+Change 1 & Row~3 text and evidence added & \href{https://git.ssw590-g1.tech/group1-startup/manual/commit/c59a784}{\texttt{c59a784}} & \href{https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/3}{\#3} success, 03:10 & \texttt{1.0+build.3.c59a784}\\
+Change 2 & Row~4 text and evidence added & \href{https://git.ssw590-g1.tech/group1-startup/manual/commit/34ae070}{\texttt{34ae070}} & \href{https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/4}{\#4} success, 03:11 & \texttt{1.0+build.4.34ae070}\\
+Failure & One line \texttt{\string\ControlledFailureForRowSix} (an undefined command) added on purpose & \href{https://git.ssw590-g1.tech/group1-startup/manual/commit/dcdf778}{\texttt{dcdf778}} & \href{https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/5}{\#5} \textbf{failure}, 03:13 & none: no PDF, no artifact\\
+Repair & That line removed & \href{https://git.ssw590-g1.tech/group1-startup/manual/commit/a9636e4}{\texttt{a9636e4}} & \href{https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/6}{\#6} success, 03:13 & \texttt{1.0+build.6.a9636e4}\\
 \end{tabularx}
-The failing commit touches only the LaTeX source; it cannot affect the running
-Gitea service.
+
+\begin{tabularx}{\linewidth}{L{3.4cm}YY}
+\caption{Controlled failure: expected and actual results\label{Table:BuildFailureCheck}}\\
+\toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual (run~\#5)}\\ \midrule
+\endfirsthead
+\toprule \textbf{Check} & \textbf{Expected} & \textbf{Actual (run~\#5)}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Compile step & fails at the bad line & failed: ``! Undefined control sequence'' at \texttt{l.199 \string\ControlledFailureForRowSix}; \texttt{latexmk} exit code 12\\
+Later steps & not run & ``Verify'' and ``Upload'' skipped\\
+Artifact & none & none (run page shows no artifact; download returns nothing)\\
+Run status & failure & failure, in 14~seconds (\FigRef{65})\\
+Gitea service & unaffected & unaffected: the failing commit changed only the LaTeX source, and the repair run~\#6 started 40~seconds later and succeeded\\
+\end{tabularx}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{evidence/65-run5-job-compile-failed-dcdf778-2026-10-20.png}
+\caption{\href{https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/5}{Run~\#5}, October 20, 2026, seen signed out: the compile step failed, and the verify and upload steps were skipped.}
+\label{Fig:E65}
+\end{figure}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/66-run5-log-excerpt-undefined-control-sequence-dcdf778-2026-10-20.txt}
+\caption{Run~\#5: step results and the LaTeX error in the job log, October 20, 2026.}
+\label{Listing:E66}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/64-runs-1-6-commits-results-artifact-versions-2026-10-20.txt}
+\caption{Runs \#1--\#6 with commit, result, artifact file name, and the version printed on the downloaded PDF's title page, read without an account, October 20, 2026.}
+\label{Listing:E64}
+\end{longlisting}
 
 % ======================================================================
 % Region: buildSecretBoundary (single owner; edit only your own region)
