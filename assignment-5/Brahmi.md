@@ -31,6 +31,13 @@ Rows 3, 4, 6, 8: the workflow's compile steps, failure detection, build-identifi
 and the row 8 quality pass. If something there looks wrong, message SD instead of editing.
 
 ## Checklist
-- [x] G1 runner option agreed (same server, Oct 19) · [ ] `group1-startup/manual` created · [x] runner installed (act_runner 0.6.1, config in `runner/`), registered, online (evidence 50)
-- [ ] job assigned evidence · [ ] artifact downloaded and opened, retention recorded · [ ] row 7 text · [ ] Hosts/Passwords updated
-- [ ] history + AI-log lines · [ ] final PDF downloaded from a green run and submitted
+- [x] G1 runner option agreed (same server, Oct 19) · [x] `group1-startup/manual` created (public; SD has Write, evidence 51) · [x] runner installed (act_runner 0.6.1, config in `runner/`), registered, online (evidence 50)
+- [x] job assigned evidence (57) · [x] artifact downloaded and opened, retention recorded (54, 55, 58; observed expiry about 90 days) · [x] row 7 text · [x] Hosts/Passwords updated (runner host row, registration-token hint row, SD collaborator note)
+- [x] rows 1, 2, 5, 7 written in `devopsAutomatedBuild.tex` and pushed to Gitea (commit `30a885b`); run #9 green, artifact `IT-manual+build.9.30a885b.pdf` verified anonymously
+- [ ] SD row 8 done and last build green · [ ] history + AI-log lines (SD does the history entry; BD review line) · [ ] final PDF downloaded from the last green run and submitted (PDF only)
+- [ ] after grading: tear down the runner (`docker compose down` in `~/runner`, remove the 5.8 GB image), then the Assignment 4 teardown list; delete leftover tokens in Gitea
+
+## Notes
+- Gitea (`group1-startup/manual`) is the source of truth; `manual-repo/` here is the mirror. Edit in Gitea, then `git pull` before pushing.
+- Registration took four attempts (token paste problem); the scripts in `runner/` read the token from the clipboard. Documented in the chapter's runner subsection.
+- Server must stay up until grading is finished.
