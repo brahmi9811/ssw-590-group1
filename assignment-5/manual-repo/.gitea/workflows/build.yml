@@ -57,8 +57,9 @@ jobs:
           cp devopsITManual.pdf "out/IT-manual${{ steps.buildid.outputs.suffix }}.pdf"
           ls -l out
 
+      # upload-artifact@v4 is rejected by Gitea 1.27.3 ("GHESNotSupportedError", run #1); v3 is supported.
       - name: Upload the PDF artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: it-manual-pdf
           path: out/*.pdf

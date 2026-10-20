@@ -58,6 +58,14 @@ Staged in `assignment-5/manual-repo/` = exactly what gets pushed to `group1-star
    `\BuildSuffix`, `\typeout` of the identifier, and `\include{devopsAutomatedBuild}`. The Introduction's repository-layout
    block still says `assignment-4/manual/` (yours to update).
 
+## First runs on the server (Oct 19, 2026 EDT / Oct 20 UTC)
+- Source pushed to https://git.ssw590-g1.tech/group1-startup/manual (commit `1fb4e15`). **From now on the Gitea repo is the
+  source of truth**; `assignment-5/manual-repo/` here is only the staging copy (synced at `a5f3446`).
+- Run #1 (`1fb4e15`): compile OK (87 pages, `+build.1.1fb4e15`), **upload failed**: `upload-artifact@v4` not supported by
+  Gitea 1.27.3 (`GHESNotSupportedError`). Evidence 60.
+- Run #2 (`a5f3446`, switched to `upload-artifact@v3`): **success**; artifact `it-manual-pdf` downloads anonymously as a zip
+  containing `IT-manual+build.2.a5f3446.pdf` (87 pages, title page `Version 1.0+build.2.a5f3446`).
+
 ## Checklist
-- [x] standalone manual source · [x] `build.yml` drafted and tested locally · [ ] first green run (G3) · [ ] build ID visible in PDF
+- [x] standalone manual source · [x] `build.yml` drafted and tested locally · [x] first green run (G3, run #2) · [ ] build ID visible in PDF
 - [ ] two changes + failure + repair · [ ] rows 3, 4, 6 written with inline evidence · [ ] row 8 pass · [ ] history + AI-log lines
