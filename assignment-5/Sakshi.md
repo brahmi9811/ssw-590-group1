@@ -79,5 +79,5 @@ Every push is mirrored to `assignment-5/manual-repo/` here (backup). Rows 3, 4, 
 still have placeholders. Row 8 remains (last).
 
 ## Checklist
-- [x] standalone manual source · [x] `build.yml` drafted and tested locally · [x] first green run (G3, run #2) · [ ] build ID visible in PDF
+- [x] standalone manual source · [x] `build.yml` drafted and tested locally · [x] first green run (G3, run #2) · [x] build ID visible in PDF
 - [x] two changes + failure + repair · [x] rows 3, 4, 6 written with inline evidence · [ ] row 8 pass · [ ] history + AI-log lines
