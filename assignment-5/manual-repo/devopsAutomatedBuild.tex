@@ -47,8 +47,8 @@ Manual quality and controls & 10 & SD & \StatusPending\\
 \label{Section:buildCompilation}
 \index{TeX Live}
 \index{latexmk}
-\textbf{Owner:} SD. \textbf{Status:} workflow and job image written and the
-same commands tested on SD's workstation; run on the Gitea runner \StatusPending.
+\textbf{Owner:} SD. \textbf{Status:} successful build on the Gitea runner,
+run~\#2, October 20, 2026, 03:00~UTC \StatusPass.
 
 \subsubsection{Toolchain}
 \begin{tabularx}{\linewidth}{L{4.0cm}Y}
@@ -66,9 +66,10 @@ Main file & \texttt{devopsITManual.tex} at the repository root\\
 Build command & \texttt{latexmk -pdf -shell-escape -interaction=nonstopmode -halt-on-error -usepretex=\ldots{} devopsITManual.tex}\\
 Expected output & \texttt{devopsITManual.pdf}, copied to \texttt{out/IT-manual+build.<run>.<sha>.pdf}\\
 \end{tabularx}
-TeX is installed in the job image, not in the Gitea container and not on the
-server itself. Each job runs in a fresh container from that image and is
-removed afterwards.
+TeX is installed only in the job image, which is stored in the server's
+Docker engine; it is not in the Gitea container and not in the server's own
+operating system. The runner starts a fresh container from that image for
+each job and removes it afterwards.
 
 \subsubsection{Workflow}
 \inputminted{yaml}{.gitea/workflows/build.yml}
@@ -94,7 +95,30 @@ The runner polls Gitea over HTTPS for work. In the job container,
 the PDF back to the same run over HTTPS. Gitea and the job share no
 filesystem.
 
-\Todo{after the first green run: link the run and its log, and add the log excerpt as a listing.}
+\subsubsection{Runs on the server}
+The first push (commit \texttt{1fb4e15},
+\href{https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/1}{run~\#1})
+compiled the manual but failed at the upload step: Gitea~1.27.3 rejects
+\texttt{actions/upload-artifact@v4} with ``GHESNotSupportedError''. Version~3 of
+the action is supported, so commit \texttt{a5f3446} changed only that line, and
+\href{https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/2}{run~\#2}
+succeeded (\FigRef{61}, \ListRef{62}). The compile step took 36~seconds on the
+\texttt{t3.micro} server, and the whole job 1~minute 11~seconds, including
+24~seconds to start the job container. The run pages and the full job logs are
+public, so they can be opened without an account.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{evidence/61-run2-job-steps-success-a5f3446-2026-10-20.png}
+\caption{\href{https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/2}{Run~\#2} on the Gitea runner, October 20, 2026, seen signed out: every step succeeded and the run has one artifact, \texttt{it-manual-pdf}.}
+\label{Fig:E61}
+\end{figure}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/62-run2-log-excerpt-success-a5f3446-2026-10-20.txt}
+\caption{Run~\#2: step results from the Gitea API and key lines of the job log (toolchain versions, build identifier, compile passes, artifact upload), October 20, 2026.}
+\label{Listing:E62}
+\end{longlisting}
 
 % ======================================================================
 % Region: buildTraceability (single owner; edit only your own region)

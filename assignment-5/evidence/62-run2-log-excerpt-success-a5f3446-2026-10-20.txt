@@ -1,0 +1,31 @@
+Gitea Actions run #2, read anonymously 2026-10-20 03:09:31 UTC
+commit a5f3446  event push  runner group1-runner-1  label manual-builder
+started 2026-10-20T02:59:52Z  finished 2026-10-20T03:01:03Z  conclusion success
+steps:
+  Check out the triggering commit                         success  03:00:16 -> 03:00:20
+  Record the toolchain                                    success  03:00:20 -> 03:00:21
+  Compute the build identifier                            success  03:00:21 -> 03:00:21
+  Compile the manual (fails on any LaTeX error)           success  03:00:21 -> 03:00:57
+  Verify the PDF exists and carries the build identifier  success  03:00:58 -> 03:00:58
+  Upload the PDF artifact                                 success  03:00:58 -> 03:01:00
+
+Key lines from the job log (timestamps UTC):
+  03:00:20 pdfTeX 3.141592653-2.6-1.40.29 (TeX Live 2026)
+  03:00:20 Latexmk, John Collins, 9 March 2026. Version 4.88
+  03:00:21 Pygments version 2.20.0, (c) 2006-present by Georg Brandl, Matthaus Chajdas and contributors.
+  03:00:21 v24.21.0
+  03:00:21 Build identifier: +build.2.a5f3446 (attempt 1)
+  03:00:21 Latexmk: This is Latexmk, John Collins, 9 March 2026. Version 4.88.
+  03:00:23 Build identifier: Version 1.0+build.2.a5f3446
+  03:00:29 Output written on devopsITManual.pdf (65 pages, 4095419 bytes).
+  03:00:39 Output written on devopsITManual.pdf (86 pages, 4226429 bytes).
+  03:00:48 Output written on devopsITManual.pdf (87 pages, 4228163 bytes).
+  03:00:57 Output written on devopsITManual.pdf (87 pages, 4228180 bytes).
+  03:00:58 -rw-r--r--. 1 root root 4228180 Oct 20 03:00 IT-manual+build.2.a5f3446.pdf
+  03:00:59 With the provided path, there will be 1 file uploaded
+  03:00:59 Artifact name is valid!
+  03:01:00 Total size of all the files uploaded is 4076563 bytes
+  03:01:00 Artifact has been finalized. All files have been successfully uploaded!
+  03:01:00 The size of all the files that were uploaded is 4076563 bytes. This takes into account any gzip compression use
+  03:01:00 Artifact it-manual-pdf has been successfully uploaded!
+  03:01:03 Job succeeded
