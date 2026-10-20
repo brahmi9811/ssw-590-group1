@@ -104,3 +104,23 @@ order date look a day off), and chose to turn automatic renewal off and delete t
 stored card. Assistant errors found and fixed during the group's review were an
 evidence-numbering clash, a mangled formatting command in the firewall section,
 and two assumptions about where passwords are stored that nobody had stated.
+
+\section{Record: SD Rows of the Automated Manual Build Chapter}
+Date: October 19--20, 2026; Tool and model: Claude Code (Claude Opus 5.5);
+Task: SD's rows 3, 4, 6, and 8 of \ChapterRef{AutomatedBuild}. Inputs: the
+course manual \cite{DosManual} Chapter~3, the team's split in the course
+repository (\texttt{assignment-5/}), Gitea's documentation for Actions
+variables and configuration \cite{GiteaActionsVars,GiteaConfigActions}, and
+BD's runner. Output used: the standalone manual repository, the job image
+\texttt{ci/Dockerfile}, the workflow, \texttt{ci/local-build.sh}, the build
+identifier mechanism, the change, failure, and repair series (runs \#3--\#6),
+evidence 60--66, and rows 3, 4, 6, and 8. The assistant checked the Gitea
+documentation before relying on context names and artifact retention, and
+tested every command locally before pushing; it assumed
+\texttt{upload-artifact@v4} would work, which run~\#1 disproved, and switched
+to v3. Screenshots of public pages were taken by a headless browser without
+signing in; evidence was read from Gitea's public API without a token. SD
+made the first push herself, with her own credentials typed in her own
+terminal; later pushes used the credential stored on her computer, and no
+credential was given to the assistant. Human review and corrections: SD read
+the drafts and approved each push; SD and BD agreed the ownership split.

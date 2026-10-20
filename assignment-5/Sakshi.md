@@ -75,9 +75,10 @@ Staged in `assignment-5/manual-repo/` = exactly what gets pushed to `group1-star
 | `a9636e4` | repair | #6 success, `+build.6.a9636e4` |
 | `b13164b` | row 6 table + evidence 64–66 | #7 success |
 | `1eaddcc` | fix black evidence-63 image and two overflows | #8 success |
+Row 8 done: `f8a6179`, run #10 green, PDF `IT-manual+build.10.f8a6179.pdf` (103 pages, version 1.1), every status PASS, no `\Todo`.
 Every push is mirrored to `assignment-5/manual-repo/` here (backup). Rows 3, 4, 6 have no `\Todo` left; BD's rows 1, 2, 5, 7
 still have placeholders. Row 8 remains (last).
 
 ## Checklist
 - [x] standalone manual source · [x] `build.yml` drafted and tested locally · [x] first green run (G3, run #2) · [x] build ID visible in PDF
-- [x] two changes + failure + repair · [x] rows 3, 4, 6 written with inline evidence · [ ] row 8 pass · [ ] history + AI-log lines
+- [x] two changes + failure + repair · [x] rows 3, 4, 6 written with inline evidence · [x] row 8 pass (`f8a6179`, run #10) · [x] history + AI-log lines

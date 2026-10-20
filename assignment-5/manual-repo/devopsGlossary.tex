@@ -34,3 +34,4 @@
 \newglossaryentry{giteaactions}{name={Gitea Actions},description={Gitea's built-in continuous integration, compatible with GitHub Actions workflow files stored under \texttt{.gitea/workflows/}}}
 \newglossaryentry{runner}{name={runner},description={A program (here \texttt{act\_runner}) that registers with Gitea, picks up workflow jobs, and runs them, typically in temporary job containers}}
 \newglossaryentry{artifact}{name={artifact},description={A file produced by a workflow run and stored with that run for download; kept for a limited retention period, so not a backup}}
+\newglossaryentry{jobcontainer}{name={job container},description={A temporary container that a runner starts from a fixed image for one workflow job and removes afterwards, so each build starts clean}}

@@ -18,12 +18,12 @@ subsections match the eight rubric rows in order.
 \endhead \bottomrule \endlastfoot
 Source and trigger & 15 & BD & \StatusPass\\
 Runner setup & 15 & BD & \StatusPass\\
-Reproducible compilation & 20 & SD & \StatusPending\\
-PDF version traceability & 15 & SD & \StatusPending\\
+Reproducible compilation & 20 & SD & \StatusPass\\
+PDF version traceability & 15 & SD & \StatusPass\\
 Downloadable artifact & 10 & BD & \StatusPass\\
-Change, failure, and repair evidence & 10 & SD & \StatusPending\\
+Change, failure, and repair evidence & 10 & SD & \StatusPass\\
 Runner and secret boundary & 5 & BD & \StatusPass\\
-Manual quality and controls & 10 & SD & \StatusPending\\
+Manual quality and controls & 10 & SD & \StatusPass\\
 \end{tabularx}
 
 \section{Required Subsections}
@@ -169,6 +169,8 @@ runner restarted without it. The token itself is never written in this manual.
 \label{Section:buildCompilation}
 \index{TeX Live}
 \index{latexmk}
+\index{runner}
+\index{job container}
 \textbf{Owner:} SD. \textbf{Status:} successful build on the Gitea runner,
 run~\#2, October 20, 2026, 03:00~UTC \StatusPass.
 
@@ -246,6 +248,8 @@ public, so they can be opened without an account.
 % Region: buildTraceability (single owner; edit only your own region)
 \subsection{PDF version traceability (15 points)}
 \label{Section:buildTraceability}
+\index{build identifier}
+\index{artifact}
 \textbf{Owner:} SD. \textbf{Status:} identifier verified on the PDF
 downloaded from run~\#2 \StatusPass.
 
@@ -347,6 +351,7 @@ course. The artifact is a delivery path, not storage.
 % Region: buildChangeFailure (single owner; edit only your own region)
 \subsection{Change, failure, and repair evidence (10 points)}
 \label{Section:buildChangeFailure}
+\index{controlled failure}
 \textbf{Owner:} SD. \textbf{Status:} two successive changes, one controlled
 failure, and its repair, all built on the Gitea runner on October 20, 2026
 \StatusPass.
@@ -464,13 +469,53 @@ The runner's Compose file and configuration are printed in Section~\ref{Section:
 % Region: buildManualQuality (single owner; edit only your own region)
 \subsection{Manual quality and controls (10 points)}
 \label{Section:buildManualQuality}
-\textbf{Owner:} SD. \StatusPending{} Done last, after every other row has real evidence.
+\index{automated manual build!quality controls}
+\textbf{Owner:} SD. \textbf{Status:} final review of this chapter on
+October 20, 2026 \StatusPass.
+
+\begin{tabularx}{\linewidth}{L{4.6cm}L{1.6cm}Y}
+\caption{Manual quality controls for this chapter, checked October 20, 2026\label{Table:BuildQuality}}\\
+\toprule \textbf{Control} & \textbf{Status} & \textbf{Where / how checked}\\ \midrule
+\endfirsthead
+\toprule \textbf{Control} & \textbf{Status} & \textbf{Where / how checked}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Manual version increased & \StatusPass & 1.0 $\rightarrow$ 1.1, dated October 20, 2026; the build suffix is added automatically, the version itself only by a person\\
+Dated history entry linking this chapter & \StatusPass & Version 1.1 entry in Table~\ref{Table:DocumentHistory}\\
+Hosts and Passwords tables & \StatusPass & \textbf{Changed} (by BD): new Hosts row for the runner \texttt{gitea-runner} (same EC2 host, no published ports); new Passwords row for the runner registration token (hint only, not stored); SD's Gitea row now records her Write access to \texttt{group1-startup/manual}. Named in the history entry\\
+Citations & \StatusPass & Gitea Actions variables, runner labels, runner Docker installation, configuration (artifact retention), Let's Encrypt and Caddy sources in the Bibliography\\
+Glossary and index terms & \StatusPass & Gitea Actions, runner, artifact, job container in the Glossary; index entries for these and for the build identifier and controlled failure\\
+Evidence inside the PDF, dated and sanitized & \StatusPass & Evidence 50--58 (BD) and 60--66 (SD) as figures and listings. Scripted scan of every chapter source, printed configuration and command-output file for private keys, tokens, AWS keys and account numbers, passwords, e-mail addresses, and IPv4 addresses found only expected public or private addresses; every screenshot was inspected by eye\\
+Links & \StatusPass & Repository, workflow, runs, commits, and artifact links are public and open without an account\\
+Failed-build troubleshooting procedure & \StatusPass & Below; checked against the real failure of run~\#5\\
+Build & \StatusPass & This PDF was built by the workflow itself; its identifier is on the title page and in every footer\\
+\end{tabularx}
 
 \subsubsection{Failed-build troubleshooting}
+\index{troubleshooting!failed build}
 \begin{enumerate}[nosep]
   \item Open the failed run in Gitea (\emph{Actions} tab) and expand the first red step.
   \item Compile step failed: search the log for the first line starting with \texttt{!}; the following \texttt{l.<n>} gives the file line. Fix it and run \texttt{ci/local-build.sh} before pushing again.
   \item ``PDF is missing'' or ``build identifier not found'': the compile ended early or \texttt{-usepretex} was changed; compare with the workflow in Section~\ref{Section:buildCompilation}.
   \item Job never starts (``waiting for a runner''): the runner is offline or its label is not \texttt{manual-builder}; ask the runner owner (Section~\ref{Section:buildRunner}).
-  \item Checkout or upload fails: the runner cannot reach \texttt{https://git.ssw590-g1.tech}; check DNS and the Caddy container.
+  \item Checkout or upload fails: the runner cannot reach \texttt{https://git.ssw590-g1.tech}; check DNS and the Caddy container. An upload error naming ``GHES'' means an artifact action newer than Gitea supports (run~\#1).
 \end{enumerate}
+\textbf{Check against a real failure.} For run~\#5, steps~1 and~2 led directly
+to the cause: the red step was ``Compile the manual'', and the log showed
+\texttt{! Undefined control sequence.} followed by
+\texttt{l.199 \string\ControlledFailureForRowSix} (\ListRef{66}). Removing that
+line (commit \texttt{a9636e4}) gave the green run~\#6. Step~5 matches run~\#1.
+
+\subsubsection{Failed tests and corrective actions}
+\begin{tabularx}{\linewidth}{L{2.6cm}YY}
+\caption{Failed tests and corrective actions in this chapter\label{Table:BuildFailedTests}}\\
+\toprule \textbf{When / who} & \textbf{What failed} & \textbf{Correction}\\ \midrule
+\endfirsthead
+\toprule \textbf{When / who} & \textbf{What failed} & \textbf{Correction}\\ \midrule
+\endhead \bottomrule \endlastfoot
+October 19, 2026, BD & Runner registration, attempts 1--3: the token arrived truncated to one character (Section~\ref{Section:buildRunner}) & Read the token from the clipboard with a length check; attempt 4 registered; token file emptied afterwards\\
+October 20, 2026, SD & Run~\#1: \texttt{upload-artifact@v4} rejected by Gitea~1.27.3 (``GHESNotSupportedError''; Section~\ref{Section:buildCompilation}) & Switched to \texttt{@v3} (commit \texttt{a5f3446}); run~\#2 green\\
+October 20, 2026, SD & The first screenshot tool run captured an empty page (the run page draws itself with JavaScript after loading) & Waited for rendering before the capture; no evidence used the empty image\\
+October 20, 2026, SD & Evidence~63 (title page) rendered as a black box in the PDF of run~\#7: transparent background & Re-rendered on white (commit \texttt{1eaddcc}); run~\#8 checked\\
+October 20, 2026, SD & Run~\#5: \emph{controlled} failure, intended (Section~\ref{Section:buildChangeFailure}) & Repaired by \texttt{a9636e4}; run~\#6 green\\
+\end{tabularx}
+
