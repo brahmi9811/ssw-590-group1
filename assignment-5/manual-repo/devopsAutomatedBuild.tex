@@ -124,8 +124,8 @@ public, so they can be opened without an account.
 % Region: buildTraceability (single owner; edit only your own region)
 \subsection{PDF version traceability (15 points)}
 \label{Section:buildTraceability}
-\textbf{Owner:} SD. \textbf{Status:} mechanism tested locally; evidence from a
-real run \StatusPending.
+\textbf{Owner:} SD. \textbf{Status:} identifier verified on the PDF
+downloaded from run~\#2 \StatusPass.
 
 The human-maintained version stays \texttt{\string\DocumentVersion} in
 \texttt{devopsITManual.tex}, changed only by a person with a history entry. The
@@ -143,7 +143,30 @@ Nothing is written back to the repository: the identifier exists only inside
 the generated PDF and the run's log, so a build cannot trigger another push.
 This PDF itself shows \textbf{Version \DocumentVersion\BuildSuffix}.
 
-\Todo{after the first green run: screenshot of the run page (run number, commit) next to the PDF title page with the same identifier.}
+\subsubsection{Evidence}
+\begin{tabularx}{\linewidth}{L{4.6cm}Y}
+\caption{One build traced from the run to the PDF\label{Table:BuildTrace}}\\
+\toprule \textbf{Item} & \textbf{Value (run~\#2)}\\ \midrule
+\endfirsthead
+\toprule \textbf{Item} & \textbf{Value (run~\#2)}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Human-maintained version & \texttt{1.0} (\texttt{\string\DocumentVersion})\\
+Gitea run & \href{https://git.ssw590-g1.tech/group1-startup/manual/actions/runs/2}{\#2}, attempt 1 (\FigRef{61})\\
+Triggering commit & \href{https://git.ssw590-g1.tech/group1-startup/manual/commit/a5f3446}{\texttt{a5f3446}}\\
+Identifier in the job log & \texttt{Build identifier: Version 1.0+build.2.a5f3446} (\ListRef{62})\\
+Artifact file name & \texttt{IT-manual+build.2.a5f3446.pdf}\\
+Identifier printed in the PDF & \texttt{Version 1.0+build.2.a5f3446} on the title page (\FigRef{63}) and in every page footer\\
+\end{tabularx}
+
+\begin{figure}[htbp]
+\centering
+\setlength{\fboxsep}{0pt}\fbox{\includegraphics[width=0.75\linewidth]{evidence/63-run2-pdf-title-page-build-2-a5f3446-2026-10-20.png}}
+\caption{Title page of the PDF downloaded from run~\#2's artifact, October 20, 2026: the version reads \texttt{1.0+build.2.a5f3446}, matching run~\#2 and commit \texttt{a5f3446}.}
+\label{Fig:E63}
+\end{figure}
+
+A re-run of the same run keeps its run number; the job log also records the
+attempt number (``attempt 1'' in \ListRef{62}), which tells re-runs apart.
 
 % ======================================================================
 % Region: buildArtifact (single owner; edit only your own region)
