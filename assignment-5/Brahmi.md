@@ -31,6 +31,6 @@ Rows 3, 4, 6, 8: the workflow's compile steps, failure detection, build-identifi
 and the row 8 quality pass. If something there looks wrong, message SD instead of editing.
 
 ## Checklist
-- [ ] G1 runner option agreed · [ ] `group1-startup/manual` created · [ ] runner installed, version pinned, registered, online
+- [x] G1 runner option agreed (same server, Oct 19) · [ ] `group1-startup/manual` created · [x] runner installed (act_runner 0.6.1, config in `runner/`), registered, online (evidence 50)
 - [ ] job assigned evidence · [ ] artifact downloaded and opened, retention recorded · [ ] row 7 text · [ ] Hosts/Passwords updated
 - [ ] history + AI-log lines · [ ] final PDF downloaded from a green run and submitted

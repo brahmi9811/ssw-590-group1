@@ -1,0 +1,23 @@
+# Gitea Actions runner (act_runner) for git.ssw590-g1.tech, same EC2 host as Gitea.
+# Non-secret. The registration token lives only in runner.env (chmod 600, emptied after registration).
+# The runner publishes NO ports; it only makes outbound HTTPS calls to Gitea.
+# It mounts the Docker socket to start job containers: root-equivalent on this host, so only
+# BD and SD may edit workflows (see the runner and secret boundary section of the manual).
+services:
+  runner:
+    image: gitea/act_runner:0.6.1
+    container_name: gitea-runner
+    restart: unless-stopped
+    env_file: runner.env
+    environment:
+      CONFIG_FILE: /config.yaml
+      GITEA_INSTANCE_URL: https://git.ssw590-g1.tech
+      GITEA_RUNNER_NAME: group1-runner-1
+      GITEA_RUNNER_LABELS: "manual-builder:docker://group1/texlive-node:2026.09"
+    volumes:
+      - runner_data:/data
+      - ./config.yaml:/config.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  runner_data:
