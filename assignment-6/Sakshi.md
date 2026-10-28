@@ -3,6 +3,11 @@
 Read `README.md` first (rubric, gates, dates). Course manual V1.38 Chapter 4 is the source of truth (`dosManual-V1.38.pdf`,
 manual pages 15–22). **Due Nov 4, 2026, 11:59 PM.**
 
+> **Note for SD (added Oct 28, 2026): please pull the latest `main` before you start or push anything.**
+> Run `git pull --rebase` in this repo. Since your last push, `main` has gained the Assignment 6 plan (this folder) and an updated
+> root `README.md`. The same applies to the Gitea `group1-startup/manual` repo: `git pull` there before you add the Jenkins chapter.
+> If `git pull --rebase` reports a conflict, stop and tell BD instead of resolving it blind.
+
 ## SD owns: rows 4, 5, 6, 8 (50 points)
 - **Row 4 — Versioned pipeline and tests (15).** Gate G4: the course's **Python example** goes into `group1-startup/twintrack`
   (`pricing.py`, `tests/test_pricing.py`, root `Jenkinsfile`; the full text is in the manual, Chapter 4 step 4). Do it through an
