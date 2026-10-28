@@ -47,6 +47,13 @@ administration and credentials; SD owns the product code, tests, pipeline, PR wo
 Row 5 needs Gitea owner rights: **BD applies the branch-protection setting and the required-check context when SD asks; SD owns
 the verification, the two screenshots and the write-up** (same pattern as Assignment 4).
 
+**Dependency rule (revised Oct 28): BD's critical path never waits for SD.** BD can finish rows 1, 2, 3 and 7 and the required check
+alone, using her own bootstrap PR for the first Jenkins run. SD is needed at only three points, each short and with a fallback:
+1. **Review and approve BD's bootstrap PR** (the branch rule needs a second person). Until then Jenkins still runs on the open PR or its branch, so nothing blocks.
+2. **The failure and repair PR** (rows 5, 6): SD authors it and BD reviews it. *Fallback if SD is busy: BD authors it and SD only reviews it* (either person may author, the other must review).
+3. **Writing rows 4, 5, 6 and 8** of the chapter from the real runs, which she can do in one or two sittings.
+If SD is silent for a day, BD proceeds with her parts and messages SD at the next hand-off point.
+
 ## Decisions and gates
 | Gate | What | Who | Notes |
 |---|---|---|---|
@@ -54,18 +61,18 @@ the verification, the two screenshots and the write-up** (same pattern as Assign
 | G1 | **Where Jenkins runs.** The current `t3.micro` has about 1 GB RAM and already runs Gitea, Caddy and the Actions runner; Jenkins on top is likely to swap or fail. Options: (A) resize the same instance to a larger type, (B) a second instance, (C) keep it small and pause the Actions runner while Jenkins is graded. **Check current prices first; any paid change, stop or start is BD's manual step.** | BD decides | the Assignment 4 and 5 servers must stay up until those are graded |
 | G2 | DNS A record for the Jenkins hostname, Caddy site block, certificate | BD | free; same pattern as `git.ssw590-g1.tech` |
 | G3 | Jenkins up behind HTTPS with admin login and a working `/login` URL | BD | rows 1 and 2 |
-| G4 | **Application.** `twintrack` has only README.md and CONTRIBUTING.md today. Decision: **use the course's Python example** (`pricing.py`, `tests/test_pricing.py`, `Jenkinsfile`), committed to `twintrack` through an issue-linked PR. An own TwinTrack app is allowed but not planned | SD | removes the biggest schedule risk |
+| G4 | **Application (bootstrap).** `twintrack` has only README.md and CONTRIBUTING.md today. Decision: **use the course's Python example** (`pricing.py`, `tests/test_pricing.py`, `Jenkinsfile`), committed to `twintrack` through an issue-linked PR. **BD does this bootstrap herself on day 1** (about 15 minutes of copy-paste from the manual) so nothing waits for SD; SD reviews that PR and owns the row 4 write-up | **BD builds, SD reviews and writes up** | removes the biggest schedule risk and the dependency on SD |
 | G5 | **Instructor access path (row 2).** Browser access must be limited to approved sources, yet the instructor must be able to open the login URL without an account. Options: (a) leave only the `/login` page reachable by everyone and restrict the rest to team addresses, (b) ask the instructor for a source address range, (c) another documented path. If unsure, email the instructor | BD decides | write the explanation into the chapter |
 | G6 | Where builds run: controller executor (document the risk) or a separate agent container (set controller executors to 0; needs Git, Python, private network, checkout path to Gitea) | BD decides, SD informed | row 7, row 3 diagram |
-| G7 | First webhook delivery reaches Jenkins and a build runs on a PR | BD + SD | row 3 |
+| G7 | First webhook delivery reaches Jenkins and a build runs on BD's bootstrap PR (or its branch) | **BD alone** | row 3; needs no one else |
 | G8 | Required status check configured; failed check visibly blocks a merge | BD applies, SD verifies | row 5 |
 
 ## Plan by day (all dates 2026)
 | When | BD | SD |
 |---|---|---|
-| Oct 27–28 | G1, G2, G5, G6 decisions; start Jenkins | G4: open the issue, add the Python example and `Jenkinsfile` on a branch; run the tests locally |
-| Oct 29–30 | HTTPS, firewall and external tests; integration identity; webhook (G3, G7) | Open the PR; first Jenkins run; note the exact status context |
-| Oct 31–Nov 1 | Apply the required check (G8); restart test; plugin-update check | Controlled failure (multiplication to addition), blocked-merge screenshot, repair, passing screenshot, review, merge (rows 5, 6) |
+| Oct 28–29 | **Everything infrastructure, alone:** G1, G2, G5, G6; DNS, Caddy, Jenkins up with HTTPS and admin accounts; **G4 bootstrap** (issue, branch, Python example and `Jenkinsfile`, tests run locally, PR opened) | Pull `main`; read the plan; run the course example's tests locally; start the chapter skeleton in the Gitea `manual` repo; **review BD's bootstrap PR when asked (about 10 minutes)** |
+| Oct 30–31 | Firewall and external tests; integration identity; webhook; first Jenkins run on the bootstrap PR (G3, G7); note the exact status context; apply the required check (G8) | Row 4 write-up from BD's real run; row 8 prep (glossary, history draft, citations) |
+| Nov 1 | Restart test; plugin-update check; row 7 text | **Failure and repair PR** (multiplication to addition): blocked-merge screenshot, repair, passing screenshot, BD reviews, merge (rows 5, 6) |
 | Nov 2 | Row 7 text, Hosts/Passwords, UML diagram data | Row 8 draft; text for rows 4 to 6 |
 | Nov 3 | Final read-through, build from Gitea, download the PDF | Final read-through |
 | **Nov 4** | **Submit by midday; the deadline is 11:59 PM** | spare day for failures |
