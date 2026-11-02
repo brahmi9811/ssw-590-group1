@@ -1,0 +1,44 @@
+Real output, Nov 2, 2026 about 00:00-00:06 US Eastern (04:00-05:06 UTC). Run by Claude Code on Brahmi's go-ahead ("yes, apply Caddy") from Brahmi's Windows machine over SSH.
+SANITIZED: the team's allowed address (TEAM_IPS) is stored only in the server's untracked .env and is never printed. Backups made first: docker-compose.yml.bak-20261102, Caddyfile.bak-20261029, .env.bak-20261102.
+
+=== 1. Compose change: pass TEAM_IPS (a variable reference) to the caddy service ===
+diff docker-compose.yml.bak-20261102 docker-compose.yml:
+41a42
+>       TEAM_IPS: ${TEAM_IPS}
+compose config: OK (checked quietly, without printing interpolated values)
+
+=== 2. Caddyfile replaced by the candidate validated on Oct 29 (cp, so the bind mount keeps working) ===
+Caddyfile checksum before: 7705e125f84a2c82   after: 7a3679d4ff1ba6bb
+New site block: ci.ssw590-g1.tech { @team remote_ip {$TEAM_IPS}; @loginpage path /login /login/* /static/* /adjuncts/* /favicon.ico; handle @team {reverse_proxy jenkins:8080}; handle @loginpage {reverse_proxy jenkins:8080}; handle {respond "Forbidden" 403} }
+
+=== 3. Only the caddy container was recreated (gitea was not touched) ===
+Container gitea Running
+Container caddy Recreate / Recreated / Starting / Started
+caddy state: running
+After: caddy Up 20 seconds; jenkins Up 3 days; gitea-runner Up 13 days; gitea Up 2 weeks (healthy)
+gitea via public name: HTTP 200
+
+=== 4. Caddy log: automatic certificate for the new name (excerpt; JSON trimmed) ===
+http: enabling automatic TLS certificate management, domains: ["git.ssw590-g1.tech","ci.ssw590-g1.tech"]
+tls.obtain: obtaining certificate, identifier ci.ssw590-g1.tech
+http.acme_client: trying to solve challenge, challenge_type tls-alpn-01, ca https://acme-v02.api.letsencrypt.org/directory
+tls: served key authentication certificate (tls-alpn-01) for ci.ssw590-g1.tech, 5 times (Let's Encrypt validation from several vantage points)
+
+=== 5. Certificate served for ci.ssw590-g1.tech (read with .NET SslStream) ===
+TLS: Tls13
+Subject: CN=ci.ssw590-g1.tech
+Issuer: CN=YE2, O=Let's Encrypt, C=US
+Not before: 2026-11-02 04:04 UTC
+Not after : 2027-01-31 04:04 UTC
+Chain valid: True
+
+=== 6. HTTP and HTTPS behaviour, from the administrator's computer (on the team address) ===
+http://ci.ssw590-g1.tech/ -> 308 https://ci.ssw590-g1.tech/        (redirect to HTTPS)
+https://ci.ssw590-g1.tech/login -> 200
+https://ci.ssw590-g1.tech/ -> 403
+
+The 403 at / is Jenkins' own response, not Caddy's block: the headers show "Server: Jetty(12.1.14)", "X-Jenkins: 2.580.2", "Via: 1.1 Caddy", and the body says "Authentication required" (Jenkins' setup wizard has not been completed, so anonymous requests are refused). This shows the team address is passed through to Jenkins. The path for outsiders (plain "Forbidden" from Caddy at /, with /login open) still has to be tested from a different network.
+
+Notes:
+- First attempt at reading the Caddy "obtained" log line failed because of a quoting error in the checking command; the certificate check in section 5 is the proof of issuance.
+- Rollback was prepared (restore the three backups and recreate caddy) and not needed.
