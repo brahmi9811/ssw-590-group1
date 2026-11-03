@@ -8,6 +8,28 @@ manual pages 15–22). **Due Nov 4, 2026, 11:59 PM.**
 > root `README.md`. The same applies to the Gitea `group1-startup/manual` repo: `git pull` there before you add the Jenkins chapter.
 > If `git pull --rebase` reports a conflict, stop and tell BD instead of resolving it blind.
 
+## STATUS AND FACTS FOR YOUR ROWS (updated Nov 2, 2026 evening; everything below was verified on the live system)
+**What is ready:** Jenkins is running at https://ci.ssw590-g1.tech/ (your account `sakshi`; BD sent you the temporary password privately; change it at first sign-in). The webhook, the multibranch job, the `jenkins-bot` user and the required check on `main` are in place. **Required check context: `twintrack/pipeline/pr-main`.** PR **#10** (issue #9) is open, head **`92c121d`**, check **green**, **no approval yet**.
+
+**Your steps, in order (you can start 1 and 2 right now):**
+1. **Chapter skeleton, push early:** in the Gitea `group1-startup/manual` repo, pull, create the Jenkins chapter file (for example `devopsJenkins.tex`) with the eight numbered subsections and region markers like Assignment 5, include it in `devopsITManual.tex`, check it builds, and push it as soon as it compiles so BD can add rows 1, 2, 3 and 7.
+2. **Write rows 4, 5, 6 from the facts and evidence below** (all evidence is in `assignment-6/evidence/`, index in its `README.md`). Leave the two row 5 screenshots as pending placeholders until BD sends them (BD is capturing the passing-state screenshots of PR #10 now).
+3. **Review PR #10 now but approve it only when BD says "ready"** (BD still has to take the passing-state screenshots while the PR is open and unapproved; after the merge they cannot be recreated). A real review: read `pricing.py`, `tests/test_pricing.py`, `Jenkinsfile`, compare with the manual (Chapter 4 step 4), run `python3 -m unittest discover -s tests -v`, leave at least one comment, then (after "ready") approve and merge. The issue #9 closes automatically.
+4. **Row 8 last**, after BD's rows are in.
+
+**The real sequence for rows 3 and 6 (do not tidy it up; the failed attempts are part of the evidence):**
+
+| Build | Commit | Result | What started it | Evidence |
+|---|---|---|---|---|
+| #1 | `da16c9b` bootstrap (Python example, tests, Jenkinsfile) | SUCCESS | repository scan | 84, 85 |
+| #2 | `eb97d7a` controlled failure (addition instead of multiplication) | FAILURE (`AssertionError: 13 != 30`) | **started manually by BD** (the webhook was misconfigured) | 89, 90, 91 |
+| none | `7d7848f` repair | never built | webhook lacked the **Pull Request Synchronized** event (failed attempt, diagnosed from Jenkins' event log) | 92, 93 |
+| #3 | `d5e5c64` no-change commit | SUCCESS | **webhook** (first automatic build, after ticking Synchronized) | 94 |
+| #4 | `86ee9fc` second controlled failure | FAILURE | **webhook** | 96, 97 (PR page: "Some required checks failed", merge gate), 98 (Jenkins red) |
+| #5 | `92c121d` repair | SUCCESS | **webhook** | 99 |
+
+Gitea reports every result as the status `twintrack/pipeline/pr-main` posted by `jenkins-bot` (pending, then success or failure). The branch rule on `main` (evidence 88): required status check `twintrack/pipeline/pr-main`, one required approval, no direct pushes. Evidence 95 (PR page, passing state, failed commit marked) and 70 (local test run) also apply to rows 4 to 6. Other facts for the chapter: Jenkins 2.580.2 on Java 21 with python3 3.13.5 in the image; builds run on the controller executor (risk written by BD in row 7); the webhook has no secret and only travels over the private Docker network.
+
 ## SD owns: rows 4, 5, 6, 8 (50 points)
 - **Row 4 — Versioned pipeline and tests (15).** Gate G4: the course's **Python example** goes into `group1-startup/twintrack`
   (`pricing.py`, `tests/test_pricing.py`, root `Jenkinsfile`; the full text is in the manual, Chapter 4 step 4). Do it through an
