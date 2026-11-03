@@ -42,3 +42,5 @@ The 403 at / is Jenkins' own response, not Caddy's block: the headers show "Serv
 Notes:
 - First attempt at reading the Caddy "obtained" log line failed because of a quoting error in the checking command; the certificate check in section 5 is the proof of issuance.
 - Rollback was prepared (restore the three backups and recreate caddy) and not needed.
+
+UPDATE (later the same evening): the test from a phone on mobile data was made after this file was written. The Jenkins page opened without an account and the root path answered a plain "Forbidden" (evidence 76 and 77); the 403 seen above from the team address was therefore Jenkins' own response, as explained in the note.
