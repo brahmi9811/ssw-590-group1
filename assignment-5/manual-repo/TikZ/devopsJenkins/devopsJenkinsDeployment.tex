@@ -1,0 +1,35 @@
+% Owner: BD. UML-style deployment diagram of the Group 1 Gitea + Jenkins integration on one AWS EC2 instance.
+% Adapted from the course manual's Figure 4.2. Included by devopsJenkins.tex (jenkTrigger region). Only the tikzpicture lives here.
+\begin{tikzpicture}[
+  font=\footnotesize, >={Stealth[length=2.2mm]},
+  node/.style={draw, rounded corners=2pt, fill=devopsLightBlue, align=center, minimum height=1.0cm, inner sep=3pt},
+  who/.style={draw, rounded corners=2pt, fill=white, align=center, minimum height=0.9cm, minimum width=2.9cm, inner sep=3pt},
+  store/.style={draw, fill=white, align=center, minimum height=0.8cm, inner sep=3pt},
+  pub/.style={->, thick, devopsGreen},
+  priv/.style={->, thick, devopsGray, dashed},
+  lbl/.style={font=\scriptsize, align=center, fill=white, inner sep=1pt}]
+  % browsers
+  \node[who] (team) at (0,2.1) {Team browser\\(team address)};
+  \node[who] (out) at (0,-0.2) {Any other browser\\(login page only)};
+  % firewall
+  \node[node, minimum height=3.6cm, minimum width=2.4cm] (sg) at (4.2,0.95) {AWS\\security group\\443, 80,\\22 (admin)};
+  % EC2 box
+  \draw[dashed, rounded corners=3pt] (6.3,-2.7) rectangle (18.6,4.95);
+  \node[anchor=north west, font=\footnotesize\bfseries] at (6.4,4.9) {AWS EC2 instance (Docker network \texttt{gitea\_web})};
+  % containers
+  \node[node, minimum width=2.7cm] (caddy) at (8.1,0.95) {Caddy\\(TLS proxy)\\ports 443 and 80\\are the only ones\\published};
+  \node[node, minimum width=4.6cm] (jenkins) at (15.4,2.2) {Jenkins controller 2.580.2\\\textbf{checkout and tests run here}\\(controller executor, python3)};
+  \node[node, minimum width=4.6cm] (gitea) at (15.4,-1.3) {Gitea 1.27.3\\repositories, webhook,\\commit statuses};
+  \node[store, minimum width=3.0cm] (jhome) at (15.4,4.0) {\texttt{jenkins\_home} volume};
+  % browsers to firewall to Caddy
+  \draw[pub] (team.east) -- node[lbl, above] {HTTPS 443} (sg.west |- team.east);
+  \draw[pub] (out.east) -- node[lbl, above] {HTTPS 443} (sg.west |- out.east);
+  \draw[pub] (sg.east |- caddy.west) -- (caddy.west);
+  % Caddy to Jenkins and Gitea
+  \draw[pub] (caddy.north east) |- node[lbl, pos=0.62, above] {\texttt{ci.} host: team address\\everything, others\\\texttt{/login} only} (jenkins.west);
+  \draw[pub] (caddy.south east) |- node[lbl, pos=0.62, below] {\texttt{git.} host} (gitea.west);
+  % private paths between Gitea and Jenkins, and the volume
+  \draw[priv] ([xshift=-1.2cm]gitea.north) -- node[lbl, left] {webhook (POST),\\private network:\\\texttt{http://jenkins:8080/}\\\texttt{gitea-webhook/post}} ([xshift=-1.2cm]jenkins.south);
+  \draw[priv] ([xshift=1.2cm]jenkins.south) -- node[lbl, right] {checkout and status\\(HTTPS to the\\public name)} ([xshift=1.2cm]gitea.north);
+  \draw[thick] (jhome.south) -- (jenkins.north);
+\end{tikzpicture}

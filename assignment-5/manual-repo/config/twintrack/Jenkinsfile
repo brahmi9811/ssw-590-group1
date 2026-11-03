@@ -1,0 +1,15 @@
+pipeline {
+    agent any
+    options { skipDefaultCheckout() }
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Syntax check') {
+            steps { sh 'python3 -m py_compile pricing.py' }
+        }
+        stage('Test') {
+            steps { sh 'python3 -m unittest discover -s tests -v' }
+        }
+    }
+}

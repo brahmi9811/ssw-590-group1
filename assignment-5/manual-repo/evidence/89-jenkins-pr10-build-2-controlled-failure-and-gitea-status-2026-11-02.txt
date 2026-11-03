@@ -1,0 +1,37 @@
+Real output, Nov 2, 2026 (evening US Eastern; UTC timestamps below are already Nov 3). Run by Claude Code on Brahmi's go-ahead: read-only look inside the Jenkins container (docker exec jenkins ... grep of the build log, annotation blobs removed) and anonymous reads of Gitea's API.
+The failing commit was created on purpose (manual V1.38, Chapter 4, step 4: replace the multiplication by addition) and pushed by Brahmi to the branch of pull request #10. It was NOT pushed to main and no service was broken.
+
+=== The change (commit eb97d7a, "Controlled failure: use addition in total_price to show the merge gate blocks (issue #9)") ===
+pricing.py:   return unit_price * quantity   ->   return unit_price + quantity
+Local pre-check on Brahmi's computer before pushing: test_total fails with AssertionError: 13 != 30.
+
+=== Jenkins build #2 of job twintrack/PR-10 (started MANUALLY by Brahmi in Jenkins after the push; the webhook did NOT start it, see the correction at the end) ===
+start: 2026-11-03 00:16:47 UTC (epoch 1793665007)   duration: 5367 ms (about 5 s)   result: FAILURE
+Checking out Revision eb97d7aeacc3f6d6933ecbb2739338dcc610e5cf (issue-9-pipeline)
+Commit message: "Controlled failure: use addition in total_price to show the merge gate blocks (issue #9)"
+[Gitea] Notifying pull request build status: PENDING Build started...
+FAIL: test_total (test_pricing.PricingTests.test_total)
+AssertionError: 13 != 30
+Ran 2 tests in 0.003s
+FAILED (failures=1)
+ERROR: script returned exit code 1
+[Gitea] Notifying pull request build status: FAILURE There was a failure building this commit
+Finished: FAILURE
+(Builds before it: #1 SUCCESS for commit da16c9b, about 12 s.)
+
+=== Commit statuses Gitea holds for eb97d7a (anonymous API: /api/v1/repos/group1-startup/twintrack/commits/eb97d7a/statuses), by jenkins-bot ===
+2026-11-03T00:16:52 | context 'twintrack/pipeline/pr-main' | failure | There was a failure building this commit
+2026-11-03T00:16:51 | context 'twintrack/pipeline/pr-main' | pending | Build started...
+2026-11-03T00:16:47 | context 'twintrack/pipeline/pr-main' | pending | Build queued...
+Combined status of eb97d7a: failure (1 status)
+
+=== Branch rule that applies (Gitea API for main) ===
+protected: True | required_approvals: 1 | enable_status_check: True | contexts: ['twintrack/pipeline/pr-main']
+
+=== CORRECTION (written after Brahmi told us she had started build #2 herself; revised after the push times were checked) ===
+An earlier version of this file called build #2 "webhook-triggered". That was wrong. Jenkins' own record shows build #1 began with "Branch indexing" (the repository scan), and build #2's log has no indexing or webhook line; Brahmi confirmed she ran it manually ("Build Now"). Build #2 started at 00:16:47 UTC (7:16 PM US Eastern).
+Push times, taken from Jenkins' Multibranch Pipeline Events (evidence 93): the failing commit eb97d7a was pushed at 00:14:35 UTC (7:14 PM US Eastern), and the repair commit 7d7848f at 00:17:24 UTC (7:17 PM), after build #2. (An earlier version of this file gave 19:02 and 19:09; those were the commits' author times, not the push times.)
+Jenkins did not start a build for the failing push; the repair commit 7d7848f was never built (the next build number stayed at 3). Cause, found afterwards: the webhook lacked the "Pull Request Synchronized" event (evidence 92 and 93). After that event was ticked, build #3 was the first one started by the webhook itself (evidence 94).
+
+=== Note ===
+The pull request page that Brahmi captured right after this push (screenshot 90) was taken while the check was still "pending" (required, not yet reported) and shows the merge box with "Some required checks are missing" and "0 of 1 official approvals". The red failed state of the required check on the pull request page was captured later, after the second controlled failure (evidence 96 and 97), and the passing state after the repair (evidence 99, 100 and 101).

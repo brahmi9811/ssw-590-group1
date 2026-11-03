@@ -1,0 +1,23 @@
+Real output, Nov 2, 2026 about 7:45 PM US Eastern, from Brahmi's Windows machine (AWS command line, read-only describe call; Test-NetConnection; nslookup). Run by Claude Code on Brahmi's go-ahead. Nothing was changed.
+SANITIZED: the administrator's address in the SSH rule is replaced by <admin /32>. No account number is shown.
+Limitation: the probes ran from the administrator's own computer, which is the allowed SSH address. That does not weaken the result for 8080, 50000 and 3000, because the security group has no rule for them for any address; the earlier test from a phone on mobile data (evidence 76 and 77) covers the outsider's view of 443.
+
+=== A. AWS security group attached to the server (the same group as Assignment 4; no rule was added for Jenkins) ===
+group: ssw590-g1-gitea   id: sg-0415c75429368eb85
+inbound  TCP 80-80   from 0.0.0.0/0     (HTTP redirect and ACME validation only)
+inbound  TCP 22-22   from <admin /32>   (Admin SSH from Brahmi only)
+inbound  TCP 443-443 from 0.0.0.0/0     (HTTPS to Caddy)
+IPv6 inbound rules: 0   (none expected)
+No rule exists for 8080 (Jenkins), 50000 (Jenkins agents) or 3000 (Gitea): none of them is published. The jenkins container also publishes no port on the host (evidence 73).
+
+=== B. Probes from the administrator's computer to the public name (Test-NetConnection, 2026-11-02 19:45 local) ===
+ci.ssw590-g1.tech port 443    -> OPEN
+ci.ssw590-g1.tech port 80     -> OPEN
+ci.ssw590-g1.tech port 8080   -> closed/filtered
+ci.ssw590-g1.tech port 50000  -> closed/filtered
+ci.ssw590-g1.tech port 3000   -> closed/filtered
+("closed/filtered" cannot tell closed from firewall-dropped; both mean not reachable.)
+
+=== C. DNS: A and AAAA records of the Jenkins hostname (public resolver 8.8.8.8) ===
+A    : 52.73.254.36
+AAAA : none (no AAAA record), so the deployment is IPv4 only and no IPv6 check applies

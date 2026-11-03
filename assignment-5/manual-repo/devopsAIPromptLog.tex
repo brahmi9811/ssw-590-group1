@@ -124,3 +124,39 @@ made the first push herself, with her own credentials typed in her own
 terminal; later pushes used the credential stored on her computer, and no
 credential was given to the assistant. Human review and corrections: SD read
 the drafts and approved each push; SD and BD agreed the ownership split.
+
+\section{Record: Jenkins Integration and Chapter (Assignment 6)}
+Date: October 27 to November 2, 2026; Tool and model: Claude Code (Claude
+Sonnet 5.5); Task: plan the assignment from the course manual
+\cite{DosManual}, prepare the Jenkins deployment files, run the server-side
+steps with BD's go-ahead, collect evidence, and draft \ChapterRef{Jenkins}.
+Input: the course manual Chapter~4 (V1.38), the earlier chapters of this manual,
+the live server (read-only checks and steps approved one at a time), Gitea's and
+Jenkins' public interfaces, and screenshots and pasted logs from BD. Output used:
+the plan and task split, the Jenkins \texttt{Dockerfile} and compose file, the
+Caddy block, the build and restart checks, the failure and repair commits, evidence
+70--105, and the draft text of all eight subsections (rows 4, 5, 6, and 8 are
+SD's rows and were drafted while SD was unavailable). Assumptions and mistakes,
+corrected: the assistant first reported that the Gitea webhook had worked on a real
+push, but BD had started that build by hand, and the Jenkins records showed it
+(\ListRef{89}); a restart-time reading of 9~seconds matched the previous start's log
+(\ListRef{102}); a count of 78 plugin advisories was not a finding (\ListRef{104}); and a
+403 at the dashboard was first attributed to Caddy but came from Jenkins (\ListRef{75}).
+No credential was given to the assistant: BD typed or pasted every token and password
+herself, and Git pushes to Gitea used the sign-in already stored on her computer.
+Human review and corrections: BD ran the browser steps, captured the screenshots,
+and approved each server change; SD reviewed and merged pull request \#10 herself
+(\ListRef{106}), and her review of the drafted rows (4, 5, 6, and 8) was still
+pending when this entry was written.
+
+\section{Record: SD Review of Rows 4, 5, 6, and 8 of the Jenkins Chapter}
+Date: November 2--3, 2026; Tool and model: Claude Code (Claude Opus 5.5);
+Task: SD's review and completion of the rows of \ChapterRef{Jenkins} that BD drafted for her (4, 5, 6, 8), plus SD's review and
+merge of pull request \#10. Inputs: the course manual \cite{DosManual} Chapter~4, BD's drafts and evidence 70--106, and Gitea's public
+API. What the assistant did: compared \texttt{pricing.py}, the test file, and the \texttt{Jenkinsfile} on the pull request with the
+manual and ran the tests locally before SD's review; checked every commit ID, build number, status, time, and the branch rule in the
+drafts against Gitea's records (all matched); added the push-time and status round trip (\ListRef{107}), a clean-clone test run of the
+merged \texttt{main} (\ListRef{108}), the activity diagram (Figure~\ref{Figure:JenkinsActivity}), the operator troubleshooting note, and a
+check of every cited Jenkins and Gitea page; and stated that the second failure and repair were committed one second apart but pushed
+separately. No Jenkins or Gitea credential was given to the assistant; SD approved and merged the pull request herself in Gitea.
+Human review: SD read the changes and approved the push.

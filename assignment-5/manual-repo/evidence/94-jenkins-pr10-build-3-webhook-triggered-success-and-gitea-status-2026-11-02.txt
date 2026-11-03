@@ -1,0 +1,33 @@
+Real output, Nov 2, 2026 (UTC times below are Nov 3). Run by Claude Code on Brahmi's go-ahead: read-only look inside the Jenkins container (build.xml and console log, annotation blobs removed) and anonymous reads of Gitea's API.
+Context: after evidence 92/93 (webhook missing the "Pull Request Synchronized" event), Brahmi ticked that event in the twintrack webhook and then pushed a no-change commit (d5e5c64) to the pull request branch. This is the first build that the webhook started by itself.
+
+=== Jenkins build #3 of job twintrack/PR-10 ===
+start: epoch 1793665478961 (2026-11-03 00:24:38 UTC)   duration: 5265 ms (about 5 s)   result: SUCCESS
+Cause recorded in build.xml: jenkins.branch.BranchEventCause (branch-api 2.1303.v9f3b_95dc329d), i.e. started by an SCM event, not by a user.
+First line of the console log: "Pull request #10 event"
+(Build #1 began with "Branch indexing"; build #2 was started manually, see evidence 89.)
+
+=== Console log, key lines ===
+Current revision of pull request #10 is d5e5c6476ed81f6d1fe6f21b9b8816bfcc968b0d
+Obtained Jenkinsfile from 0d0c3dac4dbf24eeb90965c1bd2850a5e1d91b94+d5e5c6476ed81f6d1fe6f21b9b8816bfcc968b0d
+Checking out Revision d5e5c6476ed81f6d1fe6f21b9b8816bfcc968b0d (issue-9-pipeline)
+Commit message: "Trigger Jenkins through the webhook: pull request synchronized event (issue #9)"
+[Gitea] Notifying pull request build status: PENDING Build started...
++ python3 -m py_compile pricing.py
++ python3 -m unittest discover -s tests -v
+Ran 2 tests in 0.000s
+OK
+[Gitea] Notifying pull request build status: SUCCESS This commit looks good
+Finished: SUCCESS
+
+=== Gitea statuses for the new head commit d5e5c64 (anonymous API), by jenkins-bot ===
+2026-11-03T00:24:44 | 'twintrack/pipeline/pr-main' | success | This commit looks good
+2026-11-03T00:24:43 | 'twintrack/pipeline/pr-main' | pending | Build started...
+2026-11-03T00:24:30 | 'twintrack/pipeline/pr-main' | pending | Build queued...
+
+=== Pull request #10 as Gitea sees it ===
+head: d5e5c64 | state: open | merged: False | mergeable: True
+reviews so far: sakshi REQUEST_REVIEW (no approval yet)
+
+=== Server memory at the time ===
+Mem: 913 total, 674 used, 62 free, 176 buff/cache, 102 available (MB); Swap 2047 total, 386 used

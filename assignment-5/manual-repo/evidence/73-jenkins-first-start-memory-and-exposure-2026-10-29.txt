@@ -1,0 +1,34 @@
+Real output from the server (ssh ec2-user@git.ssw590-g1.tech) and from Brahmi's Windows machine, Oct 29, 2026 evening US Eastern (00:22-00:26 UTC Oct 30). Run by Claude Code on Brahmi's go-ahead.
+Jenkins was started with `docker compose up -d` in ~/jenkins (compose file: assignment-6/jenkins/docker-compose.yml). The startup log was NOT printed: it contains a one-time admin password.
+
+=== First start, watchdog every 10 s (abort rule: swap above 1000 MB or Gitea not healthy) ===
+00:22:25 before: availMB=438 swapMB=133
+00:22:38 swapMB=141 availMB=247 gitea=healthy jenkins=running mem=[270MiB / 640MiB] fullyUp=no
+00:22:50 swapMB=152 availMB=88 gitea=healthy jenkins=running mem=[407.8MiB / 640MiB] fullyUp=yes
+READY
+(About 25 seconds from start to "Jenkins is fully up and running".)
+
+=== Container state ===
+jenkins Up 31 seconds; gitea-runner Up 10 days; gitea Up 2 weeks (healthy); caddy Up 2 weeks
+restarts=0 oomkilled=false memlimit=671088640 (640 MiB)
+Published ports of the jenkins container: none (empty)
+
+=== Settled state, about 2 minutes after start ===
+Mem:  913 total, 671 used, 61 free, 180 buff/cache, 98 available (MB)
+Swap: 2047 total, 176 used, 1871 free (MB)
+jenkins 390.4MiB / 640MiB cpu=0.15%
+gitea-runner 10.99MiB / 913.1MiB cpu=0.00%
+gitea 81.02MiB / 913.1MiB cpu=0.35%
+caddy 11.19MiB / 913.1MiB cpu=0.00%
+load average: 0.91 0.28 0.11
+
+=== Private-network reachability (from the caddy container to the jenkins service name) ===
+wget http://jenkins:8080/login  ->  HTTP/1.1 200 OK
+
+=== Raw port 8080 from outside the server (Test-NetConnection from Brahmi's computer, public name git.ssw590-g1.tech) ===
+port 8080 TcpTestSucceeded: False
+
+Notes:
+- Only about 98 MB of RAM was free once Jenkins had settled; swap absorbed the rest. It fits, but with little headroom. The decision "same server, capped memory" stays under review: resize only if Jenkins is killed, swap stays high, or Gitea slows during a build.
+- A (failed) quoting error in one of the checking commands printed an unrelated shell message; it did not affect any service.
+- The inbound agent port 50000 is not published (no ports at all) and the Java property disabling it was set in JAVA_OPTS; it was not separately probed from outside yet.

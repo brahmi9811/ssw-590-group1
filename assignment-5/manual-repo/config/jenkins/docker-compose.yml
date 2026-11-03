@@ -1,0 +1,29 @@
+# Jenkins for the Group 1 startup, on the same host as Gitea and Caddy (decision G1: same server, capped memory).
+# Non-secret. Start from ~/jenkins on the server: docker compose up -d --build
+# - NO `ports:` on purpose: neither 8080 nor the agent port 50000 is published. Caddy reaches Jenkins by service name
+#   on the shared Docker network, and Gitea's webhook reaches it on that private network.
+# - The memory limits protect Gitea: if Jenkins outgrows them, only the Jenkins container is killed.
+services:
+  jenkins:
+    build: .
+    image: group1/jenkins-python:2.580.2
+    container_name: jenkins
+    restart: unless-stopped
+    environment:
+      # Heap capped for a ~1 GB host; the inbound agent port is disabled (no agents are used).
+      JAVA_OPTS: "-Xms128m -Xmx384m -Djenkins.model.Jenkins.slaveAgentPort=-1"
+      JENKINS_OPTS: "--httpPort=8080"
+    mem_limit: 640m
+    memswap_limit: 1g
+    volumes:
+      - jenkins_home:/var/jenkins_home      # jobs, settings, credentials: persists across container replacement
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
+    name: gitea_web                          # the network Gitea and Caddy already share
+
+volumes:
+  jenkins_home:

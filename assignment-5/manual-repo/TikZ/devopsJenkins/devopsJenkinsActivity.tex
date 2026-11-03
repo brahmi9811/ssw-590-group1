@@ -1,0 +1,37 @@
+% Owner: SD. Activity diagram of the pull-request-to-merge flow, adapted from the course manual's Figure 4.1
+% and annotated with the real commits, Jenkins builds and times of pull request #10 (UTC, Nov 3 unless noted).
+% Included by devopsJenkins.tex (jenkQuality region). Only the tikzpicture lives here.
+\begin{tikzpicture}[
+  font=\footnotesize, >={Stealth[length=2.2mm]},
+  base/.style={draw, rounded corners=3pt, align=center, text width=5.0cm, inner sep=4pt},
+  act/.style={base, fill=devopsLightBlue},
+  dec/.style={base, rounded corners=10pt, fill=yellow!12},
+  bad/.style={base, fill=red!8},
+  good/.style={base, fill=green!8}]
+  \node[act] (open) at (0,0) {Open issue-linked PR \#10 (\texttt{Closes \#9}) to protected \texttt{main}\\[1pt]
+    {\scriptsize\itshape Oct 29: \texttt{da16c9b}, build \#1 success}};
+  \node[act] (hook) at (0,-2.0) {Gitea sends the webhook\\(Pull Request Synchronized)\\[1pt]
+    {\scriptsize\itshape builds \#3--\#5 by webhook; \#2 by hand;\\ \texttt{7d7848f} never built (event missing)}};
+  \node[act] (build) at (0,-4.2) {Jenkins checks out the PR head merged with \texttt{main};\\\texttt{py\_compile}, \texttt{unittest}};
+  \node[act] (report) at (0,-6.0) {\texttt{jenkins-bot} reports\\\texttt{twintrack/pipeline/pr-main}\\[1pt]
+    {\scriptsize\itshape pending 2--3\,s after each push}};
+  \node[dec] (pass) at (0,-8.0) {Required check passes\\on the latest PR head?};
+  \node[good] (review) at (0,-10.0) {Yes: team reviews the PR\\[1pt]
+    {\scriptsize\itshape after \texttt{92c121d} (\#5) success 00:33:18}};
+  \node[dec] (appr) at (0,-12.0) {Review approved?\\[1pt]{\scriptsize\itshape SD approved 00:51:00, with a comment}};
+  \node[good] (merge) at (0,-14.1) {Yes: merge PR into \texttt{main}\\[1pt]
+    {\scriptsize\itshape \texttt{a0094a8} 00:51:29; issue \#9 closed;\\ \texttt{main} build \#1 (\texttt{pipeline/head}) success}};
+
+  \node[bad] (blocked) at (7.0,-8.0) {No: merge blocked\\[1pt]
+    {\scriptsize\itshape \texttt{eb97d7a} (\#2), \texttt{86ee9fc} (\#4):\\ \texttt{13 != 30}, ``Some required checks failed''}};
+  \node[bad] (fix) at (7.0,-10.0) {Fix the failure; push a new commit\\[1pt]
+    {\scriptsize\itshape repairs \texttt{7d7848f}, then \texttt{92c121d}}};
+  \node[bad] (revise) at (7.0,-12.0) {No: revise; push a new commit\\[1pt]{\scriptsize\itshape not needed for PR \#10}};
+
+  \foreach \a/\b in {open/hook, hook/build, build/report, report/pass, pass/review, review/appr, appr/merge} \draw[->, thick] (\a) -- (\b);
+  \draw[->, thick] (pass) -- node[above, font=\scriptsize] {no} (blocked);
+  \draw[->, thick] (blocked) -- (fix);
+  \draw[->, thick] (appr) -- node[above, font=\scriptsize] {no} (revise);
+  \draw[->, thick] (fix.east) -- ++(0.6,0) |- (hook.east);
+  \draw[thick] (revise.east) -- ++(0.6,0) -- ++(0,2.0);
+\end{tikzpicture}

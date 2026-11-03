@@ -1,0 +1,46 @@
+Pull request #10 of group1-startup/twintrack, read anonymously (no token) 2026-11-03 01:11:36 UTC
+Source: Gitea API /issues/10/timeline and /commits/<sha>/statuses. Times UTC.
+
+=== Timeline (pushes, review request, review, merge) ===
+2026-10-30T00:07:32  push    by brahmi commits da16c9b
+2026-10-30T00:08:17  review requested by brahmi from sakshi
+2026-11-03T00:14:34  push    by brahmi commits eb97d7a
+2026-11-03T00:17:23  push    by brahmi commits 7d7848f
+2026-11-03T00:24:27  push    by brahmi commits d5e5c64
+2026-11-03T00:30:22  push    by brahmi commits 86ee9fc
+2026-11-03T00:32:51  push    by brahmi commits 92c121d
+2026-11-03T00:51:00  review  by sakshi (state from /reviews below)
+2026-11-03T00:51:29  merge   by sakshi
+review   2026-11-03T00:51:00  sakshi  APPROVED
+merged   2026-11-03T00:51:29  by sakshi  merge commit a0094a8
+issue #9 closed at 2026-11-03T00:51:29
+
+=== Commit statuses (context, state, time, Jenkins run) ===
+da16c9b  committed 2026-10-29T19:56:02-04:00
+    2026-11-02T23:54:51  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10
+    2026-11-02T23:55:09  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10/1
+    2026-11-02T23:55:11  twintrack/pipeline/pr-main   success  by jenkins-bot run PR-10/1
+eb97d7a  committed 2026-11-02T19:02:22-05:00
+    2026-11-03T00:16:47  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10
+    2026-11-03T00:16:51  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10/2
+    2026-11-03T00:16:52  twintrack/pipeline/pr-main   failure  by jenkins-bot run PR-10/2
+7d7848f  committed 2026-11-02T19:09:42-05:00
+    (no status: never built)
+d5e5c64  committed 2026-11-02T19:22:59-05:00
+    2026-11-03T00:24:30  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10
+    2026-11-03T00:24:43  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10/3
+    2026-11-03T00:24:44  twintrack/pipeline/pr-main   success  by jenkins-bot run PR-10/3
+86ee9fc  committed 2026-11-02T19:25:40-05:00
+    2026-11-03T00:30:24  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10
+    2026-11-03T00:30:36  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10/4
+    2026-11-03T00:30:38  twintrack/pipeline/pr-main   failure  by jenkins-bot run PR-10/4
+92c121d  committed 2026-11-02T19:25:41-05:00
+    2026-11-03T00:32:53  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10
+    2026-11-03T00:33:00  twintrack/pipeline/pr-main   pending  by jenkins-bot run PR-10/5
+    2026-11-03T00:33:18  twintrack/pipeline/pr-main   success  by jenkins-bot run PR-10/5
+a0094a8  committed 2026-11-03T00:51:28+00:00
+    2026-11-03T00:51:32  twintrack/pipeline/head      pending  by jenkins-bot run main
+    2026-11-03T00:51:46  twintrack/pipeline/head      pending  by jenkins-bot run main/1
+    2026-11-03T00:51:49  twintrack/pipeline/head      success  by jenkins-bot run main/1
+
+main: protected=True required_approvals=1 enable_status_check=True contexts=['twintrack/pipeline/pr-main']

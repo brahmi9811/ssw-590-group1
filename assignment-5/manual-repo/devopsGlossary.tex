@@ -35,3 +35,9 @@
 \newglossaryentry{runner}{name={runner},description={A program (here \texttt{act\_runner}) that registers with Gitea, picks up workflow jobs, and runs them, typically in temporary job containers}}
 \newglossaryentry{artifact}{name={artifact},description={A file produced by a workflow run and stored with that run for download; kept for a limited retention period, so not a backup}}
 \newglossaryentry{jobcontainer}{name={job container},description={A temporary container that a runner starts from a fixed image for one workflow job and removes afterwards, so each build starts clean}}
+\newglossaryentry{jenkins}{name={Jenkins},description={An open-source automation server that runs build and test pipelines; here a controller in a container that tests pull requests of the product repository}}
+\newglossaryentry{jenkinsfile}{name={Jenkinsfile},description={A text file in the product repository that defines a Jenkins pipeline as code (stages and commands)}}
+\newglossaryentry{webhook}{name={webhook},description={An HTTP request that Gitea sends to another service when an event such as a push or a pull-request update happens; here it tells Jenkins to build}}
+\newglossaryentry{statuscheck}{name={status check},description={A named result (pending, success, failure) that a service such as Jenkins reports on a commit; Gitea can require it before a pull request is merged}}
+\newglossaryentry{controllerexecutor}{name={controller executor},description={A build slot on the Jenkins controller itself, as opposed to a separate build agent; pipeline code then runs on the same process that holds Jenkins' configuration}}
+\newglossaryentry{multibranch}{name={multibranch pipeline},description={A Jenkins job type that scans a repository and creates a pipeline job for each branch or pull request that contains a Jenkinsfile}}

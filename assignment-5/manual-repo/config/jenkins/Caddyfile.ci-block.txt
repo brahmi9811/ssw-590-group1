@@ -1,0 +1,20 @@
+# Add this site block to the Caddyfile on the server (next to the existing {$GITEA_DOMAIN} block).
+# Decision G5: everyone may open ONLY the login page (and the few static files it needs); everything else
+# is reachable only from the team's addresses. TEAM_IPS lives in the server's untracked .env, never in the repo,
+# e.g. TEAM_IPS="203.0.113.10/32 198.51.100.7/32" (space separated), and must also be passed to the caddy
+# container in docker-compose.yml:  environment: { TEAM_IPS: "${TEAM_IPS}" }
+# Verify with `caddy validate` before reloading, and test from a NON-team network that /login opens and / is 403.
+ci.ssw590-g1.tech {
+	@team remote_ip {$TEAM_IPS}
+	@loginpage path /login /login/* /static/* /adjuncts/* /favicon.ico
+
+	handle @team {
+		reverse_proxy jenkins:8080
+	}
+	handle @loginpage {
+		reverse_proxy jenkins:8080
+	}
+	handle {
+		respond "Forbidden" 403
+	}
+}

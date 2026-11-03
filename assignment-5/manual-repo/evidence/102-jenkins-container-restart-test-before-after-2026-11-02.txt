@@ -1,0 +1,40 @@
+Real output, Nov 2, 2026 about 7:44 PM US Eastern (00:43-00:45 UTC Nov 3). Run by Claude Code on Brahmi's go-ahead over SSH on the server. Nothing was deleted: the restart used `docker compose restart jenkins` in ~/jenkins (the named volume was not touched).
+Purpose (course manual, Chapter 4, row 1): show that Jenkins' settings, accounts, credentials, job and build history survive a container restart. This is a persistence test, NOT a backup test: the data stays on the same server disk.
+SANITIZED: file checksums and names are shown, not contents; the credentials file content is never shown. Jenkins user directory names carry a hash suffix that is cut off in the summary below (the full names are in the original output).
+
+=== BEFORE the restart (2026-11-03 00:43:45 UTC) ===
+container started at : 2026-10-30T00:22:26 UTC   restart count 0   (it had been up for 3 days)
+volume               : jenkins_jenkins_home -> /var/jenkins_home
+users in the volume  : brahmi, sakshi
+job twintrack config : sha256 prefix 4136a7eb7f1d0263
+global config.xml    : sha256 prefix df12215633771922   (matrix security lives here)
+credentials.xml      : sha256 prefix 2568f5ee03b9865e   (content not shown)
+PR-10 builds on disk : 1 2 3 4 5, nextBuildNumber = 6
+Jenkins URL setting  : https://ci.ssw590-g1.tech/
+anonymous /login: HTTP 200      anonymous /api/json: HTTP 403
+memory               : available 134 MB, swap used 531 MB
+
+=== docker compose restart jenkins ===
+Container jenkins Restarting / Started
+
+=== AFTER the restart (taken while Jenkins was still starting; /login answered 503 at that moment) ===
+container started at : 2026-11-03T00:43:50 UTC   restart count 0 (a `restart` command, not a crash)
+volume               : jenkins_jenkins_home -> /var/jenkins_home      (same named volume)
+users in the volume  : brahmi, sakshi                                  (same)
+job twintrack config : sha256 prefix 4136a7eb7f1d0263                   (identical)
+global config.xml    : sha256 prefix df12215633771922                   (identical)
+credentials.xml      : sha256 prefix 2568f5ee03b9865e                   (identical)
+PR-10 builds on disk : 1 2 3 4 5, nextBuildNumber = 6                   (identical)
+Jenkins URL setting  : https://ci.ssw590-g1.tech/                       (identical)
+
+=== Readiness, measured properly with a second command ===
+container StartedAt (this start): 2026-11-03T00:43:50.68 UTC
+"Jenkins is fully up and running" logged at 2026-11-03 00:44:03.28 UTC  ->  about 12.6 seconds after the restart
+anonymous /login : HTTP 200      anonymous /api/json (must stay refused): HTTP 403      anonymous / : HTTP 403
+memory: available 213 MB, swap used 187 MB; gitea Up 19 hours (healthy), caddy Up 20 hours, gitea-runner Up 2 weeks
+
+=== Correction ===
+The first version of the test script printed "Jenkins fully up again: yes after 9 s". That reading was WRONG: its log filter used a bad time window and matched the "fully up" line of the PREVIOUS start (Oct 29/30). The 503 in the same output shows Jenkins was still starting. The figure above (about 12.6 s) comes from the second command, which only searches the log of the current start.
+
+=== Result ===
+Settings, the two named accounts, the credentials store, the multibranch job and its build history are byte-for-byte identical after the restart, and the service answers again in about 13 seconds. This verifies persistence of /var/jenkins_home across a container restart; it is not a backup or restore test.

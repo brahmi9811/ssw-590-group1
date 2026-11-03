@@ -1,0 +1,17 @@
+Real output, Nov 2, 2026 evening US Eastern. Run by Claude Code on Brahmi's go-ahead from Brahmi's Windows machine (a Python script that reads Jenkins' public update center, https://updates.jenkins.io/stable/update-center.actual.json). Nothing was changed on the server.
+Purpose (course manual, Chapter 4, row 7): the "plugin-update check".
+Method: the 60 plugin versions installed in the image (evidence 72) and the Jenkins core version 2.580.2 were compared with the stable update center. Security advisories were tested against the INSTALLED versions: an advisory counts only if its affected-version pattern matches the installed version.
+
+=== Result ===
+plugins installed: 60 | with a newer version on the stable update center: 1
+  workflow-cps: installed 4395.v738456a_5da_6b_  ->  newer 4403.v471713a_cea_19
+update-center security advisories whose affected-version pattern matches an INSTALLED version (plugins + core 2.580.2): 0
+core: installed 2.580.2, latest stable offered 2.580.2
+
+Plugins checked individually, installed = latest: gitea 286.v0740a_413c1eb_, git 5.11.0, git-client 6.6.1, workflow-aggregator 608.v67378e9d3db_1, matrix-auth 3.3, credentials 1514.vb_01eb_014e7d4, script-security 1436.v1082791135e4, branch-api 2.1303.v9f3b_95dc329d, workflow-multibranch 842.v3a_b_59b_57b_e6e.
+
+=== Correction of a first, naive reading ===
+A first version of the script printed "security warnings in the update center that name one of these plugins: 78". That number is NOT a finding: the update center lists every historical advisory for a plugin together with the old version ranges they affected, so counting them says nothing about the installed versions. The second script above applies the version patterns and finds 0 applicable advisories.
+
+=== Decision ===
+No update was applied: one plugin (workflow-cps) has a newer version, no applicable advisory exists, and changing plugins days before the deadline would risk breaking a working, evidenced pipeline. The update would be applied after submission by rebuilding the image (plugins are installed at build time, evidence 72) and replacing the container.
