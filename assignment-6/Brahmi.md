@@ -2,7 +2,12 @@
 
 Read `README.md` first (rubric, gates, dates). Course manual V1.38 Chapter 4 is the source of truth. **Due Nov 4, 2026, 11:59 PM.**
 
-## PICK UP HERE (session notes, written Oct 28, 2026 when BD logged off)
+## FINAL STATE (Nov 2, 2026 night): READY TO SUBMIT
+- **The submission PDF is the artifact of the last green Gitea Actions run: run #16, commit `44fa7df`, `IT-manual+build.16.44fa7df.pdf` (Version 1.2, 154 pages, 0 TODO, no `??`, no sensitive strings, downloads without login).** A copy is in this folder: `IT-manual+build.16.44fa7df-grp1.pdf`. Upload **only this PDF** to Canvas (assignment #6, due **Wed Nov 4, 2026, 11:59 PM**; aim for noon). If anyone pushes to the Gitea `manual` repo after run #16, the PDF must come from the newest green run instead.
+- Sakshi reviewed and edited rows 4, 5, 6, 8 (run #15, evidence 107-108); BD added two alignment fixes (bibliography notes, diagram date label) in run #16. PR #10 was reviewed and merged by Sakshi (evidence 106).
+- **After uploading:** delete the Gitea push token(s) and the scratch folders `E:\git-repos\ssw590\{twintrack-work,manual-work,manual-check,manual-backup,infra-work}`. Keep the server, Gitea, Jenkins and the runner running until grading is finished. Teardown afterwards is BD's alone (AI never stops, starts or deletes).
+
+## PICK UP HERE (older session notes, written Oct 28, 2026; kept for history, superseded by the section above)
 
 **State: planning is done; nothing for Assignment 6 has been built or changed on the server yet.** No Jenkins, no DNS record, no webhook, no new user.
 - `main` is at `852e8b5` (history was rewritten once to remove a grade line from the public README; Sakshi had not pulled the old commits, so a plain `git pull` fast-forwards her). Plan, task lists and `dosManual-V1.38.pdf` are in `assignment-6/`. The root `README.md` has the status table.
