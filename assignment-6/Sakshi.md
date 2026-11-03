@@ -8,6 +8,8 @@ manual pages 15–22). **Due Nov 4, 2026, 11:59 PM.**
 > root `README.md`. The same applies to the Gitea `group1-startup/manual` repo: `git pull` there before you add the Jenkins chapter.
 > If `git pull --rebase` reports a conflict, stop and tell BD instead of resolving it blind.
 
+> **READY (Nov 2, 2026 late evening): BD has captured the passing-state screenshots (evidence 100 and 101). PR #10 is READY for you: review it, approve it and merge it now.** Issue #9 closes automatically on merge. After the merge, tell BD so the remaining row 5 and row 6 evidence (the merge itself) can be added.
+
 ## STATUS AND FACTS FOR YOUR ROWS (updated Nov 2, 2026 evening; everything below was verified on the live system)
 **What is ready:** Jenkins is running at https://ci.ssw590-g1.tech/ (your account `sakshi`; BD sent you the temporary password privately; change it at first sign-in). The webhook, the multibranch job, the `jenkins-bot` user and the required check on `main` are in place. **Required check context: `twintrack/pipeline/pr-main`.** PR **#10** (issue #9) is open, head **`92c121d`**, check **green**, **no approval yet**.
 
