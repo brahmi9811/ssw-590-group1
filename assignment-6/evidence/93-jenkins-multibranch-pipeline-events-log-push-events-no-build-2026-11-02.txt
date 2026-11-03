@@ -1,0 +1,68 @@
+Text copied by Brahmi from Jenkins, job twintrack, "Multibranch Pipeline Events" page, Nov 2, 2026 (the times are UTC, already Nov 3). Pasted into the session and saved unchanged; the sender 172.18.0.2 is the private Docker address of Gitea on the shared network.
+What it shows: the Gitea webhook DOES reach Jenkins (push events were received and processed in under a second each), but these push events only re-check branches and the pull request; none of them scheduled a build. Pull Request "Synchronized" events were not enabled in the webhook at this time (screenshot 92), and that is the event that makes Jenkins rebuild a pull request after a new commit.
+
+[Tue Nov 03 00:05:06 UTC 2026] Received Push event to branch main in repository group1-startup/twintrack CREATED event from 172.18.0.2 => http://jenkins:8080/gitea-webhook/post with timestamp Tue Nov 03 00:05:06 UTC 2026
+Looking up repository group1-startup/twintrack
+
+  Checking branches...
+
+    Checking branch issue-9-pipeline
+
+    Checking branch main
+      'Jenkinsfile' not found
+    Does not meet criteria
+
+    Checking branch issue-1-readme
+
+    Checking branch issue-2-contributing
+
+  4 branches were processed
+
+  Checking pull requests...
+
+  Checking pull request #10
+
+  1 pull requests were processed
+[Tue Nov 03 00:05:07 UTC 2026] Push event to branch main in repository group1-startup/twintrack CREATED event from 172.18.0.2 => http://jenkins:8080/gitea-webhook/post with timestamp Tue Nov 03 00:05:06 UTC 2026 processed in 0.69 sec
+[Tue Nov 03 00:14:35 UTC 2026] Received Push event to branch issue-9-pipeline in repository group1-startup/twintrack UPDATED event from 172.18.0.2 => http://jenkins:8080/gitea-webhook/post with timestamp Tue Nov 03 00:14:35 UTC 2026
+Looking up repository group1-startup/twintrack
+
+  Checking branches...
+
+    Checking branch issue-9-pipeline
+
+    Checking branch main
+
+    Checking branch issue-1-readme
+
+    Checking branch issue-2-contributing
+
+  4 branches were processed
+
+  Checking pull requests...
+
+  Checking pull request #10
+
+  1 pull requests were processed
+[Tue Nov 03 00:14:35 UTC 2026] Push event to branch issue-9-pipeline in repository group1-startup/twintrack UPDATED event from 172.18.0.2 => http://jenkins:8080/gitea-webhook/post with timestamp Tue Nov 03 00:14:35 UTC 2026 processed in 0.25 sec
+[Tue Nov 03 00:17:24 UTC 2026] Received Push event to branch issue-9-pipeline in repository group1-startup/twintrack UPDATED event from 172.18.0.2 => http://jenkins:8080/gitea-webhook/post with timestamp Tue Nov 03 00:17:24 UTC 2026
+Looking up repository group1-startup/twintrack
+
+  Checking branches...
+
+    Checking branch issue-9-pipeline
+
+    Checking branch main
+
+    Checking branch issue-1-readme
+
+    Checking branch issue-2-contributing
+
+  4 branches were processed
+
+  Checking pull requests...
+
+  Checking pull request #10
+
+  1 pull requests were processed
+[Tue Nov 03 00:17:25 UTC 2026] Push event to branch issue-9-pipeline in repository group1-startup/twintrack UPDATED event from 172.18.0.2 => http://jenkins:8080/gitea-webhook/post with timestamp Tue Nov 03 00:17:24 UTC 2026 processed in 0.2 sec

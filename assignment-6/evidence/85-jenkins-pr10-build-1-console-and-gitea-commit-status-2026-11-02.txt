@@ -1,0 +1,53 @@
+Real output, Nov 2, 2026. Run by Claude Code on Brahmi's go-ahead: (1) read-only look inside the Jenkins container on the server (docker exec jenkins ... tail of the build log), (2) anonymous read of Gitea's commit-status API for the PR head commit.
+SANITIZED: Jenkins console annotation blobs (lines beginning "ha:////", an internal encoding for the web view) were removed; nothing else was changed. No credential appears in the log (Jenkins masks them; the log only says "using GIT_ASKPASS to set credentials").
+
+=== Build record (Jenkins build.xml of job twintrack, branch PR-10, build #1) ===
+start: 2026-11-02 23:54:58 UTC   duration: 12108 ms (about 12 s)   result: SUCCESS
+
+=== Console log, last 45 lines (annotation blobs removed) ===
+using GIT_ASKPASS to set credentials
+ > git fetch --no-tags --force --progress -- https://git.ssw590-g1.tech/group1-startup/twintrack.git +refs/pull/10/head:refs/remotes/origin/PR-10 +refs/heads/main:refs/remotes/origin/main # timeout=10
+Merging remotes/origin/main commit 0d0c3dac4dbf24eeb90965c1bd2850a5e1d91b94 into PR head commit da16c9b006a6cfedbc1b81ffc9b1c6fd23e0c307
+ > git checkout -f da16c9b006a6cfedbc1b81ffc9b1c6fd23e0c307 # timeout=10
+ > git merge 0d0c3dac4dbf24eeb90965c1bd2850a5e1d91b94 # timeout=10
+Merge succeeded, producing da16c9b006a6cfedbc1b81ffc9b1c6fd23e0c307
+Checking out Revision da16c9b006a6cfedbc1b81ffc9b1c6fd23e0c307 (issue-9-pipeline)
+Commit message: "Add pricing module, unit tests and Jenkinsfile for CI (issue #9)"
+First time build. Skipping changelog.
+[Gitea] Notifying pull request build status: PENDING Build started...
+[Gitea] Notified
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Syntax check)
+[Pipeline] sh
++ python3 -m py_compile pricing.py
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Test)
+[Pipeline] sh
++ python3 -m unittest discover -s tests -v
+test_invalid_quantity (test_pricing.PricingTests.test_invalid_quantity) ... ok
+test_total (test_pricing.PricingTests.test_total) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.000s
+
+OK
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+[Gitea] Notifying pull request build status: SUCCESS This commit looks good
+[Gitea] Notified
+Finished: SUCCESS
+
+=== Commit statuses that Gitea holds for commit da16c9b (anonymous API: /api/v1/repos/group1-startup/twintrack/commits/da16c9b/statuses) ===
+2026-11-02T23:55:11 | context = 'twintrack/pipeline/pr-main' | state = success | by jenkins-bot | This commit looks good
+2026-11-02T23:55:09 | context = 'twintrack/pipeline/pr-main' | state = pending | by jenkins-bot | Build started...
+2026-11-02T23:54:51 | context = 'twintrack/pipeline/pr-main' | state = pending | by jenkins-bot | Build queued...
+
+The exact status-check context to require on the protected branch is:  twintrack/pipeline/pr-main
+Server memory at the time: 105 MB available, swap 352 MB; jenkins 391 MiB of its 640 MiB cap.
