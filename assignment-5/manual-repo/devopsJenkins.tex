@@ -1,0 +1,89 @@
+\chapter{Continuous Integration with Jenkins}
+\ChapterLabel{Jenkins}
+\index{Jenkins}
+\index{continuous integration}
+
+\section{Overview and Status}
+This chapter answers the course manual's Chapter~4 \cite{DosManual}: a pull
+request on the startup's product repository
+\href{https://git.ssw590-g1.tech/group1-startup/twintrack}{\texttt{group1-startup/twintrack}}
+triggers a Jenkins pipeline, Jenkins reports a status on the proposed commit,
+and Gitea refuses the merge while the required check fails. The eight numbered
+subsections match the eight rubric rows in order.
+
+\begin{tabularx}{\linewidth}{L{6.0cm}L{1.4cm}L{1.6cm}Y}
+\caption{Rubric rows, owners, and status\label{Table:JenkinsStatus}}\\
+\toprule \textbf{Subsection} & \textbf{Points} & \textbf{Owner} & \textbf{Status}\\ \midrule
+\endfirsthead
+\toprule \textbf{Subsection} & \textbf{Points} & \textbf{Owner} & \textbf{Status}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Jenkins deployment and persistence & 10 & BD & \StatusPending\\
+HTTPS, access, and firewall & 15 & BD & \StatusPending\\
+Gitea trigger and traceability & 15 & BD & \StatusPending\\
+Versioned pipeline and tests & 15 & SD & \StatusPending\\
+Required merge gate & 15 & SD & \StatusPending\\
+Failure, repair, and review & 10 & SD & \StatusPending\\
+Credentials and build boundary & 10 & BD & \StatusPending\\
+Manual quality and controls & 10 & SD & \StatusPending\\
+\end{tabularx}
+
+\section{Required Subsections}
+% ======================================================================
+% Region: jenkinsDeployment (single owner; edit only your own region)
+\subsection{Jenkins deployment and persistence (10 points)}
+\label{Section:jenkinsDeployment}
+\textbf{Owner:} BD. \StatusPending{}
+\Todo{image source and tag, plugin versions, Compose link and redacted excerpt, capacity, persistent volume, restart policy, container restart test (not a backup test).}
+
+% ======================================================================
+% Region: jenkinsAccess (single owner; edit only your own region)
+\subsection{HTTPS, access, and firewall (15 points)}
+\label{Section:jenkinsAccess}
+\textbf{Owner:} BD. \StatusPending{}
+\Todo{clickable login URL, instructor access path, dated screenshot, DNS, certificate, redirect, renewal, Jenkins URL/proxy, accounts and roles, firewall, port mappings, external IPv4 tests.}
+
+% ======================================================================
+% Region: jenkinsTrigger (single owner; edit only your own region)
+\subsection{Gitea trigger and traceability (15 points)}
+\label{Section:jenkinsTrigger}
+\textbf{Owner:} BD. \StatusPending{}
+\Todo{adapted UML deployment diagram, repository, integration identity, events, webhook, delivery result, commit ID, linked Jenkins run, failed-delivery diagnosis.}
+
+% ======================================================================
+% Region: jenkinsPipeline (single owner; edit only your own region)
+\subsection{Versioned pipeline and tests (15 points)}
+\label{Section:jenkinsPipeline}
+\index{Jenkinsfile}
+\index{pipeline}
+\textbf{Owner:} SD. \StatusPending{}
+\Todo{Jenkinsfile link; Checkout, Syntax check, and Test stages; dependencies; expected output; clean-run steps; run view with stage results and commit ID.}
+
+% ======================================================================
+% Region: jenkinsMergeGate (single owner; edit only your own region)
+\subsection{Required merge gate (15 points)}
+\label{Section:jenkinsMergeGate}
+\index{status check}
+\index{merge gate}
+\textbf{Owner:} SD. \StatusPending{}
+\Todo{branch protection, exact check context, two labeled screenshots (failed blocks merge; passing after repair), PR and Jenkins links, how the status reaches Gitea.}
+
+% ======================================================================
+% Region: jenkinsFailureRepair (single owner; edit only your own region)
+\subsection{Failure, repair, and review (10 points)}
+\label{Section:jenkinsFailureRepair}
+\textbf{Owner:} SD. \StatusPending{}
+\Todo{issue and PR links; dated sequence of failed commit, blocked merge, repair, passing run, peer review, merge; commit IDs matched across Gitea and Jenkins.}
+
+% ======================================================================
+% Region: jenkinsCredentials (single owner; edit only your own region)
+\subsection{Credentials and build boundary (10 points)}
+\label{Section:jenkinsCredentials}
+\textbf{Owner:} BD. \StatusPending{}
+\Todo{secret storage and scope, Jenkinsfile edit rights, build location and risk, untrusted PRs, plugin-update check, webhook/build troubleshooting.}
+
+% ======================================================================
+% Region: jenkinsManualQuality (single owner; edit only your own region)
+\subsection{Manual quality and controls (10 points)}
+\label{Section:jenkinsManualQuality}
+\textbf{Owner:} SD. \StatusPending{}
+\Todo{narrative check, screenshots and links, version 1.2, history entry naming Hosts and Passwords updates, activity diagram, citations, glossary and index, restart and troubleshooting note.}
