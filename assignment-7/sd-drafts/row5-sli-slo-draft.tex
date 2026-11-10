@@ -1,0 +1,32 @@
+% DRAFT (SD) for the row 5 region of the SRE chapter. Moves into the Gitea manual repo once the chapter skeleton exists.
+% The real short-window part waits for BD's controlled Jenkins outage (row 7); it stays \StatusPending until measured.
+\subsection{SLI, SLO, and error budget (10 points)}
+\label{Section:sreSlo}
+\index{SLI}\index{SLO}\index{SLA}\index{error budget}
+\textbf{Owner:} SD. \textbf{Status:} definitions and worked example written; real short window \StatusPending.
+
+\paragraph{Definitions.}
+\begin{tabularx}{\linewidth}{L{1.4cm}Y}
+\toprule \textbf{Term} & \textbf{Meaning here}\\ \midrule
+SLI & \emph{Service-level indicator}: a measured fraction. Ours is the share of scheduled HTTPS probes that succeed for one service over a stated window: successful \texttt{probe\_success} samples divided by all samples received.\\
+SLO & \emph{Service-level objective}: our internal target for that SLI, at least 99\,\% probe success over a 24-hour window, evaluated separately for Gitea and Jenkins. It is a lab target chosen by the course, not a promise.\\
+SLA & \emph{Service-level agreement}: a commitment to a customer, usually with consequences if missed. This startup has no customer SLA; nothing here is one.\\ \bottomrule
+\end{tabularx}
+The difference in one line: the SLI is what we measure, the SLO is the target we hold ourselves to, and an SLA is what we would owe
+someone else if we missed it \cite{GoogleSREWorkbookSLO}.
+
+\paragraph{Worked example (hypothetical numbers from the course manual, not our results).}
+A probe every 30~seconds for 24~hours gives $24 \times 60 \times 2 = 2{,}880$ scheduled probes per service.
+\begin{itemize}[nosep]
+  \item \textbf{Gitea:} 2,880 successes out of 2,880 probes, so the SLI is $100 \times 2880/2880 = 100\,\%$. It meets the 99\,\% SLO.
+  \item \textbf{Jenkins:} 2,850 successes and 30 failures, so the SLI is $100 \times 2850/2880 \approx 98.96\,\%$. It misses the SLO, by about 0.04 percentage points.
+  \item \textbf{Error budget:} a 99\,\% SLO allows 1\,\% of probes to fail: $0.01 \times 2880 = 28.8$ failed samples. Because each sample stands for 30~seconds, that is $28.8 \times 0.5 = 14.4$ minutes of failure in the day, if failures are spread evenly across samples.
+  \item \textbf{Jenkins over budget:} 30 failures use $30 - 28.8 = 1.2$ samples (about 0.6 minutes) more than the budget. Samples are whole, so at most 28 failed samples ($100 \times 2852/2880 \approx 99.03\,\%$) would still meet the target; 29 would not ($\approx 98.99\,\%$).
+\end{itemize}
+The budget is a way to decide, not just a score: while Jenkins has budget left, the team can accept risky changes; once it is
+spent, reliability work comes first.
+
+\paragraph{Our short window.} \Todo{after BD's controlled Jenkins outage: window start/end and time zone, scrape interval 30\,s,
+query evaluation time, \texttt{100 * avg\_over\_time(probe\_success\{job="https", instance=...\}[..])} and
+\texttt{count\_over\_time(...)} for both services, received vs.\ expected samples (about 20 per 10 minutes), missing data
+treated as unknown (not success), and why a short window cannot establish the 24-hour SLO.}

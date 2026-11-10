@@ -1,0 +1,7 @@
+# Draft site block for the shared Caddyfile (BD reviews and applies; Caddy also serves Gitea and Jenkins).
+# Grafana is reached by service name on the existing gitea_web network; nothing new is published on the host.
+# Grafana itself requires sign-in (anonymous access and sign-up are disabled in compose.yaml).
+# Before reloading: caddy validate --config /etc/caddy/Caddyfile ; then caddy reload. Needs DNS: metrics.ssw590-g1.tech -> Elastic IP.
+metrics.ssw590-g1.tech {
+	reverse_proxy grafana:3000
+}
