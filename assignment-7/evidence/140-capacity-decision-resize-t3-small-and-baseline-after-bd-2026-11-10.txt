@@ -1,0 +1,46 @@
+Real output, Nov 10, 2026 (evening US Eastern; UTC timestamps below are already Nov 11). Gate G1 (capacity) for Assignment 7.
+Decision by Brahmi (BD) after SD's baseline (evidence 110: 913 MiB RAM, 200 MiB available, 425 MiB in swap): resize the single server from t3.micro to t3.small.
+The AWS commands were run by Claude Code on Brahmi's explicit go-ahead for this resize only (stop, change type, start). Same instance, same disk, same Elastic IP.
+
+=== AWS steps (us-east-1, instance i-0c68ec1bc1e16a414) ===
+before:  t3.micro   running  52.73.254.36
+stop-instances            -> stopping -> stopped
+modify-instance-attribute --instance-type t3.small    -> ok
+after:   t3.small    stopped
+start-instances           -> pending -> running
+after:   t3.small    running  52.73.254.36   (address unchanged)
+Outage: Gitea, Jenkins, runner unreachable for the few minutes between stop and the containers' restart.
+
+=== Public pages after the restart (from Brahmi's computer) ===
+https://git.ssw590-g1.tech/        HTTP 200
+https://ci.ssw590-g1.tech/login    HTTP 200
+
+=== On the server, read-only, 2026-11-11 02:45:47 UTC (up 4 min; load 0.02 0.15 0.08) ===
+               total        used        free      shared  buff/cache   available
+Mem:            1909         705         524           0         680        1064
+Swap:           2047           0        2047
+swapon: /swapfile file 2G, 0B used (comes back by itself)
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1   20G   12G  8.4G  58% /
+
+NAME          IMAGE                          STATUS
+gitea         gitea/gitea:1.27.3             Up 4 minutes (healthy)
+caddy         caddy:2.11.7                   Up 4 minutes
+jenkins       group1/jenkins-python:2.580.2  Up 4 minutes
+gitea-runner  gitea/act_runner:0.6.1         Up 4 minutes
+
+NAME          MEMORY USED / LIMIT   CPU
+gitea         96.54MiB / 1.865GiB   0.04%
+caddy         10.93MiB / 1.865GiB   0.00%
+jenkins       366.1MiB / 640MiB     0.12%
+gitea-runner  6.879MiB / 1.865GiB   0.10%
+(Jenkins is higher right after start-up than the 271 MiB in evidence 110; the other values are near the earlier ones.)
+
+=== Comparison with evidence 110 ===
+available RAM  200 MiB  -> 1064 MiB
+total RAM      913 MiB  -> 1909 MiB
+swap in use    425 MiB  -> 0 MiB
+All four containers restarted on their own (restart policy); the disk is unchanged.
+
+=== Cost note (to be confirmed on AWS's price page) ===
+t3.small costs roughly twice t3.micro per hour (about 0.0104 USD/hr more). Accepted by Brahmi; revisit after grading.
