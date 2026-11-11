@@ -44,8 +44,18 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
   All validated locally (evidence 111). Nothing deployed.
 - Row 5 worked example drafted with checked arithmetic: `sd-drafts/row5-sli-slo-draft.tex`.
 
+### Update (Nov 10, ~22:20 EST)
+- G1 resolved by BD (t3.small, evidence 140); DNS + Caddy block applied by BD (evidence 141).
+- Stack deployed from `~/monitoring` (evidence 112): four containers Up, no host ports, digests match 111, all targets up, both probes 1/200,
+  host values match `free -b` / `df -B1 /`.
+- Two changes to the reviewed compose, both recorded in 112: (1) Grafana's first admin password comes from a random server-only
+  secret file, so `admin/admin` was never active on the public login page; BD replaces it with `grafana cli admin reset-admin-password`;
+  (2) Grafana memory cap 256m -> 384m (216 MiB at idle).
+- Access control tested (evidence 113): non-team sees only the login page and its assets, everything else 403; monitoring ports closed.
+  Still to do: phone test on mobile data, then sign-in with own account after BD sets the admin password.
+
 ## Checklist
 - [x] baseline evidence · [x] image tags chosen · [x] monitoring files drafted and validated locally · [ ] Gitea issue + branch + PR
-- [ ] G1 decided by BD · [ ] stack deployed, digests recorded · [ ] targets up, probes defined, host values verified
-- [ ] Grafana HTTPS + login, external exposure tests · [ ] restart persistence test · [ ] deployment diagram
-- [ ] row 5 worked example · [ ] row 5 real window (after BD's outage) · [ ] rows 1, 2, 3, 5 written in the chapter with inline evidence
+- [x] G1 decided by BD · [x] stack deployed, digests recorded · [x] targets up, probes defined, host values verified
+- [x] Grafana HTTPS, external exposure tests (phone test + own login pending) · [ ] restart persistence test · [ ] deployment diagram
+- [x] row 5 worked example · [ ] row 5 real window (after BD's outage) · [ ] rows 1, 2, 3, 5 written in the chapter with inline evidence

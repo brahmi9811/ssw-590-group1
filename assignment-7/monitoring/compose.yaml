@@ -33,10 +33,14 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
-      # The initial admin password is replaced at the first HTTPS sign-in; it is never stored in Git.
+      # No admin/admin window on the public login page: the first admin password is a random value generated
+      # on the server (secrets/grafana_admin_password in a mode-700 folder, never printed, never in Git). The owner then
+      # sets the real one with `docker exec -it grafana grafana cli admin reset-admin-password`.
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+    secrets: [grafana_admin_password]
     volumes:
       - grafana_data:/var/lib/grafana
-    mem_limit: 256m
+    mem_limit: 384m                             # 256m left too little room: Grafana 13.3.1 used ~216 MiB idle
     networks: [monitoring, web]
 
   node-exporter:
@@ -68,6 +72,10 @@ networks:
   web:
     external: true
     name: gitea_web                             # existing network shared by Caddy, Gitea and Jenkins (reused, not recreated)
+
+secrets:
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password       # created on the server only; gitignored
 
 volumes:
   prometheus_data:

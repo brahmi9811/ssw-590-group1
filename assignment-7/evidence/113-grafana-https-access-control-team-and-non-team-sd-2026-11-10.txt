@@ -1,0 +1,42 @@
+Real output, Nov 10, 2026 evening US Eastern (03:16-03:20 UTC Nov 11). Assignment 7, row 3 (access control). Run by Sakshi.
+Caddy block as applied by Brahmi (evidence 141): team addresses get all of Grafana; everyone else only
+/login, /public/*, /api/health, /favicon.ico; everything else answers 403.
+
+=== Certificate (openssl s_client from SD's Mac) ===
+subject=CN=metrics.ssw590-g1.tech
+issuer=C=US, O=Let's Encrypt, CN=YE1
+notBefore=Nov 11 01:52:00 2026 GMT   notAfter=Feb  9 01:51:59 2027 GMT
+curl ssl_verify_result = 0 on every request below.
+
+=== Team view: SD's Mac (public IP is on the TEAM_IPS list) ===
+/login              200  (<title>Grafana</title>)
+/                   302 -> /login           (not signed in: login is required)
+/public/build/      302 -> /login?redirectTo=...
+/api/health         200
+/api/datasources    401   (needs sign-in)
+/api/admin/users    401
+/metrics            200   (Grafana's own metrics; team only, see below)
+
+=== Non-team view: request from the server itself, source = the Elastic IP, which is not on TEAM_IPS ===
+/login                                    200
+the 9 /public/build/*.js|css files the login page references   200 (all)
+/public/img/grafana_icon.svg              200
+/favicon.ico                              302
+/api/health                               200
+/                                         403
+/api/datasources                          403
+/metrics                                  403
+/api/admin/users                          403
+/api/user                                 403
+/d/x                                      403
+/explore                                  403
+/api/login/ping                           403
+POST /login {"user":"admin","password":"admin"}   401   (default password never active, evidence 112)
+
+=== Ports scanned from SD's Mac to 52.73.254.36 (nc -z, 4 s timeout) ===
+3000 closed/filtered   9090 closed/filtered   9100 closed/filtered   9115 closed/filtered
+(security group unchanged; containers publish no host ports, evidence 112)
+
+=== Still to do ===
+Phone on mobile data (not the team network): /login loads with a valid certificate; / and /explore show Forbidden. Screenshot -> next evidence number.
+After Brahmi sets the admin password: sign in over HTTPS with SD's own (non-admin) account; record roles.
