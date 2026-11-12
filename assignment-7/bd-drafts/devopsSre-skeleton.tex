@@ -1,0 +1,44 @@
+% BD: chapter skeleton for Assignment 7 (course Chapter 5), to become devopsSre.tex in the Gitea manual repo
+% and be included in devopsITManual.tex after devopsJenkins. Section labels are fixed here so that
+% SD's and BD's regions can cite each other with \SectionRef{...} from the start.
+% Owners: SD = rows 1, 2, 3, 5; BD = rows 4, 6, 7, 8.
+\chapter{Monitoring and reliability (SRE)}
+\ChapterLabel{Sre}
+\index{monitoring}\index{SRE}
+
+% --- Short overview (BD, written last): what was added to the server, one paragraph, link to the successful PDF build and the reviewed final commit.
+
+% ===== SD region: rows 1, 2, 3 =====
+\section{Deployment and capacity (10 points)}\label{Section:sreDeployment}
+% SD: baseline (evidence 110), resize to t3.small (BD's evidence 140), compose, digests, diagram (Figure from sd-drafts/TikZ), persistence test.
+
+\section{Metrics and HTTPS probes (15 points)}\label{Section:sreMetrics}
+% SD: targets, metric inventory, probe definition, host values compared with free and df.
+
+\section{Access control and exposure (15 points)}\label{Section:sreAccess}
+% SD (Grafana access, outside test, evidence 113, 114) with BD's Caddy block (evidence 141) and the Grafana accounts (evidence 144, 147).
+
+% ===== BD region: row 4 =====
+\section{Dashboard (15 points)}\label{Section:sreDashboard}
+% BD: the six panels with their queries and explanations (bd-drafts/queries.md), dashboard JSON link, time zone and units,
+% the normal Jenkins build comparison, the 4 s probe spike observed on the Jenkins line.
+
+% ===== SD region: row 5 =====
+\section{SLI, SLO, and error budget (10 points)}\label{Section:sreSlo}
+% SD: worked example, the real window around the controlled outage, SLI query and its limitation.
+
+% ===== BD region: rows 6, 7 =====
+\section{Alerts (15 points)}\label{Section:sreAlerts}
+% BD: contact point team-alerts (Discord), notification policy settings, rule 1 and rule 2 with owner, severity, query,
+% threshold, interval, pending period, summary, runbook, no-data and error policy; real firing and resolution for both;
+% the disk threshold raised to 55 and restored to 15.
+
+\section{Controlled incident and review (10 points)}\label{Section:sreIncident}
+% BD (with SD): timeline of the Jenkins outage, detection and restoration times, verification, restart of Prometheus and
+% Grafana (also SD's persistence test), comparison with the Chapter 4 failed build, blameless review, two Gitea issues.
+
+% ===== BD region: row 8 =====
+\section{Manual changes in this version (10 points)}\label{Section:sreManual}
+% BD: version 1.3, history entry, Hosts and Passwords changes (metrics host and DNS, monitoring containers and private ports,
+% Grafana admin hint, Discord webhook hint, campus SSH and team-list entries), glossary terms (SRE, SLI, SLO, SLA, error budget,
+% Prometheus, Grafana, exporter, probe), citations, AI and reuse attribution.
