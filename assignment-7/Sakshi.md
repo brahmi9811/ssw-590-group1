@@ -57,5 +57,5 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
 ## Checklist
 - [x] baseline evidence · [x] image tags chosen · [x] monitoring files drafted and validated locally · [ ] Gitea issue + branch + PR
 - [x] G1 decided by BD · [x] stack deployed, digests recorded · [x] targets up, probes defined, host values verified
-- [x] Grafana HTTPS, external exposure tests (phone test + own login pending) · [ ] restart persistence test · [ ] deployment diagram
+- [x] Grafana HTTPS, external exposure tests (phone test + own login pending) · [ ] restart persistence test · [x] deployment diagram drafted (sd-drafts/TikZ)
 - [x] row 5 worked example · [ ] row 5 real window (after BD's outage) · [ ] rows 1, 2, 3, 5 written in the chapter with inline evidence
