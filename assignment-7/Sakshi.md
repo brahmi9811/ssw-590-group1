@@ -74,6 +74,11 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
   Includes BD's evidence 140, 141, 144, 147 as listings/figure in the SD rows (BD must not define those labels again).
   Mirrored to GitHub assignment-5/manual-repo/.
 
+### Update (Nov 11, ~9:05 PM New York)
+- Reviewed and approved BD's infra PR #5 (dashboard JSON + alert rules match live Grafana, no secrets); BD merged it (ff85de4).
+- Evidence 115 note pushed to the manual repo (757ccc7); Gitea Actions run #21 success. Full build v1.3 checked:
+  no TODO/PENDING left in SD's rows 1, 2, 3, 5 (remaining ones are BD's). SD has nothing more to push unless BD asks.
+
 ## Checklist
 - [x] baseline evidence · [x] image tags chosen · [x] monitoring files drafted and validated locally · [x] Gitea issue #1 + branch + PR #2 merged (c03fb1b)
 - [x] G1 decided by BD · [x] stack deployed, digests recorded · [x] targets up, probes defined, host values verified

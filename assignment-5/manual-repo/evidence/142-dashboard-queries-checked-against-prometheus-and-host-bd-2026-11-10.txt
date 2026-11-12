@@ -1,0 +1,29 @@
+Real output, Nov 10, 2026 (server clock 2026-11-11 03:29 UTC = 10:29 PM US Eastern). Assignment 7, row 4 (query checks before the dashboard is imported).
+Run by Claude Code over SSH on Brahmi's go-ahead: read-only. Each dashboard query from assignment-7/monitoring/grafana/group1-sre-dashboard.json
+was sent to Prometheus' own API (docker exec prometheus wget .../api/v1/query) to check that it returns data with the intended labels.
+Grafana was not used (Brahmi's admin password was not set yet at this point).
+
+=== Host side-by-side, same moment ===
+free -b:   MemTotal 2002350080   available 806154240
+df -B1 /:  /dev/nvme0n1p1  size 21395124224  used 14348029952  avail 7047094272  (68% used)
+
+=== Panel queries, instant values ===
+1 CPU %    100 * (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[2m])))        = 1.69 (percent, idle host)
+2 memory   node_memory_MemAvailable_bytes{job="node"}                            = 805617664  (free -b shows 806154240: same figure, 0.07% apart, taken a moment apart)
+3 root fs  100 * avail{mountpoint="/",fstype!~"tmpfs|overlay|squashfs"} / size{same selector}
+           one series only: device="/dev/nvme0n1p1", fstype="xfs", mountpoint="/"  = 32.94 (percent free)
+           check: 7047094272 / 21395124224 = 32.94 %, equal to the query
+4/5 probe_success{job="https"}       git.ssw590-g1.tech/user/login = 1 ; ci.ssw590-g1.tech/login = 1
+6 duration probe_duration_seconds    git 0.012 s ; ci 0.040 s
+7 up                                  5 targets, all 1: blackbox, prometheus, node, https (git), https (ci)
+
+=== Which filesystems Node Exporter reports (count by mountpoint, device, fstype of node_filesystem_size_bytes) ===
+/          /dev/nvme0n1p1    xfs     <- the real host root, the one used for the panel and the alert
+/boot/efi  /dev/nvme0n1p128  vfat    <- not root; separate boot partition, not combined
+/run       tmpfs             tmpfs   <- excluded
+/tmp       tmpfs             tmpfs   <- excluded
+No overlay or container mounts appear, so the selector would still be specific if overlay ones showed up later.
+
+=== Result ===
+All seven queries return the expected series with real values; the root-disk percentage and the available memory match df and free.
+The queries are therefore usable in Grafana as written. A drawing of the dashboard itself (screenshots) comes after the import.

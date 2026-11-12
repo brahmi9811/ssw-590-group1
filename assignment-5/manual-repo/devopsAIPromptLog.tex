@@ -160,3 +160,17 @@ merged \texttt{main} (\ListRef{108}), the activity diagram (Figure~\ref{Figure:J
 check of every cited Jenkins and Gitea page; and stated that the second failure and repair were committed one second apart but pushed
 separately. No Jenkins or Gitea credential was given to the assistant; SD approved and merged the pull request herself in Gitea.
 Human review: SD read the changes and approved the push.
+
+\section{Record: BD's Rows 4, 6, 7, and 8 of the Monitoring Chapter}
+Date: November 10--12, 2026; Tool and model: Claude Code (Claude Sonnet 5.5);
+Task: BD's part of \ChapterRef{Sre} (rows 4, 6, 7, 8) and the server steps behind it. Inputs: the course manual \cite{DosManual} Chapter~5, SD's evidence 110--117,
+and BD's screenshots. What the assistant did: resized the instance from \texttt{t3.micro} to \texttt{t3.small} with the AWS command line on BD's explicit go-ahead
+(stop, change type, start; \ListRef{140}); applied the Caddy block for the Grafana name after reviewing SD's draft and adding the team-address rule (\ListRef{141});
+ran read-only queries against Prometheus and compared every dashboard query with \texttt{free} and \texttt{df} (\ListRef{142}); wrote the dashboard JSON and the drafts of the
+alert rules, the runbook, and the incident timeline; computed the delays from Prometheus' samples and Grafana's history (\ListRef{162}, \ListRef{167}); cropped screenshots to remove browser tabs,
+other servers, and a personal email address; and drafted the text of rows 4, 6, 7, and 8.
+Mistakes and corrections: the first plan said no-data and error would be set to \emph{Alerting}, while the saved rules use \texttt{NoData} and \texttt{Error}, which also notify, so the plan was corrected; an early note said the disk had
+42\% free when it had 33\% after the new images; the first panel table overflowed its column and was split; the first build used for the dashboard comparison ran two minutes after a restart and was replaced by a calmer one
+(\ListRef{168}); and the assistant tried to add the campus address to the firewall and to the team-address list itself, but the permission system blocked both changes as weakening security, so BD made them herself.
+No password, token, or webhook URL was given to the assistant: BD typed her Grafana password at a prompt on the server and pasted the Discord webhook only into Grafana, and Git pushes to Gitea used the sign-in she entered.
+Human review: BD ran the Jenkins stop and start of the outage herself, clicked through Grafana, created the contact point, approved each server change, and reviewed and merged SD's infra pull request in Gitea; SD recorded the outage and ran the SLI window and the restart test.

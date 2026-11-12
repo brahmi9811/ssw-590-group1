@@ -1,0 +1,42 @@
+Real output, Nov 11/12, 2026. Assignment 7, row 4: host metrics before, during and after one normal run of the existing Jenkins pipeline.
+Times are UTC (the server clock; Jenkins shows the same clock). The metric values were read from Prometheus' own API on the server by Claude Code, read-only
+(raw counters node_cpu_seconds_total{mode="idle"} per CPU and node_memory_MemAvailable_bytes, 12 minutes of samples), and the CPU percentage was computed
+from the raw counter differences between two consecutive samples (busy % = 100 * (1 - idle seconds gained by both CPUs / (2 CPUs * seconds between samples))).
+No synthetic load was created; the build is the existing twintrack pipeline.
+
+=== The build ===
+Job: twintrack/main, build #3, started by user Brahmi Dalvi with Build Now (not by a webhook)
+Start: 2026-11-12 01:41:47 UTC (shown by Jenkins as "Nov 12, 2026, 1:41:47 AM"); took 2.4 s; end about 01:41:49; result SUCCESS
+Commit: a0094a823080adff5c314c5d3df0237811be4c9d ("Merge pull request 'Add pricing module, unit tests and Jenkinsfile for CI' (#10) from issue-9-pipeline into main")
+Where it ran: "Running on Jenkins in /var/jenkins_home/workspace/twintrack_main": the Jenkins controller itself (no separate agent; evidence 169 shows the console)
+Jenkins had been running since its restart at 01:27:25 (14 minutes before the build); the host was calm.
+
+=== Host metrics around the build (Node Exporter, one sample every 30 s) ===
+sample time (UTC)   CPU busy over the previous 30 s   MemAvailable
+01:39:46            4.0 %                            678 MiB
+01:40:16            5.2 %                            674 MiB
+01:40:46            5.7 %                            675 MiB
+01:41:16            6.7 %                            671 MiB    <- last sample BEFORE the build (31 s before it started)
+01:41:46            5.4 %                            662 MiB    <- sample taken at the second the build started (covers 01:41:16-01:41:46, before it)
+01:42:16           10.1 %                            654 MiB    <- the one sample that contains the build (01:41:46-01:42:16)
+01:42:46            6.2 %                            662 MiB    <- after
+01:43:16            4.5 %                            695 MiB    <- after
+
+=== What changed, and what did not ===
+- CPU: the only sample containing the 2.4 s build reads 10.1 %, against 4.0-6.7 % in the minutes before and 6.2 and 4.5 % after. A one-core job of 2.4 s adds about
+  2.4 / (30 s * 2 CPUs) = 4 percentage points to a 30 s average, so a rise from about 5-6 % to 10 % is of the size expected for this build. It is one sample, however,
+  and its neighbours already vary between 3.1 and 6.7 %, so it cannot be called proof.
+- Memory: MemAvailable moved from 671 MiB to 662 and 654 MiB, then back to 662 and 695 MiB: changes of 10-40 MiB are within the ordinary movement of the previous
+  minutes (632-678 MiB), so no memory effect of the build can be separated from the noise.
+- Why so little is visible: the build took 2.4 s and Prometheus samples every 30 s, so it falls inside one scrape interval and is averaged with 27 quiet seconds.
+  A longer or heavier build would be needed to see a clear shape; the pipeline is two short Python commands (py_compile and two unit tests).
+- Whole-host correlation does not attribute CPU or memory to Jenkins or to any individual container; the figures above are for the whole host.
+  Jenkins ran on the controller, so its use is inside this host's measurements (a remote agent's would not be).
+
+=== Other activity in the same 12-minute window (so the figures are not over-read) ===
+- 01:35:46 and 01:36:16: CPU 52.9 % and 56.0 % (MemAvailable down to 541 MiB): the manual build on the Gitea Actions runner (run #17, started 01:35:19 UTC,
+  finished 01:36:34) runs on this same host; it is not Jenkins.
+- 01:38:46: no sample was stored (the next sample is 01:39:16, CPU 20.9 %): a collection gap and a busy minute. The cause was not confirmed; it may be SD's restart
+  test of Prometheus and Grafana (persistence checks) or her SLI-window run, both planned for this time. Not investigated further here.
+- Jenkins build #2 of main (01:29:12, 7.9 s, after the outage) was not used for this comparison: it ran two minutes after Jenkins was restarted (CPU 6-39 % in the
+  surrounding samples), so the build could not be told apart from the restart.

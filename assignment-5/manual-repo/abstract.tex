@@ -4,7 +4,9 @@ first chapter documents the startup's Gitea work hub: a student-pack domain,
 a version-pinned Gitea deployment, HTTPS with automated certificate renewal, a
 minimal firewall exposure, and an issue-to-reviewed-merge team workflow. Later
 chapters add an automated manual build with Gitea Actions and Jenkins continuous
-integration with a required merge gate on the product repository. Results
+integration with a required merge gate on the product repository, and monitoring
+with Prometheus and Grafana: probes of both services, a dashboard, two alerts
+tested for real, and a controlled outage with a written review. Results
 are stated only where they were observed. The one thing not observed, the first
 automatic renewal of the production certificate (expected between December 13 and
 15, 2026, after the due date), is labeled as such.

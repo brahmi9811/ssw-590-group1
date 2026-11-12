@@ -41,3 +41,11 @@
 \newglossaryentry{statuscheck}{name={status check},description={A named result (pending, success, failure) that a service such as Jenkins reports on a commit; Gitea can require it before a pull request is merged}}
 \newglossaryentry{controllerexecutor}{name={controller executor},description={A build slot on the Jenkins controller itself, as opposed to a separate build agent; pipeline code then runs on the same process that holds Jenkins' configuration}}
 \newglossaryentry{multibranch}{name={multibranch pipeline},description={A Jenkins job type that scans a repository and creates a pipeline job for each branch or pull request that contains a Jenkinsfile}}
+\newglossaryentry{sre}{name={SRE},description={Site reliability engineering: running a service with measured reliability targets, monitoring, alerts, and a written review of every incident}}
+\newglossaryentry{sli}{name={SLI},description={Service level indicator: a measured value that describes how a service behaves; here the share of scheduled HTTPS probes that succeed in a window}}
+\newglossaryentry{sla}{name={SLA},description={Service level agreement: a commitment to a customer, possibly with consequences when missed; this exercise creates no SLA}}
+\newglossaryentry{errorbudget}{name={error budget},description={The amount of failure an SLO allows: 1\% of 2,880 probes in a day is 28.8 failed probes (14.4 minutes)}}
+\newglossaryentry{prometheus}{name={Prometheus},description={An open-source monitoring system that scrapes numeric metrics from targets every 30 seconds, stores them as time series, and answers queries}}
+\newglossaryentry{grafana}{name={Grafana},description={An open-source tool that draws dashboards from stored metrics and evaluates alert rules, sending notifications to a contact point}}
+\newglossaryentry{exporter}{name={exporter},description={A small program that exposes metrics of a host or service in the format Prometheus scrapes; here Node Exporter (the host) and Blackbox Exporter (probes)}}
+\newglossaryentry{probe}{name={probe},description={A scheduled test request made from outside a service, such as an HTTPS request to a login page, whose result is recorded as 1 (success) or 0 (failure)}}
