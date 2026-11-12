@@ -1,5 +1,11 @@
 # BRAHMI (BD) — Assignment 7 scope and plan
 
+**FINAL STATE (Nov 11, 2026 night): READY TO SUBMIT.** Submission PDF = `IT-manual+build.23.d1da656-grp1.pdf` (artifact of Gitea Actions run #23 on manual commit
+`d1da656`; Version 1.3, 205 pages; checked: no TODO, no undefined references, no sensitive strings). Upload only this PDF to Canvas. After uploading: keep the server, Gitea, Jenkins,
+Grafana and the runner running until grading ends; remove the campus SSH rule (`sgr-03ad4a07314c0cc17`) and the campus address in `TEAM_IPS` only at teardown (decision Nov 11); teardown is BD's alone.
+If anyone pushes to the manual repo after run #23, the submitted PDF must come from the newest green run (re-verify before upload). infra PR #5 (ff85de4) holds the dashboard JSON and alert rules;
+open issues infra #3 (BD) and #4 (SD).
+
 Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
 
 ## BD owns: rows 4, 6, 7, 8 (50 points)
@@ -25,9 +31,9 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
   security-group verification; Hosts and Passwords tables; final build and submission.
 
 ## Checklist
-- [x] G1 decided (t3.small, evidence 140) · [x] DNS for Grafana (evidence 141) · [x] Caddy block applied (evidence 141; outside-access test pending) · [x] dashboard (6 panels, evidence 142-148) · [ ] dashboard JSON in Gitea (infra PR) · [x] normal-build comparison (evidence 168-169)
+- [x] G1 decided (t3.small, evidence 140) · [x] DNS for Grafana (evidence 141) · [x] Caddy block applied (evidence 141; outside-access test pending) · [x] dashboard (6 panels, evidence 142-148) · [x] dashboard JSON in Gitea (infra PR #5, ff85de4) · [x] normal-build comparison (evidence 168-169)
 - [x] two alert rules + contact point (evidence 149-155) · [~] disk alert fired, delivered, resolved (evidence 156-162) · [x] service alert fired and resolved by the Jenkins outage (evidence 163-167) · [x] capacity test and restore
-- [x] controlled Jenkins outage + timeline (evidence 167) · [ ] blameless review + 2 issues · [ ] row 8 pass, version 1.3 · [ ] final PDF from green run
+- [x] controlled Jenkins outage + timeline (evidence 167) · [x] blameless review + 2 issues (infra #3, #4) · [x] row 8 pass, version 1.3 · [x] final PDF from green run (#23)
 
 ## Campus access (decision Nov 11, 2026)
 BD keeps campus access on for later assignments: security group `sg-0415c75429368eb85` has an extra SSH rule `sgr-03ad4a07314c0cc17` for the campus public address
