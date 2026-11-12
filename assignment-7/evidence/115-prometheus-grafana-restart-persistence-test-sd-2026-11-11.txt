@@ -15,6 +15,7 @@ $ bash restart-test.sh | tee restart-test-20261112.log
     {'instance': 'https://git.ssw590-g1.tech/user/login', 'job': 'https'} 720
   Grafana state (from a copy of grafana.db):
     dashboards: 0: []
+    [note added by SD: wrong query, see "Correction" below; the dashboard 'Group 1 Startup Server (SRE)' exists in Grafana 13's resource table]
     data sources: 1: ['prometheus (prometheus)']
     alert rules: 2: ['https-service-down', 'root-disk-below-15-percent']
     contact points (names only): 2: ['empty', 'team-alerts']
@@ -36,6 +37,7 @@ grafana
     {'instance': 'https://git.ssw590-g1.tech/user/login', 'job': 'https'} 719
   Grafana state (from a copy of grafana.db):
     dashboards: 0: []
+    [note added by SD: wrong query, see "Correction" below; the dashboard 'Group 1 Startup Server (SRE)' exists in Grafana 13's resource table]
     data sources: 1: ['prometheus (prometheus)']
     alert rules: 2: ['https-service-down', 'root-disk-below-15-percent']
     contact points (names only): 2: ['empty', 'team-alerts']
