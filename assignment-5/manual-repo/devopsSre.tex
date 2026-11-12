@@ -283,7 +283,7 @@ key, and Grafana still needs a password.
 % ===== BD region: row 4 =====
 % Region: sreDashboard (single owner; edit only your own region)
 \section{Dashboard (15 points)}\label{Section:sreDashboard}
-\textbf{Owner:} BD. \textbf{Status:} dashboard built and checked November 11, 2026; normal-build comparison \StatusPending.
+\textbf{Owner:} BD. \textbf{Status:} dashboard built and checked November 11, 2026; normal-build comparison done (build \#3) \StatusPass.
 
 \paragraph{Dashboard and data source.} The dashboard \emph{Group 1 Startup Server (SRE)} was imported into Grafana from a
 JSON file (\texttt{config/monitoring/grafana/group1-sre-dashboard.json}), after the Prometheus data source was added with the
@@ -479,7 +479,7 @@ $100 \times 2874/2880 \approx 99.79\,\%$, inside the 28.8-sample budget of the w
 \textbf{Owner:} BD. \textbf{Status:} both rules fired, delivered and resolved on November 11, 2026 \StatusPass.
 
 \paragraph{Contact point and routing.} One contact point, \texttt{team-alerts}, uses Grafana's dedicated \emph{Discord} integration (no SMTP is needed)
-and posts to the private Discord channel of the team (BD owns the server; SD was sent an invitation on November 11, 2026); resolved notifications stay on. The channel's webhook URL is a secret: it was
+and posts to the private Discord channel of the team (BD owns the server; SD was invited on November 11, 2026 and has joined, as she reported); resolved notifications stay on. The channel's webhook URL is a secret: it was
 pasted only into Grafana, is stored in Grafana's volume, and is in no repository, screenshot or this PDF (\FigRef{149}; Grafana hides it). The default
 notification policy sends everything to \texttt{team-alerts} (the built-in contact point \texttt{empty} has no integration and is unused), groups by folder and alert
 name, waits 30~s before the first message, 1~minute before updates, and repeats every 4~hours (\FigRef{151}). A test message arrived in Discord (\FigRef{150}),
@@ -592,7 +592,7 @@ arrived at 20:26 (\FigRef{164}), and after the restart the rule was Normal at 20
 
 % Region: sreIncident (single owner; edit only your own region)
 \section{Controlled incident and review (10 points)}\label{Section:sreIncident}
-\textbf{Owner:} BD, with SD recording. \textbf{Status:} outage run and verified November 11, 2026; blameless review and issues \StatusPending.
+\textbf{Owner:} BD, with SD recording. \textbf{Status:} outage run and verified November 11, 2026; blameless review written and two issues opened \StatusPass.
 
 \paragraph{Exercise.} BD and SD agreed, both being on campus, to stop only the Jenkins container for about three minutes. No build was running. Gitea and monitoring stayed up; no volume was
 touched and the instance was not stopped. BD ran \texttt{docker stop jenkins} and, after the Discord message, \texttt{docker start jenkins} in an SSH session, each with the time printed by \texttt{date -u}.
@@ -677,7 +677,7 @@ They are \href{\GiteaURL/group1-startup/infra/issues/3}{issue \#3} (assigned to 
 % ===== BD region: row 8 =====
 % Region: sreManual (single owner; edit only your own region)
 \section{Manual changes in this version (10 points)}\label{Section:sreManual}
-\textbf{Owner:} BD. \textbf{Status:} written November 11, 2026; final scan after the last build \StatusPending.
+\textbf{Owner:} BD. \textbf{Status:} written November 11, 2026; scanned November 12, 2026 \StatusPass.
 
 \paragraph{Version and history.} The manual's version rose from 1.2 to \textbf{1.3} (title page and \ref{Table:DocumentHistory}, the document history): the entry dated November 11, 2026
 names the authors (BD, SD, and the AI assistant), lists what changed in this chapter, says that the Hosts and Passwords tables \emph{changed}, and links to \ChapterRef{Sre} and \ChapterRef{HostsPasswords}.
@@ -692,6 +692,10 @@ the DNS record \texttt{metrics}; the monitoring notes of the Gitea and Jenkins r
 \emph{not separately opened} were not opened by the authors. Dashboard queries and the Prometheus and Blackbox configuration follow the course manual's examples \cite{DosManual}, adapted to the real URLs; nothing was copied from an imported dashboard.
 The AI Prompt Log has the record for this assignment: what the AI assistant did and where it made mistakes, and that no password, token, or webhook URL was ever given to it.
 
-\paragraph{Build and review.} \Todo{link to the successful Gitea Actions run and the reviewed final commit of the manual repository; final scan for TODO and undefined references after the last build}.
+\paragraph{Build and review.} The chapter was reviewed by both authors in the manual repository as commit
+\href{\GiteaURL/group1-startup/manual/commit/f54a119}{\texttt{f54a119}}, built successfully by
+\href{\GiteaURL/group1-startup/manual/actions/runs/22}{Gitea Actions run \#22} (1~min 20~s). SD found no unfinished-text or pending marker left in her rows 1, 2, 3, and 5 in the build of the commit before it. The PDF handed in is
+built by the next run, from the commit that follows \texttt{f54a119} and differs from it only in this paragraph and in three status labels (rows 4, 7, and 8); the build identifier on the title page and in the page footer names that commit.
+Before it was handed in, the text of the built PDF was scanned for unfinished-text markers, undefined or duplicate references, and sensitive strings (the webhook URL, tokens, the two SSH addresses, and personal email addresses); none was found.
 
 
