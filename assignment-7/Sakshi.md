@@ -65,7 +65,7 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
 - Rows 1, 2, 3 written for the chapter: `sd-drafts/devopsSre-sd-rows-1-2-3.tex`; row 5 adapted to BD's skeleton labels.
 - Test build of the whole manual with these sections (scratch copy, not pushed to Gitea): latexmk exit 0; only BD's evidence
   references 140, 141, 144, 147 undefined (her regions include them). Preview: `sd-drafts/devopsSre-preview-sd-sections.pdf`.
-- PR #2 merged by BD Nov 11 19:42 EST, merge commit c03fb1b (filled in). Open \Todo items: restart test (with BD's outage); date SD changed her Grafana password; row 5 real window.
+- PR #2 merged by BD Nov 11 19:42 EST, merge commit c03fb1b (filled in). Open \Todo items: restart test (with BD's outage); row 5 real window.
 
 ## Checklist
 - [x] baseline evidence · [x] image tags chosen · [x] monitoring files drafted and validated locally · [x] Gitea issue #1 + branch + PR #2 merged (c03fb1b)
