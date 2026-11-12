@@ -36,19 +36,34 @@ The time zone is fixed to \texttt{America/New\_York} (shown as EST), the default
 \paragraph{The six required panels and their queries.} Each query was run against Prometheus' own API before it went into the
 dashboard and compared with \texttt{free -b} and \texttt{df -B1 /} (\ListRef{142}).
 
-\begin{tabularx}{\linewidth}{L{0.6cm}L{3.0cm}L{5.0cm}Y}
-\caption{Dashboard panels, queries, and why they are written this way\label{Table:SrePanels}}\\
-\toprule \textbf{\#} & \textbf{Panel (unit)} & \textbf{Query} & \textbf{Explanation}\\ \midrule
+\begin{tabularx}{\linewidth}{L{0.6cm}L{3.6cm}Y}
+\caption{Dashboard panels and why their queries are written this way\label{Table:SrePanels}}\\
+\toprule \textbf{\#} & \textbf{Panel (unit)} & \textbf{Explanation of the query (the queries are in \ListRef{SreQueries})}\\ \midrule
 \endfirsthead
-\toprule \textbf{\#} & \textbf{Panel (unit)} & \textbf{Query} & \textbf{Explanation}\\ \midrule
+\toprule \textbf{\#} & \textbf{Panel (unit)} & \textbf{Explanation}\\ \midrule
 \endhead \bottomrule \endlastfoot
-1 & Whole-host CPU utilization (percent) & \texttt{\small 100 * (1 - avg(rate(node\_cpu\_seconds\_total\{mode="idle"\}[2m])))} & The CPU time counter grows forever, so its rate over 2 minutes is the idle share per second; the average over both CPUs is the host-wide idle share, and 100 times one minus it is the busy percentage. Whole host, not per container.\\
-2 & Available host memory (bytes, IEC) & \texttt{\small node\_memory\_MemAvailable\_bytes} (and \texttt{MemTotal} as a second line) & The kernel's estimate of memory applications can still get; it is not the \emph{free} figure. Same value as the \emph{available} column of \texttt{free -b}.\\
-3 & Root filesystem free (percent) & \texttt{\small 100 * avail\_bytes\{mountpoint="/",fstype!\textasciitilde"tmpfs|overlay|squashfs"\} / size\_bytes\{same selector\}} & Available bytes divided by size of the same series, the real root filesystem \texttt{/dev/nvme0n1p1} (xfs). The other filesystems (\texttt{/boot/efi}, \texttt{/run}, \texttt{/tmp}) are not mixed in.\\
-4 & Gitea HTTPS availability (0 or 1) & \texttt{\small probe\_success\{job="https", instance="https://git\ldots/user/login"\}} & 1 means DNS, TLS verification, allowed redirects and the final status all passed. A login-page probe does not prove a Git push.\\
-5 & Jenkins HTTPS availability (0 or 1) & the same for \texttt{https://ci\ldots/login} & Same; \texttt{/login} is the page Jenkins shows to everyone.\\
-6 & HTTPS probe duration (seconds) & \texttt{\small probe\_duration\_seconds\{job="https"\}} & One labeled line per URL; a slow response shows before a failure.\\
+1 & Whole-host CPU utilization (percent) & The CPU time counter grows forever, so its rate over 2 minutes is the idle share per second; the average over both CPUs is the host-wide idle share, and 100 times one minus it is the busy percentage. Whole host, not per container.\\
+2 & Available host memory (bytes, IEC) & The kernel's estimate of memory applications can still get; it is not the \emph{free} figure. Same value as the \emph{available} column of \texttt{free -b}. Total memory is a second line.\\
+3 & Root filesystem free (percent) & Available bytes divided by the size of the same series, the real root filesystem \texttt{/dev/nvme0n1p1} (xfs). The other filesystems (\texttt{/boot/efi}, \texttt{/run}, \texttt{/tmp}) are not mixed in.\\
+4 & Gitea HTTPS availability (0 or 1) & 1 means DNS, TLS verification, allowed redirects and the final status all passed. A login-page probe does not prove a Git push.\\
+5 & Jenkins HTTPS availability (0 or 1) & The same for the Jenkins login URL; \texttt{/login} is the page Jenkins shows to everyone.\\
+6 & HTTPS probe duration (seconds) & One labeled line per URL; a slow response shows before a failure.\\
 \end{tabularx}
+
+\begin{longlisting}
+\begin{minted}[fontsize=\scriptsize]{text}
+1 CPU %      100 * (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[2m])))
+2 memory     node_memory_MemAvailable_bytes            (and node_memory_MemTotal_bytes)
+3 root free  100 * node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay|squashfs"}
+                 / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay|squashfs"}
+4 Gitea      probe_success{job="https",instance="https://git.ssw590-g1.tech/user/login"}
+5 Jenkins    probe_success{job="https",instance="https://ci.ssw590-g1.tech/login"}
+6 duration   probe_duration_seconds{job="https"}        (legend: {{instance}})
+table        up
+\end{minted}
+\caption{The dashboard queries (Prometheus query language), as saved in the dashboard JSON.}
+\label{Listing:ESreQueries}
+\end{longlisting}
 
 The scrape-health table uses \texttt{up}: \texttt{up} is 1 when Prometheus could scrape the target, while \texttt{probe\_success} can be 0 although \texttt{up}
 is 1 (the collection worked, the probed request failed). \ListRef{142} lists every filesystem Node Exporter reports and why only the xfs root is used.
