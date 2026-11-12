@@ -1,0 +1,23 @@
+Real timeline, Nov 11, 2026 (all times US Eastern, EST, as Grafana's History tab and Discord show them; the server clock is UTC, 5 h ahead).
+Assignment 7, row 6: real firing, delivery and resolution of rule root-disk-below-15-percent (group capacity, every 1 m, pending 5 m, severity warning,
+owner brahmi, no data = NoData, error = Error, contact point team-alerts via the default policy: group wait 30 s, group interval 1 m, repeat 4 h).
+Test design (course Step 7): temporarily raise the free-space threshold above the current value, wait through the pending period, then restore 15 % and
+verify resolution. The disk was never filled. Free space during the test: about 32.81 % (root xfs, /dev/nvme0n1p1, mountpoint /).
+
+Time (EST)   Event                                              Source
+20:02:10     Threshold edited from 15 to 55 and saved           Grafana History: "Normal (Updated)" (evidence 161)
+20:02:30     Pending (A = 32.809085, C = 1)                      Grafana History (evidence 156 screenshot, 161)
+20:07:30     Alerting / Firing (A = 32.808320, C = 1)            Grafana History (evidence 157, 161)
+20:08        Discord message "Firing", Value A=32.8083...        Discord (evidence 158)
+20:14-20:15  Threshold edited back from 55 to 15 and saved       Grafana History: "Normal (Updated)" 20:15:20 (evidence 159, 161)
+20:15:20     State back to Normal                                Grafana History (evidence 159, 161)
+20:16        Discord message "Resolved", Value [no value]        Discord (evidence 160)
+
+Calculated delays:
+- Edit to Pending: 20 s (the next 1-minute evaluation tick).
+- Pending to Alerting: exactly 5 min 0 s = the configured pending period.
+- Alerting to Discord message: under 30 s (group wait 30 s; Discord shows the minute 20:08).
+- Restore edit to Normal: 0 s (the update itself resets the state, "Normal (Updated)").
+- Restore to Resolved message: about 40 s (group interval 1 m / group wait).
+Two notes for honesty: (1) The Resolved message says "grafana_state_reason = Updated": the alert did not clear because free space changed but because the rule was edited back to 15; that is the planned way to test resolution. (2) The Discord times are shown to the minute only.
+Final settings: threshold 15 (the rule page in evidence 159 reads "Is below 15"); no silences, no other change. The rule export (assignment-7/monitoring/grafana/alert-rules.yaml) already has 15.

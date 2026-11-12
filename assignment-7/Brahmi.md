@@ -26,7 +26,7 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
 
 ## Checklist
 - [x] G1 decided (t3.small, evidence 140) · [x] DNS for Grafana (evidence 141) · [x] Caddy block applied (evidence 141; outside-access test pending) · [ ] dashboard (6 panels; JSON drafted in monitoring/grafana, to import and re-export) + JSON in Gitea · [ ] normal-build comparison
-- [ ] two alert rules + contact point · [ ] both alerts fired, delivered, resolved · [ ] capacity test and restore
+- [x] two alert rules + contact point (evidence 149-155) · [~] disk alert fired, delivered, resolved (evidence 156-162) · [ ] service alert fired by the Jenkins outage · [x] capacity test and restore
 - [ ] controlled Jenkins outage + timeline · [ ] blameless review + 2 issues · [ ] row 8 pass, version 1.3 · [ ] final PDF from green run
 
 ## Campus access (decision Nov 11, 2026)
