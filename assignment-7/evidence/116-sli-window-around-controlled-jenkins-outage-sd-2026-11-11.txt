@@ -1,0 +1,35 @@
+Real output, Nov 11, 2026, 8:38 PM New York time (2026-11-12 01:38:31 UTC). Assignment 7, row 5 (actual short SLI window).
+Window agreed with BD around her controlled Jenkins outage: 8:20:00-8:38:00 PM New York (01:20:00-01:38:00 UTC), 18 minutes.
+Jenkins stopped 01:24:25, restarted 01:27:25 UTC (BD's evidence 163-167; container times also in evidence 117).
+Run on the server after the window had closed and BEFORE the restart test (evidence 115). Script: assignment-7/sd-drafts/sli-window.sh.
+
+$ bash sli-window.sh 2026-11-12T01:20:00Z 2026-11-12T01:38:00Z | tee sli-window-20261112T0120-0138.log
+Window: 2026-11-12T01:20:00Z to 2026-11-12T01:38:00Z (1080 s = 18.0 min); evaluation time = window end (2026-11-12T01:38:00Z)
+Scrape interval 30 s -> expected samples per URL: about 1080 / 30 = 36 (+/-1 from scrape timing at the window edges)
+PromQL (range [W] ends at the evaluation time):
+  received     count_over_time(probe_success{job="https"}[1080s])
+  successes    sum_over_time(probe_success{job="https"}[1080s])
+  sli_percent  100 * avg_over_time(probe_success{job="https"}[1080s])
+
+https://ci.ssw590-g1.tech/login
+  received 36 of about 36 expected (missing 0; missing samples are unknown, not success)
+  successes 30, failures 6, SLI = 100 * 30/36 = 83.33 %
+  99 % SLO for this window allows 0.36 failed samples; used 6 -> over budget
+https://git.ssw590-g1.tech/user/login
+  received 36 of about 36 expected (missing 0; missing samples are unknown, not success)
+  successes 36, failures 0, SLI = 100 * 36/36 = 100.00 %
+  99 % SLO for this window allows 0.36 failed samples; used 0 -> within budget
+
+Raw failing samples (time UTC, URL), from probe_success == 0 in the window:
+  https://ci.ssw590-g1.tech/login: 6 failing steps: 01:25:00 .. 01:27:30
+  https://git.ssw590-g1.tech/user/login: 0 failing steps: none
+Note: query_range steps are a 30 s grid view for the timeline; the SLI above uses the stored samples.
+
+=== Reading ===
+- Coverage: 36 of 36 expected samples for each URL, so no unknown (missing) samples.
+- Jenkins: 6 failed samples = 6 x 30 s = 3 minutes, matching the 3 min 0 s outage. SLI 83.33 % for this window; a 99 % SLO
+  would allow 0.36 failed samples here, so the window is over budget. Gitea: 100 %, unaffected.
+- The "failing steps" grid (01:25:00-01:27:30) is query_range's 30 s grid; the stored failing samples are those of
+  01:24:49 to 01:27:19 (evidence 117 shows the first 0 at 01:24:58 in the 15 s polling, first 1 again at 01:27:51).
+- An 18-minute window says nothing about the 24-hour SLO: over 2,880 daily probes the same 6 failures would give
+  100 * 2874/2880 = 99.79 %, within the 28.8-sample budget.

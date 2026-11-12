@@ -2,11 +2,10 @@
 % Needs in the manual's .bib (key GoogleSREWorkbookSLO):
 %   @misc{GoogleSREWorkbookSLO, author={Steven Thurgood and David Ferguson and Alex Hidalgo and Betsy Beyer},
 %     title={Implementing {SLOs}}, howpublished={The Site Reliability Workbook, Google, \url{https://sre.google/workbook/implementing-slos/}}, year={2018}}
-% The real short-window part waits for BD's controlled Jenkins outage (row 7); it stays \StatusPending until measured.
 % Region: sreSlo (single owner; edit only your own region)
 \section{SLI, SLO, and error budget (10 points)}\label{Section:sreSlo}
 \index{SLI}\index{SLO}\index{SLA}\index{error budget}
-\textbf{Owner:} SD. \textbf{Status:} definitions and worked example written; real short window \StatusPending.
+\textbf{Owner:} SD. \textbf{Status:} worked example and a real 18-minute window around the controlled outage \StatusPass.
 
 \paragraph{Definitions.}
 \begin{tabularx}{\linewidth}{L{1.4cm}Y}
@@ -43,7 +42,36 @@ A probe every 30~seconds for 24~hours gives $24 \times 60 \times 2 = 2{,}880$ sc
 The budget is a way to decide, not just a score: while Jenkins has budget left, the team can accept risky changes; once it is
 spent, reliability work comes first.
 
-\paragraph{Our short window.} \Todo{after BD's controlled Jenkins outage: window start/end and time zone, scrape interval 30\,s,
-query evaluation time, \texttt{100 * avg\_over\_time(probe\_success\{job="https", instance=...\}[..])} and
-\texttt{count\_over\_time(...)} for both services, received vs.\ expected samples (about 20 per 10 minutes), missing data
-treated as unknown (not success), and why a short window cannot establish the 24-hour SLO.}
+\paragraph{Our short window.} The real window was agreed with BD around her controlled Jenkins outage
+(Section~\ref{Section:sreIncident}): November 11, 2026, 8:20:00 to 8:38:00~PM New York time (01:20:00 to 01:38:00~UTC on
+November 12), 18~minutes. Jenkins was stopped at 8:24:25 and started again at 8:27:25~PM. The queries above were evaluated
+at the end of the window, with \texttt{W = 1080s}, once the window had closed and before the restart test of
+Section~\ref{Section:sreDeployment} could add a gap (\ListRef{116}).
+
+\begin{tabularx}{\linewidth}{L{2.0cm}L{2.0cm}L{1.6cm}L{1.6cm}L{1.6cm}Y}
+\caption{SLI for the window 8:20--8:38~PM, November 11, 2026\label{Table:SreWindow}}\\
+\toprule \textbf{Service} & \textbf{Samples (expected)} & \textbf{Success} & \textbf{Failed} & \textbf{SLI} & \textbf{99\,\% budget for 36 samples}\\ \midrule
+\endfirsthead
+\toprule \textbf{Service} & \textbf{Samples (expected)} & \textbf{Success} & \textbf{Failed} & \textbf{SLI} & \textbf{99\,\% budget for 36 samples}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Gitea & 36 (36) & 36 & 0 & 100.00\,\% & 0.36 allowed, 0 used: within\\
+Jenkins & 36 (36) & 30 & 6 & 83.33\,\% & 0.36 allowed, 6 used: over\\
+\end{tabularx}
+
+No sample was missing, so no part of the window is unknown. The 6 failed Jenkins samples are $6 \times 30 = 180$~seconds,
+matching the 3-minute outage; the probe got HTTP 502 from Caddy, so the failure was Jenkins itself, not DNS, TLS, or the
+proxy (\ListRef{117}). Gitea was not affected. A window this short cannot establish the 24-hour SLO: one failed sample
+already exceeds its 0.36-sample budget. Measured over a full day of 2,880 probes, the same 6 failures would give
+$100 \times 2874/2880 \approx 99.79\,\%$, inside the 28.8-sample budget of the worked example.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/116-sli-window-around-controlled-jenkins-outage-sd-2026-11-11.txt}
+\caption{SLI for the window around the controlled Jenkins outage: PromQL, evaluation time, coverage, successes, failures, November 11, 2026 (real output).}
+\label{Listing:E116}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/117-outage-timeline-recorder-probe-and-container-state-sd-2026-11-11.txt}
+\caption{Independent outage timeline from a read-only recorder: Jenkins container state, probe values, and direct HTTPS checks every 15 seconds, November 11, 2026 (real output).}
+\label{Listing:E117}
+\end{longlisting}

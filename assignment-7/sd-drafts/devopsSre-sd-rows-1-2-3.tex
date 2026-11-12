@@ -4,13 +4,12 @@
 %   - copy infra/monitoring/{compose.yaml,prometheus/prometheus.yml,blackbox/blackbox.yml,Caddyfile.metrics-block.txt} to config/monitoring/
 %   - copy evidence 110-114 (and BD's 140, 141, 143, 147 are cited) into evidence/
 %   - copy sd-drafts/TikZ/devopsSreDeployment.tex to TikZ/devopsSre/
-%   - replace the \Todo items once PR #2 is merged and the restart test (with BD's outage) is recorded.
 % Points per the course rubric (sec. 5.5): row 1 = 15, row 2 = 15, row 3 = 10.
 
 % ===== SD region: rows 1, 2, 3 =====
 % Region: sreDeployment (single owner; edit only your own region)
 \section{Deployment and capacity (15 points)}\label{Section:sreDeployment}
-\textbf{Owner:} SD. \textbf{Status:} deployed and verified November 10, 2026; restart test \StatusPending.
+\textbf{Owner:} SD. \textbf{Status:} deployed November 10, 2026; restart test November 11, 2026 \StatusPass.
 
 \paragraph{Baseline and capacity.} Before anything was added, the server was read without changes (\ListRef{110}):
 an EC2 \texttt{t3.micro} with 913~MiB of RAM, of which only 200~MiB was available and 425~MiB was already in swap, while
@@ -80,10 +79,17 @@ Not drawn: the Gitea Actions runner and the Gitea--Jenkins webhook (Chapter~\ref
 \label{Fig:ESreDeployment}
 \end{figure}
 
-\paragraph{Restart persistence.} \Todo{After BD's controlled outage: restart \texttt{prometheus}, then \texttt{grafana}
-(\texttt{docker restart}); show the earlier time series, the dashboard, the data source and the alert rules still there,
-and name the collection gap. Recorded once, cited here and in Section~\ref{Section:sreIncident}.} This shows that the
-volumes persist; it is not a backup and restore.
+\paragraph{Restart persistence.} Right after BD's controlled Jenkins outage and after the SLI window had been read
+(Section~\ref{Section:sreSlo}), Prometheus and then Grafana were restarted with \texttt{docker restart}, on November 11,
+2026, 8:38--8:40~PM New York time (\ListRef{115}). Both kept the same container IDs and the same named volumes. Prometheus'
+oldest stored sample (03:15:08~UTC on November 11, the first scrape) and its 720 probe samples per URL from the last six
+hours were still there; Prometheus was ready again after 3~seconds, and one 30-second Gitea sample was missed (719 instead
+of 720). Grafana was healthy after 14~seconds, and its data source, both alert rules, the contact point
+\texttt{team-alerts}, both user accounts, and the dashboard (created at 8:25~PM, before the restart) were all still
+present. A first reading reported zero dashboards: the script had queried Grafana's legacy dashboard table, while
+Grafana~13 keeps dashboards in its newer \texttt{resource} table; the corrected check is in the same listing. This shows
+that the volumes persist; it is not a backup and restore. The same test is BD's verification in
+Section~\ref{Section:sreIncident}.
 
 \begin{longlisting}
 \inputminted[fontsize=\scriptsize]{text}{evidence/110-server-baseline-before-monitoring-sd-2026-11-10.txt}
@@ -101,6 +107,12 @@ volumes persist; it is not a backup and restore.
 \inputminted[fontsize=\scriptsize]{text}{evidence/112-monitoring-stack-deployed-digests-targets-probes-host-values-sd-2026-11-10.txt}
 \caption{Deployment: pull and start, container settings, pulled digests, Prometheus targets, first probe results, host values, Grafana limit change, November 10, 2026 (real output).}
 \label{Listing:E112}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/115-prometheus-grafana-restart-persistence-test-sd-2026-11-11.txt}
+\caption{Restart test of Prometheus and Grafana: state before and after, readiness times, collection gap, and the corrected dashboard check, November 11, 2026 (real output).}
+\label{Listing:E115}
 \end{longlisting}
 
 % Region: sreMetrics (single owner; edit only your own region)

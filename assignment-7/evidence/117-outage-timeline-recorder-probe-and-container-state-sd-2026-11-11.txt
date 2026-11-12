@@ -1,0 +1,39 @@
+Real output, Nov 11, 2026, 8:21-8:40 PM New York time (2026-11-12 01:21-01:40 UTC). Assignment 7, rows 5 and 7 (independent timeline).
+Read-only recorder started by SD on the server before BD's outage (~/monitoring/outage-recorder.sh): every ~15 s it logged
+the Jenkins container state (docker inspect only; it never stopped or started anything), the latest Prometheus values for the
+Jenkins probe and the Gitea probe, and a direct curl of https://ci.ssw590-g1.tech/login from the host.
+Excerpt 01:23:10-01:29:09 UTC (the full log, 01:21-02:06 UTC, stays on the server: ~/monitoring/outage-timeline-20261112.log).
+
+utc_time | jenkins_state started_at | prom probe_success(ci) | prom http_status(ci) | prom duration_s(ci) | prom probe_success(git) | curl ci /login
+2026-11-12 01:23:10 | running 2026-11-11T02:41:15.374949665Z | 1 | 200 | 0.0328 | 1 | 200
+2026-11-12 01:23:25 | running 2026-11-11T02:41:15.374949665Z | 1 | 200 | 0.0131 | 1 | 200
+2026-11-12 01:23:41 | running 2026-11-11T02:41:15.374949665Z | 1 | 200 | 0.0131 | 1 | 200
+2026-11-12 01:23:56 | running 2026-11-11T02:41:15.374949665Z | 1 | 200 | 0.0132 | 1 | 200
+2026-11-12 01:24:11 | running 2026-11-11T02:41:15.374949665Z | 1 | 200 | 0.0132 | 1 | 200
+2026-11-12 01:24:27 | exited 2026-11-11T02:41:15.374949665Z | 1 | 200 | 0.0146 | 1 | 502
+2026-11-12 01:24:42 | exited 2026-11-11T02:41:15.374949665Z | 1 | 200 | 0.0146 | 1 | 502
+2026-11-12 01:24:58 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0178 | 1 | 502
+2026-11-12 01:25:13 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0178 | 1 | 502
+2026-11-12 01:25:28 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0106 | 1 | 502
+2026-11-12 01:25:44 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0106 | 1 | 502
+2026-11-12 01:25:59 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0115 | 1 | 502
+2026-11-12 01:26:14 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0115 | 1 | 502
+2026-11-12 01:26:30 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0118 | 1 | 502
+2026-11-12 01:26:45 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0118 | 1 | 502
+2026-11-12 01:27:00 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0110 | 1 | 502
+2026-11-12 01:27:16 | exited 2026-11-11T02:41:15.374949665Z | 0 | 502 | 0.0110 | 1 | 502
+2026-11-12 01:27:36 | running 2026-11-12T01:27:26.514973846Z | 0 | 502 | 0.0109 | 1 | 503
+2026-11-12 01:27:51 | running 2026-11-12T01:27:26.514973846Z | 1 | 200 | 0.4558 | 1 | 200
+2026-11-12 01:28:07 | running 2026-11-12T01:27:26.514973846Z | 1 | 200 | 0.4558 | 1 | 200
+2026-11-12 01:28:22 | running 2026-11-12T01:27:26.514973846Z | 1 | 200 | 0.0235 | 1 | 200
+2026-11-12 01:28:38 | running 2026-11-12T01:27:26.514973846Z | 1 | 200 | 0.0235 | 1 | 200
+2026-11-12 01:28:53 | running 2026-11-12T01:27:26.514973846Z | 1 | 200 | 0.0187 | 1 | 200
+2026-11-12 01:29:09 | running 2026-11-12T01:27:26.514973846Z | 1 | 200 | 0.0187 | 1 | 200
+
+=== Reading ===
+- 01:24:27  Jenkins container already "exited" (BD stopped it at 01:24:25); Caddy answers 502 at once.
+- 01:24:58  Prometheus shows probe_success 0, HTTP 502 for the ci. URL (BD: first failing probe 01:24:49). Gitea stays 1 throughout.
+- 01:27:26.5  Docker StartedAt of the new Jenkins container (BD's command at 01:27:25).
+- 01:27:36  Jenkins still starting: curl gets 503.
+- 01:27:51  probe_success 1, HTTP 200, duration 0.456 s (first probe after the restart; normal is about 0.013 s).
+The probe failed on the HTTP status (502 from Caddy), not on DNS or TLS: the proxy stayed up, the upstream was down.

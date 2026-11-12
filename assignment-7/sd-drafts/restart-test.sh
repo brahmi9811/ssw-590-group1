@@ -28,7 +28,8 @@ grafana_state() {
   python3 - "$tmp/g.db" <<'EOF'
 import sqlite3, sys
 c = sqlite3.connect(sys.argv[1])
-for label, sql in [("dashboards", "select title from dashboard where is_folder=0"),
+# Grafana 12+ keeps dashboards in unified storage (table resource), not the legacy dashboard table.
+for label, sql in [("dashboards", "select json_extract(value, '$.spec.title') || ' (created ' || json_extract(value, '$.metadata.creationTimestamp') || ')' from resource where \"group\"='dashboard.grafana.app'"),
                    ("data sources", "select name || ' (' || type || ')' from data_source"),
                    ("alert rules", "select title from alert_rule"),
                    ("contact points (names only)", "select json_extract(r.value, '$.name') from alert_configuration a, json_each(json_extract(a.alertmanager_configuration, '$.alertmanager_config.receivers')) r"),
