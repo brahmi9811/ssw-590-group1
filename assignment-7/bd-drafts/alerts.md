@@ -7,7 +7,7 @@ Status: DRAFT. Rule queries need the label selectors verified in queries.md. Sec
 - Query A: `probe_success{job="https"}` (one series per URL, so Grafana raises one alert per `instance`).
 - Condition: reduce A (last), IS BELOW 1.
 - Pending period 1 m (the course asks for failing at least one minute). Expected detection: up to one scrape (30 s) plus one evaluation (30 s) plus the pending period (60 s), so about 1.5 to 2.5 minutes after the service stops.
-- No data: Alerting. Error: Alerting. An absent series or a failed collection is reported, never treated as healthy.
+- No data: NoData. Error: Error. (Set in Grafana as the states `NoData` and `Error`, not `Alerting`: Grafana then raises its own `DatasourceNoData` / `DatasourceError` alert instance through the same contact point, so a missing series or failed evaluation is reported as a monitoring failure, separate from a real service outage, and never treated as healthy. Verified on the saved rule, evidence 152.)
 - Summary: `{{ $labels.instance }} failed its HTTPS probe for at least 1 minute`.
 - Runbook link: the Jenkins outage runbook section of the manual (label set in row 7).
 - Notification: contact point `team-alerts`.
@@ -15,7 +15,7 @@ Status: DRAFT. Rule queries need the label selectors verified in queries.md. Sec
 ## Rule 2: host root disk low
 - Name `root-disk-below-15-percent`; owner Brahmi Dalvi; severity `warning`; group `capacity`, interval 1 m.
 - Query A: `100 * node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay|squashfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overlay|squashfs"}` (selector verified in Explore first).
-- Condition: reduce A (last), IS BELOW 15. Pending period 5 m. No data: Alerting. Error: Alerting.
+- Condition: IS BELOW 15 on A. Pending period 5 m. No data: NoData. Error: Error (as rule 1).
 - Summary: `Root filesystem has less than 15% free`.
 - Operator response (for the manual): `docker system df`; remove unused images only after checking they are not the runner's image (5.8 GB reclaimable, evidence 110); check Prometheus (1 GB cap) and Docker logs; never delete volumes.
 - Test: temporarily set the threshold above the current free percentage (about 42% free now, since `df` shows 58% used, so use 55), wait through the 5 m pending period, record firing and delivery, then set it back to 15 and record resolution. Never fill the disk. Record the temporary change and the restore in the same evidence file.
