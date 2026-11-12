@@ -1,6 +1,6 @@
 # Grafana alert rules exported from https://metrics.ssw590-g1.tech (Alerting, Export rules, YAML) on 2026-11-11 by BD.
 # Contains no secrets: the contact point team-alerts (Discord webhook URL) is NOT part of a rule export.
-# Two groups: "availability" (https-service-down, every 30 s) and "capacity" (root-disk-below-15-percent, every 1 m); both threshold 15 as finally restored.
+# Two groups: "availability" (https-service-down, every 30 s) and "capacity" (root-disk-below-15-percent, every 1 m); thresholds: https-service-down fires below 1, root-disk-below-15-percent below 15 (restored to 15 after the capacity test).
 apiVersion: 1
 groups:
     - orgId: 1
