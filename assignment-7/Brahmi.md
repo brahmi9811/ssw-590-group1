@@ -25,7 +25,7 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
   security-group verification; Hosts and Passwords tables; final build and submission.
 
 ## Checklist
-- [x] G1 decided (t3.small, evidence 140) · [x] DNS for Grafana (evidence 141) · [x] Caddy block applied (evidence 141; outside-access test pending) · [ ] dashboard (6 panels; JSON drafted in monitoring/grafana, to import and re-export) + JSON in Gitea · [ ] normal-build comparison
+- [x] G1 decided (t3.small, evidence 140) · [x] DNS for Grafana (evidence 141) · [x] Caddy block applied (evidence 141; outside-access test pending) · [x] dashboard (6 panels, evidence 142-148) · [ ] dashboard JSON in Gitea (infra PR) · [x] normal-build comparison (evidence 168-169)
 - [x] two alert rules + contact point (evidence 149-155) · [~] disk alert fired, delivered, resolved (evidence 156-162) · [x] service alert fired and resolved by the Jenkins outage (evidence 163-167) · [x] capacity test and restore
 - [x] controlled Jenkins outage + timeline (evidence 167) · [ ] blameless review + 2 issues · [ ] row 8 pass, version 1.3 · [ ] final PDF from green run
 

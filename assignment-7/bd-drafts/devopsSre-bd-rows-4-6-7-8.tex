@@ -76,8 +76,49 @@ both probes 1 with 0.012~s and 0.040~s.
 \label{Listing:E142}
 \end{longlisting}
 
-\paragraph{Normal Jenkins build.} \Todo{one normal build of twintrack main on a calm server with the dashboard open: build ID, commit, start and end time, executed on the controller; before, during and after values; explain what changed or why nothing was visible (a 5 to 20 s build can fall between two 30 s scrapes; whole-host correlation does not attribute CPU or memory to Jenkins).}
-The build \texttt{main} \#2 on November 12, 2026, 01:29:12~UTC (7.9~s, \FigRef{166}) is \emph{not} used for this comparison: it ran two minutes after Jenkins was restarted in the outage test, when the host was already busy with Jenkins' own start-up (CPU between 6\% and 39\% in the surrounding scrapes), so the build could not be told apart from the restart.
+\paragraph{Normal Jenkins build.} One normal run of the existing pipeline was captured on a calm server: build \#3 of
+\texttt{twintrack/main}, started by BD with \emph{Build Now} on November 12, 2026 at 01:41:47~UTC (November 11, 20:41:47~EST), commit
+\texttt{a0094a8} (the merged pull request \#10), result SUCCESS, duration 2.4~s, end about 01:41:49. The console says
+\texttt{Running on Jenkins in /var/jenkins\_home/workspace/twintrack\_main}: the build ran on the \emph{controller}, so its resource
+use is inside this host's measurements (\FigRef{169}). Jenkins had been up for 14 minutes since its restart in the outage test.
+The host values come from Node Exporter's raw samples, one every 30~s (\ListRef{168}):
+
+\begin{tabularx}{\linewidth}{L{3.2cm}L{3.4cm}L{2.6cm}Y}
+\caption{Host CPU and available memory around build \#3 (UTC, 30~s samples)\label{Table:SreBuildSamples}}\\
+\toprule \textbf{Sample} & \textbf{CPU busy, previous 30~s} & \textbf{Available} & \textbf{Position}\\ \midrule
+\endfirsthead
+\toprule \textbf{Sample} & \textbf{CPU busy, previous 30~s} & \textbf{Available} & \textbf{Position}\\ \midrule
+\endhead \bottomrule \endlastfoot
+01:40:46 & 5.7\% & 675~MiB & before\\
+01:41:16 & 6.7\% & 671~MiB & before\\
+01:41:46 & 5.4\% & 662~MiB & before (1~s before the start)\\
+01:42:16 & 10.1\% & 654~MiB & during: the only sample containing the build\\
+01:42:46 & 6.2\% & 662~MiB & after\\
+01:43:16 & 4.5\% & 695~MiB & after\\
+\end{tabularx}
+
+\emph{What changed:} the one sample that contains the 2.4~s build reads 10.1\% CPU, against 4 to 7\% before and after. A one-core job of 2.4~s adds about
+$2.4/(30\times 2)=4$ percentage points to a 30~s average over two CPUs, so the rise is of the size expected, but it is a single sample whose neighbours already
+vary between 3 and 7\%, so it is consistent with the build and does not prove it. \emph{What did not change:} available memory moved by 10 to 40~MiB, within
+the normal movement of the minutes before (632 to 678~MiB). \emph{Why so little is visible:} a build of 2.4~s falls inside one 30~s scrape and is averaged with
+27 quiet seconds; the pipeline is two short Python commands. No extra load was created to force a spike. Whole-host figures do not say how much of the CPU belongs to
+Jenkins rather than to another container. Other activity in the window (the manual build on the Gitea Actions runner at 01:35 to 01:36 with CPU above 50\%, and a missing
+sample at 01:38:46) is listed in \ListRef{168}.
+The earlier build \texttt{main} \#2 (01:29:12~UTC, 7.9~s, \FigRef{166}) was \emph{not} used: it ran two minutes after Jenkins was restarted in the outage test, when the host was
+already busy with Jenkins' own start-up (CPU 6 to 39\% in the surrounding scrapes), so the build could not be told apart from the restart.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/168-normal-jenkins-build-3-host-metrics-before-during-after-bd-2026-11-11.txt}
+\caption{Build \#3 of \texttt{main}: facts, host samples before, during and after, interpretation, and the other activity in the window (real output).}
+\label{Listing:E168}
+\end{longlisting}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{evidence/169-jenkins-twintrack-main-build-3-success-2-4-s-and-console-running-on-controller-bd-2026-11-12.png}
+\caption{Jenkins build \#3 of \texttt{twintrack/main} (Nov 12, 2026, 1:41:47 AM server time): SUCCESS, took 2.4~s, and its console, \texttt{Running on Jenkins in /var/jenkins\_home/workspace/twintrack\_main}, the controller.}
+\label{Fig:E169}
+\end{figure}
 
 \paragraph{Observation.} The Jenkins probe duration shows one sample of about 4~s (above the 3~s red line) at about 16:25~EST on November 11. Its cause was not investigated; it is reported here instead of being hidden.
 
