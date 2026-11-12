@@ -1,4 +1,8 @@
 % DRAFT (SD) for the row 5 region of the SRE chapter. Moves into the Gitea manual repo once the chapter skeleton exists.
+% Needs in the manual's .bib (key GoogleSREWorkbookSLO):
+%   @misc{GoogleSREWorkbookSLO, author={Steven Thurgood and David Ferguson and Alex Hidalgo and Betsy Beyer},
+%     title={Implementing {SLOs}}, howpublished={The Site Reliability Workbook, Google, \url{https://sre.google/workbook/implementing-slos/}}, year={2018}}
+% \SectionRef{sreDashboard}: use BD's actual label for the dashboard section.
 % The real short-window part waits for BD's controlled Jenkins outage (row 7); it stays \StatusPending until measured.
 \subsection{SLI, SLO, and error budget (10 points)}
 \label{Section:sreSlo}
@@ -12,6 +16,20 @@ SLI & \emph{Service-level indicator}: a measured fraction. Ours is the share of 
 SLO & \emph{Service-level objective}: our internal target for that SLI, at least 99\,\% probe success over a 24-hour window, evaluated separately for Gitea and Jenkins. It is a lab target chosen by the course, not a promise.\\
 SLA & \emph{Service-level agreement}: a commitment to a customer, usually with consequences if missed. This startup has no customer SLA; nothing here is one.\\ \bottomrule
 \end{tabularx}
+\paragraph{How the SLI is computed.} For one service and a window \texttt{W}, with one sample every 30~seconds:
+\begin{minted}{text}
+100 * avg_over_time(probe_success{job="https", instance="https://ci.ssw590-g1.tech/login"}[W])
+count_over_time(probe_success{job="https", instance="https://ci.ssw590-g1.tech/login"}[W])   # samples received
+\end{minted}
+\texttt{probe\_success} is 1 or 0, so its average over the window is the success fraction. The count is compared with the
+expected number of samples (\texttt{W} / 30\,s); a missing sample is unknown, not a success. Dashboard panels~4 and~5
+(\SectionRef{sreDashboard}) show the same series sample by sample.
+
+\paragraph{What this SLI does not see.} It measures availability of the login page, not speed. A probe that takes
+4~seconds but returns 200 still counts as a success: the Jenkins probe did exactly that once on Nov~11 near 16:25~EST
+(dashboard panel~6), and the availability SLI did not change. Catching slowness would need a second, latency SLI, for
+example the share of probes faster than 1~second. A login page that loads also does not prove that a Git push or a build works.
+
 The difference in one line: the SLI is what we measure, the SLO is the target we hold ourselves to, and an SLA is what we would owe
 someone else if we missed it \cite{GoogleSREWorkbookSLO}.
 
