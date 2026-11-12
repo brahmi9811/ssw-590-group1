@@ -18,7 +18,7 @@ Status: DRAFT. Rule queries need the label selectors verified in queries.md. Sec
 - Condition: IS BELOW 15 on A. Pending period 5 m. No data: NoData. Error: Error (as rule 1).
 - Summary: `Root filesystem has less than 15% free`.
 - Operator response (for the manual): `docker system df`; remove unused images only after checking they are not the runner's image (5.8 GB reclaimable, evidence 110); check Prometheus (1 GB cap) and Docker logs; never delete volumes.
-- Test: temporarily set the threshold above the current free percentage (about 42% free now, since `df` shows 58% used, so use 55), wait through the 5 m pending period, record firing and delivery, then set it back to 15 and record resolution. Never fill the disk. Record the temporary change and the restore in the same evidence file.
+- Test: temporarily set the threshold above the current free percentage (about 33% free on Nov 11, 2026 after the new images, so 55 still works), wait through the 5 m pending period, record firing and delivery, then set it back to 15 and record resolution. Never fill the disk. Record the temporary change and the restore in the same evidence file.
 
 ## Contact point `team-alerts`
 - Type: webhook (decided by BD, no SMTP needed). The receiver must be team-controlled and its URL is a secret: a private team chat channel with Grafana's dedicated integration for that service (for example Discord or Slack), not a generic webhook with a guessed JSON format. Both team members must be able to see the channel. Resolved notifications ON. The URL or SMTP credentials are entered only in the Grafana UI (stored in the grafana_data volume) and shown in the manual as a placeholder; the hint goes into the Hosts and Passwords table.
