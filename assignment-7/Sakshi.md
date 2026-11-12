@@ -54,6 +54,12 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
 - Access control tested (evidence 113): non-team sees only the login page and its assets, everything else 403; monitoring ports closed.
   Still to do: phone test on mobile data, then sign-in with own account after BD sets the admin password.
 
+### Update (Nov 11, evening)
+- Gitea `group1-startup/infra`: branch `sd/1-monitoring-stack`, commit `cefc2fd` adds `monitoring/` (the deployed files + README with
+  start/update/recover steps and digests) and the `metrics.` block in the root `Caddyfile`. Validated locally: `caddy validate`,
+  `docker compose config`, `promtool check config`. Issue #1 and the PR (BD reviews) still to open: needs SD signed in to Gitea.
+- Deployment diagram drafted: `sd-drafts/TikZ/devopsSreDeployment.tex` (+ preview PNG).
+
 ## Checklist
 - [x] baseline evidence · [x] image tags chosen · [x] monitoring files drafted and validated locally · [ ] Gitea issue + branch + PR
 - [x] G1 decided by BD · [x] stack deployed, digests recorded · [x] targets up, probes defined, host values verified
