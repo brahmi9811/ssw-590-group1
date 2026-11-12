@@ -1,0 +1,38 @@
+Real timeline, Nov 11/12, 2026. Assignment 7, rows 6 and 7. Server clock and Prometheus are UTC; Grafana and Discord show US Eastern (EST = UTC - 5 h).
+Agreed exercise (BD and SD both on campus, SD recording): stop only the Jenkins container for about 3 minutes with `docker stop jenkins`, restart it with
+`docker start jenkins`. No volume touched, the instance not stopped, Gitea and monitoring kept running. No build was running (Jenkins idle; no build started in the previous 10 minutes).
+Commands run by BD in an SSH session on the server (campus address); the times were printed by `date -u` in the same command line.
+
+Event (UTC)  EST       What happened / source
+01:24:19              last probe = 1 (Jenkins)                                   Prometheus samples of probe_success (below)
+01:24:25     20:24:25 INJECTION: `docker stop jenkins` printed 01:24:25 UTC      server terminal
+01:24:49     20:24:49 first failing probe (probe_success = 0), 24 s after stop   Prometheus
+01:25:10     20:25:10 rule https-service-down: Pending (A = 0, C = 1)            Grafana History (evidence 163)
+01:26:10     20:26:10 rule: Alerting / Firing (after the 1 m pending period)     Grafana History (evidence 163)
+about 01:26  20:26    Discord "Firing" message, instance https://ci.ssw590-g1.tech/login   Discord (evidence 164; Discord shows the minute only)
+(acknowledged)        BD read the message and then restarted Jenkins; no separate acknowledgement time was recorded (at the latest 01:27:25)
+01:27:25     20:27:25 RESTART: `docker start jenkins` printed 01:27:25 UTC       server terminal (3 min 0 s after the stop)
+01:27:49     20:27:49 first successful probe (probe_success = 1), 24 s after the restart   Prometheus
+01:28:10     20:28:10 rule back to Normal (A = 1, C = 0)                         Grafana History (evidence 163)
+about 01:28  20:28    Discord "Resolved" message                                 Discord (evidence 165)
+01:29:12     20:29:12 Jenkins build twintrack/main #2, Build Now by BD: SUCCESS in 7.9 s, revision a0094a8 (the merged main commit)   Jenkins (evidence 166)
+01:29:14-01:29:20     Gitea commit statuses of a0094a8, context twintrack/pipeline/head: pending (queued) 01:29:14, pending (started) 01:29:19, success "This commit looks good" 01:29:20   Gitea API, read without a token
+
+Raw samples of probe_success for the Jenkins login URL (one per 30 s, UTC; Prometheus range query read at about 01:30):
+  01:21:19=1 01:21:49=1 01:22:19=1 01:22:49=1 01:23:19=1 01:23:49=1 01:24:19=1 | 01:24:49=0 01:25:19=0 01:25:49=0 01:26:19=0 01:26:49=0 01:27:19=0 | 01:27:49=1 01:28:19=1 01:28:49=1 01:29:19=1 01:29:49=1
+Failing samples: 6 (01:24:49 to 01:27:19). The Gitea login URL stayed 1 in every sample of the same range (01:21:16 to 01:29:46): only Jenkins was affected.
+
+Calculated times (start and end events named):
+- Time to first failing probe: stop 01:24:25 to first failed sample 01:24:49 = 24 s (at most one scrape interval, 30 s).
+- Time to detection by the alert rule: stop to Firing state 01:26:10 = 1 min 45 s (24 s to the failed probe, the next 30 s evaluation at 01:25:10 starts Pending, then the 60 s pending period).
+- Time to notification: stop to the Discord message, shown at 20:26 = between 1 min 35 s and 2 min 34 s (Discord shows the minute only; Firing 01:26:10 plus the 30 s group wait gives about 01:26:40, so about 2 min 15 s).
+- Outage as set: stop to restart = 3 min 0 s. Restoration time, stop to first successful probe = 01:24:25 to 01:27:49 = 3 min 24 s; restart to first successful probe = 24 s (Jenkins' own start-up about 13 s, see Chapter 4). By the samples, the last good sample 01:24:19 to the first good sample 01:27:49 spans 3 min 30 s.
+- Time to resolution: first successful probe 01:27:49 to rule Normal 01:28:10 = 21 s; the Resolved message shows 20:28.
+- Compared with the settings (scrape 30 s, evaluation 30 s, pending 60 s, group wait 30 s: at most 2 min 30 s expected before a message): observed about 2 min 15 s, as expected.
+
+Verification after recovery:
+- Jenkins HTTPS login page reachable (a first check by Claude Code at 01:27:36, 11 s after the restart, still showed the probe at 0, as expected during start-up).
+- Passing pipeline: build main #2 SUCCESS (evidence 166).
+- Gitea reachable; commit statuses from Jenkins reached Gitea (twintrack/pipeline/head success for a0094a8 at 01:29:20), so the status integration through Jenkins still works.
+- The Prometheus and Grafana restart test (SD's evidence, shared with row 1) follows after SD's SLI window has ended.
+Difference from Chapter 4: that failure was a bad commit stopped by the merge gate (evidence 96-101, Listing 36 and 37); this one is an outage of the CI service itself, found by monitoring.

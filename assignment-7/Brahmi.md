@@ -26,8 +26,8 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
 
 ## Checklist
 - [x] G1 decided (t3.small, evidence 140) · [x] DNS for Grafana (evidence 141) · [x] Caddy block applied (evidence 141; outside-access test pending) · [ ] dashboard (6 panels; JSON drafted in monitoring/grafana, to import and re-export) + JSON in Gitea · [ ] normal-build comparison
-- [x] two alert rules + contact point (evidence 149-155) · [~] disk alert fired, delivered, resolved (evidence 156-162) · [ ] service alert fired by the Jenkins outage · [x] capacity test and restore
-- [ ] controlled Jenkins outage + timeline · [ ] blameless review + 2 issues · [ ] row 8 pass, version 1.3 · [ ] final PDF from green run
+- [x] two alert rules + contact point (evidence 149-155) · [~] disk alert fired, delivered, resolved (evidence 156-162) · [x] service alert fired and resolved by the Jenkins outage (evidence 163-167) · [x] capacity test and restore
+- [x] controlled Jenkins outage + timeline (evidence 167) · [ ] blameless review + 2 issues · [ ] row 8 pass, version 1.3 · [ ] final PDF from green run
 
 ## Campus access (decision Nov 11, 2026)
 BD keeps campus access on for later assignments: security group `sg-0415c75429368eb85` has an extra SSH rule `sgr-03ad4a07314c0cc17` for the campus public address
