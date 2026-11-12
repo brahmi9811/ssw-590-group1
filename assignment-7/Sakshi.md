@@ -61,6 +61,12 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
   https://git.ssw590-g1.tech/group1-startup/infra/pulls/2 (Closes #1, reviewer BD) opened; waiting for BD's review and merge.
 - Deployment diagram drafted: `sd-drafts/TikZ/devopsSreDeployment.tex` (+ preview PNG).
 
+### Update (Nov 11, late)
+- Rows 1, 2, 3 written for the chapter: `sd-drafts/devopsSre-sd-rows-1-2-3.tex`; row 5 adapted to BD's skeleton labels.
+- Test build of the whole manual with these sections (scratch copy, not pushed to Gitea): latexmk exit 0; only BD's evidence
+  references 140, 141, 144, 147 undefined (her regions include them). Preview: `sd-drafts/devopsSre-preview-sd-sections.pdf`.
+- Open \Todo items: PR #2 merge commit; restart test (with BD's outage); date SD changed her Grafana password; row 5 real window.
+
 ## Checklist
 - [x] baseline evidence · [x] image tags chosen · [x] monitoring files drafted and validated locally · [x] Gitea issue #1 + branch + PR #2 (merge pending)
 - [x] G1 decided by BD · [x] stack deployed, digests recorded · [x] targets up, probes defined, host values verified
