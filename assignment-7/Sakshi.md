@@ -57,11 +57,12 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
 ### Update (Nov 11, evening)
 - Gitea `group1-startup/infra`: branch `sd/1-monitoring-stack`, commit `cefc2fd` adds `monitoring/` (the deployed files + README with
   start/update/recover steps and digests) and the `metrics.` block in the root `Caddyfile`. Validated locally: `caddy validate`,
-  `docker compose config`, `promtool check config`. Issue #1 and the PR (BD reviews) still to open: needs SD signed in to Gitea.
+  `docker compose config`, `promtool check config`. Issue #1 https://git.ssw590-g1.tech/group1-startup/infra/issues/1 and PR #2
+  https://git.ssw590-g1.tech/group1-startup/infra/pulls/2 (Closes #1, reviewer BD) opened; waiting for BD's review and merge.
 - Deployment diagram drafted: `sd-drafts/TikZ/devopsSreDeployment.tex` (+ preview PNG).
 
 ## Checklist
-- [x] baseline evidence · [x] image tags chosen · [x] monitoring files drafted and validated locally · [ ] Gitea issue + branch + PR
+- [x] baseline evidence · [x] image tags chosen · [x] monitoring files drafted and validated locally · [x] Gitea issue #1 + branch + PR #2 (merge pending)
 - [x] G1 decided by BD · [x] stack deployed, digests recorded · [x] targets up, probes defined, host values verified
 - [x] Grafana HTTPS, external exposure tests (phone test + own login pending) · [ ] restart persistence test · [x] deployment diagram drafted (sd-drafts/TikZ)
 - [x] row 5 worked example · [ ] row 5 real window (after BD's outage) · [ ] rows 1, 2, 3, 5 written in the chapter with inline evidence
