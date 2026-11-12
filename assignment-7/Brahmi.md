@@ -28,3 +28,9 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
 - [x] G1 decided (t3.small, evidence 140) · [x] DNS for Grafana (evidence 141) · [x] Caddy block applied (evidence 141; outside-access test pending) · [ ] dashboard (6 panels; JSON drafted in monitoring/grafana, to import and re-export) + JSON in Gitea · [ ] normal-build comparison
 - [ ] two alert rules + contact point · [ ] both alerts fired, delivered, resolved · [ ] capacity test and restore
 - [ ] controlled Jenkins outage + timeline · [ ] blameless review + 2 issues · [ ] row 8 pass, version 1.3 · [ ] final PDF from green run
+
+## Campus access (decision Nov 11, 2026)
+BD keeps campus access on for later assignments: security group `sg-0415c75429368eb85` has an extra SSH rule `sgr-03ad4a07314c0cc17` for the campus public address
+(/32), and the server's `~/gitea/.env` `TEAM_IPS` lists home and campus addresses (backup `.env.bak-before-campus-ip`). Record both in the manual (Hosts table, firewall
+section, version history); the address is not written in this file. A campus address is shared by other people on that network: SSH still needs the key,
+Grafana/Jenkins/Gitea still need their logins. Review and remove at teardown or if the campus address changes.
