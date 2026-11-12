@@ -43,8 +43,10 @@ disk that Jenkins builds also use.
 \paragraph{Configuration in Gitea.} The non-secret files are in the \texttt{infra} repository, folder
 \href{\GiteaURL/group1-startup/infra/src/branch/main/monitoring}{\texttt{monitoring}}, added through
 \href{\GiteaURL/group1-startup/infra/issues/1}{issue \#1} and
-\href{\GiteaURL/group1-startup/infra/pulls/2}{pull request \#2}, reviewed and merged by BD
-\Todo{merge commit link and date after BD merges PR \#2}. The same files run in \texttt{\textasciitilde/monitoring} on
+\href{\GiteaURL/group1-startup/infra/pulls/2}{pull request \#2}. BD checked the Caddy block against the live
+Caddyfile and the memory limits against the running containers, and merged it on November 11, 2026, 19:42~EST, as
+merge commit \href{\GiteaURL/group1-startup/infra/commit/c03fb1b10e003554374404b7759cefa408214314}{\texttt{c03fb1b}}
+(her review was given in the team chat; Gitea records the merge, not a formal approval). The same files run in \texttt{\textasciitilde/monitoring} on
 the server. No Compose service publishes a host port, none is privileged, and none mounts the Docker socket.
 
 \begin{longlisting}
