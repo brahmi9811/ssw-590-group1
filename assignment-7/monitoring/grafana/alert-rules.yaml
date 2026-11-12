@@ -1,0 +1,66 @@
+# Grafana alert rules exported from https://metrics.ssw590-g1.tech (Alerting, Export rules, YAML) on 2026-11-11 by BD.
+# Contains no secrets: the contact point team-alerts (Discord webhook URL) is NOT part of a rule export.
+# Group "availability" below; group "capacity" (root-disk-below-15-percent) is appended once exported.
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: availability
+      folder: Group 1
+      interval: 30s
+      rules:
+        - uid: bg411bye9zzlsb
+          title: https-service-down
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: cg40z7grzl5vkc
+              model:
+                editorMode: code
+                expr: probe_success{job="https"}
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              queryType: expression
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 1
+                        type: lt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 1m
+          annotations:
+            runbook_url: https://git.ssw590-g1.tech/group1-startup/manual
+            summary: '{{ $labels.instance }} failed its HTTPS probe for at least 1 minute'
+          labels:
+            owner: brahmi
+            severity: critical
+          isPaused: false
+          notification_settings:
+            receiver: team-alerts
