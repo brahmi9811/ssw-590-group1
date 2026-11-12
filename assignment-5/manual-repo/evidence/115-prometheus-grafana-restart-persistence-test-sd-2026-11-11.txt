@@ -1,0 +1,72 @@
+Real output, Nov 11, 2026, 8:38-8:40 PM New York time (2026-11-12 01:38:39-01:40:08 UTC). Assignment 7, row 1 (restart persistence);
+also BD's row 7 verification. Run by Sakshi (Claude Code over SSH) from ~/monitoring, right after the SLI window was read (evidence 116),
+so the restart gap falls outside that window. Script: assignment-7/sd-drafts/restart-test.sh. Containers restarted one at a time with
+`docker restart`; no volume was removed. Grafana values are read from a COPY of grafana.db (titles and counts only, no secrets).
+
+$ bash restart-test.sh | tee restart-test-20261112.log
+=== Restart persistence test, started 2026-11-12 01:38:39 UTC on ip-172-31-29-240.ec2.internal ===
+--- BEFORE (2026-11-12 01:38:39 UTC) ---
+    /prometheus id=99345c8a4e02 started=2026-11-11T03:14:59.665762703Z restarts=0 volumes=monitoring_prometheus_data 
+    /grafana id=7eb45a891fa9 started=2026-11-11T03:17:23.06653391Z restarts=0 volumes=monitoring_grafana_data 
+  oldest stored sample (prometheus_tsdb_lowest_timestamp_seconds):
+    {'instance': 'prometheus:9090', 'job': 'prometheus'} 1794366908
+  probe samples stored in the last 6 h:
+    {'instance': 'https://ci.ssw590-g1.tech/login', 'job': 'https'} 720
+    {'instance': 'https://git.ssw590-g1.tech/user/login', 'job': 'https'} 720
+  Grafana state (from a copy of grafana.db):
+    dashboards: 0: []
+    data sources: 1: ['prometheus (prometheus)']
+    alert rules: 2: ['https-service-down', 'root-disk-below-15-percent']
+    contact points (names only): 2: ['empty', 'team-alerts']
+    users: 2: ['admin (server admin)', 'sakshi']
+--- docker restart prometheus (2026-11-12 01:38:40 UTC) ---
+prometheus
+    prometheus ready at 2026-11-12 01:38:43 UTC
+--- docker restart grafana (2026-11-12 01:38:43 UTC) ---
+grafana
+    grafana healthy at 2026-11-12 01:38:57 UTC
+--- waiting 70 s for two new scrapes ---
+--- AFTER (2026-11-12 01:40:07 UTC) ---
+    /prometheus id=99345c8a4e02 started=2026-11-12T01:38:40.728113306Z restarts=0 volumes=monitoring_prometheus_data 
+    /grafana id=7eb45a891fa9 started=2026-11-12T01:38:45.163823402Z restarts=0 volumes=monitoring_grafana_data 
+  oldest stored sample (prometheus_tsdb_lowest_timestamp_seconds):
+    {'instance': 'prometheus:9090', 'job': 'prometheus'} 1794366908
+  probe samples stored in the last 6 h:
+    {'instance': 'https://ci.ssw590-g1.tech/login', 'job': 'https'} 720
+    {'instance': 'https://git.ssw590-g1.tech/user/login', 'job': 'https'} 719
+  Grafana state (from a copy of grafana.db):
+    dashboards: 0: []
+    data sources: 1: ['prometheus (prometheus)']
+    alert rules: 2: ['https-service-down', 'root-disk-below-15-percent']
+    contact points (names only): 2: ['empty', 'team-alerts']
+    users: 2: ['admin (server admin)', 'sakshi']
+  collection gap: probe samples in the last 5 min (expected about 10 per URL; fewer = the gap):
+    {'instance': 'https://git.ssw590-g1.tech/user/login', 'job': 'https'} 9
+    {'instance': 'https://ci.ssw590-g1.tech/login', 'job': 'https'} 10
+  targets now:
+    {'instance': 'blackbox-exporter:9115', 'job': 'blackbox'} 1
+    {'instance': 'prometheus:9090', 'job': 'prometheus'} 1
+    {'instance': 'node-exporter:9100', 'job': 'node'} 1
+    {'instance': 'https://git.ssw590-g1.tech/user/login', 'job': 'https'} 1
+    {'instance': 'https://ci.ssw590-g1.tech/login', 'job': 'https'} 1
+=== finished 2026-11-12 01:40:08 UTC ===
+
+=== Correction to the "dashboards: 0" lines above (checked 01:40:31 UTC, after the test) ===
+The script's dashboard query read Grafana's legacy `dashboard` table. Grafana 13 stores dashboards in unified storage
+(table `resource`, group dashboard.grafana.app), so 0 was a wrong query, not a missing dashboard. Read-only check of the same database copy:
+grafana started=2026-11-12T01:38:45.163823402Z
+dashboard uid=group1-sre title='Group 1 Startup Server (SRE)' created=2026-11-12T00:25:18Z generation=1 panels=7
+  panel titles: ['1. Whole-host CPU utilization (%)', '2. Available host memory (bytes)', '3. Root filesystem free (%)', '6. HTTPS probe duration (seconds)', '4. Gitea HTTPS availability', '5. Jenkins HTTPS availability', 'Scrape health (up: 1 = scrape worked)']
+history versions: 3
+The dashboard was created at 00:25:18 UTC, before the Grafana restart at 01:38:45 UTC, and is unchanged after it.
+The script was fixed afterwards to read the resource table.
+
+=== Reading ===
+- Same container IDs and the same named volumes before and after; only StartedAt changed (restart, not re-creation).
+- Prometheus: oldest stored sample 1794366908 (= 2026-11-11 03:15:08 UTC, the first scrape) before and after: history kept.
+  720 probe samples per URL in the last 6 h before and after (719 for Gitea after: one sample lost to the restart gap).
+- Grafana: data source, both alert rules, contact point team-alerts, both users, and the dashboard are still present.
+  ('empty' is Grafana's built-in placeholder contact point.)
+- Collection gap: 9 Gitea samples instead of about 10 in the last 5 minutes = one missed 30 s scrape while Prometheus restarted
+  (ready 3 s after the restart command); Grafana was healthy 14 s after its restart. All five targets up afterwards.
+- This shows that the volumes persist across container restarts. It is not a backup and restore.

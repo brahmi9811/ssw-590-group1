@@ -1,0 +1,26 @@
+Image tags and digests chosen for the monitoring stack, read from the registries 2026-11-10 23:27:22 UTC by Claude Code for SD.
+Server architecture: x86_64 (linux/amd64). Index digest = multi-arch list; amd64 digest = what the server will run.
+Also: local validation of the drafted configuration (docker compose config, promtool, blackbox --config.check).
+
+prom/prometheus:v3.16.0                       
+    index sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06
+    amd64 sha256:89c1a644817e9ad70fa2af76c84898e327c1de7063735f962e8313b1e28672c3
+grafana/grafana:13.3.1                        
+    index sha256:0615ec4fbd4072004b7d86b46ded63013a74b7d6eb1119273dd89e8fa25c13cf
+    amd64 sha256:1c88285f1dd391a62232c010e6c224846e6a73bdc583b3365be2eba614b7919e
+quay.io/prometheus/node-exporter:v1.12.1      
+    index sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0
+    amd64 sha256:da83fae85603c4e47e6c68369a7d746e2dda683dc35ea2e234b4f171e0d92798
+quay.io/prometheus/blackbox-exporter:v0.29.1  
+    index sha256:ea1c7aa3ef3f307cd03e85f34abb604478ccb90b567fc690da0cd9776da76b13
+    amd64 sha256:66eae352a79e6f677aeddd8c25a9bdb017586dc5fbd230f22329213d891f94bd
+
+$ docker compose config --quiet
+compose config OK
+$ promtool check config prometheus.yml
+Checking /etc/prometheus/prometheus.yml
+ SUCCESS: /etc/prometheus/prometheus.yml is valid prometheus config file syntax
+$ blackbox_exporter --config.check
+time=2026-11-10T23:27:14.900Z level=INFO source=main.go:100 msg="(go=go1.27.3, platform=linux/arm64, user=root@ab03ed60a291, date=20261021-18:03:52, tags=unknown)"
+time=2026-11-10T23:27:14.901Z level=INFO source=config.go:144 msg="Configuration file change detected, reloading the configuration."
+time=2026-11-10T23:27:14.901Z level=INFO source=main.go:108 msg="Config file is ok exiting..."

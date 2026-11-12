@@ -1,0 +1,377 @@
+% BD: chapter skeleton for Assignment 7 (course Chapter 5), to become devopsSre.tex in the Gitea manual repo
+% and be included in devopsITManual.tex after devopsJenkins. Section labels are fixed here so that
+% SD's and BD's regions can cite each other with \SectionRef{...} from the start.
+% Owners: SD = rows 1, 2, 3, 5; BD = rows 4, 6, 7, 8. Points per rubric 5.5: 15, 15, 10, 15, 10, 15, 10, 10.
+\chapter{Monitoring and reliability (SRE)}
+\ChapterLabel{Sre}
+\index{monitoring}\index{SRE}
+
+% --- Short overview (BD, written last): what was added to the server, one paragraph, link to the successful PDF build and the reviewed final commit.
+
+% ===== SD region: rows 1, 2, 3 =====
+% Region: sreDeployment (single owner; edit only your own region)
+\section{Deployment and capacity (15 points)}\label{Section:sreDeployment}
+\textbf{Owner:} SD. \textbf{Status:} deployed November 10, 2026; restart test November 11, 2026 \StatusPass.
+
+\paragraph{Baseline and capacity.} Before anything was added, the server was read without changes (\ListRef{110}):
+an EC2 \texttt{t3.micro} with 913~MiB of RAM, of which only 200~MiB was available and 425~MiB was already in swap, while
+Gitea, Jenkins, Caddy and the Actions runner were running. Four more containers would not have fit. BD decided to resize
+the same instance to \texttt{t3.small} (same disk and Elastic IP); afterwards the host had 1,909~MiB with 1,064~MiB
+available and no swap in use (\ListRef{140}). The root disk had 8.4~GB free, enough for the images (about 1.4~GB) and
+Prometheus' capped storage.
+
+\paragraph{What runs.} Four separate containers, all from images published by the projects themselves; nothing is built
+locally and no Dockerfile is written. Tags are pinned to exact releases (never \texttt{latest}) and the pulled image
+digests are recorded (\ListRef{111} for the choice, \ListRef{112} for the digests on the server).
+
+\begin{tabularx}{\linewidth}{L{2.9cm}L{4.6cm}Y}
+\caption{Monitoring containers, versions, and limits\label{Table:SreContainers}}\\
+\toprule \textbf{Container} & \textbf{Image} & \textbf{Role, limit, storage}\\ \midrule
+\endfirsthead
+\toprule \textbf{Container} & \textbf{Image} & \textbf{Role, limit, storage}\\ \midrule
+\endhead \bottomrule \endlastfoot
+\texttt{prometheus} & \texttt{prom/prometheus:}\newline\texttt{v3.16.0} & scrapes every 30\,s and stores metrics; 256~MiB; volume \texttt{monitoring\_prometheus\_data}, kept 7 days or 1~GB, whichever comes first\\
+\texttt{grafana} & \texttt{grafana/grafana:}\newline\texttt{13.3.1} & dashboard and alerts; 384~MiB; volume \texttt{monitoring\_grafana\_data} (users, data source, dashboard, alert rules)\\
+\texttt{node-exporter} & \texttt{quay.io/prometheus/}\newline\texttt{node-exporter:v1.12.1} & whole-host CPU, memory, root filesystem; 64~MiB; host \texttt{/} mounted read-only\\
+\texttt{blackbox-}\newline\texttt{exporter} & \texttt{quay.io/prometheus/}\newline\texttt{blackbox-exporter:v0.29.1} & HTTPS probes of the Gitea and Jenkins login pages; 64~MiB; no storage\\
+\end{tabularx}
+
+The memory limits make sure that, if memory runs out, a monitoring container is stopped rather than Gitea or Jenkins.
+Grafana's limit started at 256~MiB, but Grafana used 216~MiB while idle, so it was raised to 384~MiB on the first day
+(recorded in \ListRef{112}). Retention of 7 days follows the course's lab suggestion; the 1~GB cap protects the root
+disk that Jenkins builds also use.
+
+\paragraph{Configuration in Gitea.} The non-secret files are in the \texttt{infra} repository, folder
+\href{\GiteaURL/group1-startup/infra/src/branch/main/monitoring}{\texttt{monitoring}}, added through
+\href{\GiteaURL/group1-startup/infra/issues/1}{issue \#1} and
+\href{\GiteaURL/group1-startup/infra/pulls/2}{pull request \#2}. BD checked the Caddy block against the live
+Caddyfile and the memory limits against the running containers, and merged it on November 11, 2026, 19:42~EST, as
+merge commit \href{\GiteaURL/group1-startup/infra/commit/c03fb1b10e003554374404b7759cefa408214314}{\texttt{c03fb1b}}
+(her review was given in the team chat; Gitea records the merge, not a formal approval). The same files run in \texttt{\textasciitilde/monitoring} on
+the server. No Compose service publishes a host port, none is privileged, and none mounts the Docker socket.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/monitoring/compose.yaml}
+\caption{\texttt{compose.yaml} of the monitoring stack (\texttt{infra/monitoring}): four containers, no published ports, memory limits, named volumes, Grafana also on the existing \texttt{gitea\_web} network.}
+\label{Listing:ESreCompose}
+\end{longlisting}
+
+\paragraph{Start, update, recover.} From \texttt{\textasciitilde/monitoring} on the server:
+\begin{minted}{bash}
+cp .env.example .env                        # image tags only
+docker compose config --quiet && docker compose pull && docker compose up -d
+docker compose ps                           # four containers Up
+\end{minted}
+To update, change a tag in \texttt{.env}, run \texttt{docker compose pull \&\& docker compose up -d}, and record the new
+digests. To stop and start, use \texttt{docker compose stop} and \texttt{docker compose start}. \textbf{Never}
+\texttt{docker compose down -v}: it deletes both volumes, that is, the metric history and all of Grafana's state.
+The first Grafana administrator password was a random value generated on the server into
+\texttt{secrets/grafana\_admin\_password} (folder mode 700, never printed, not in Git), so the default
+\texttt{admin}/\texttt{admin} was never valid on the public login page; BD then set her own password with
+\texttt{grafana cli admin reset-admin-password} (Section~\ref{Section:sreAccess}).
+
+\paragraph{Deployment diagram.} \FigRef{SreDeployment} adapts the course's Figure~5.1 to this server.
+
+\begin{figure}[htbp]\centering
+\resizebox{\linewidth}{!}{\input{TikZ/devopsSre/devopsSreDeployment.tex}}
+\caption{Deployment of the Group 1 server with monitoring, adapted from the course manual's Figure~5.1. Blue: the four new
+monitoring containers. Arrows start at the side that opens the connection. Gitea and Jenkins are probed only through their
+public HTTPS names; Prometheus, the exporters, and Grafana's port 3000 are reachable only on private Docker networks.
+Not drawn: the Gitea Actions runner and the Gitea--Jenkins webhook (Chapter~\ref{Chapter:Jenkins}).}
+\label{Fig:ESreDeployment}
+\end{figure}
+
+\paragraph{Restart persistence.} Right after BD's controlled Jenkins outage and after the SLI window had been read
+(Section~\ref{Section:sreSlo}), Prometheus and then Grafana were restarted with \texttt{docker restart}, on November 11,
+2026, 8:38--8:40~PM New York time (\ListRef{115}). Both kept the same container IDs and the same named volumes. Prometheus'
+oldest stored sample (03:15:08~UTC on November 11, the first scrape) and its 720 probe samples per URL from the last six
+hours were still there; Prometheus was ready again after 3~seconds, and one 30-second Gitea sample was missed (719 instead
+of 720). Grafana was healthy after 14~seconds, and its data source, both alert rules, the contact point
+\texttt{team-alerts}, both user accounts, and the dashboard (created at 8:25~PM, before the restart) were all still
+present. A first reading reported zero dashboards: the script had queried Grafana's legacy dashboard table, while
+Grafana~13 keeps dashboards in its newer \texttt{resource} table; the corrected check is in the same listing. This shows
+that the volumes persist; it is not a backup and restore. The same test is BD's verification in
+Section~\ref{Section:sreIncident}.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/110-server-baseline-before-monitoring-sd-2026-11-10.txt}
+\caption{Baseline before monitoring: instance type, memory and swap, disk, containers, listening ports, November 10, 2026 (real output).}
+\label{Listing:E110}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/140-capacity-decision-resize-t3-small-and-baseline-after-bd-2026-11-10.txt}
+\caption{Capacity decision by BD: resize from \texttt{t3.micro} to \texttt{t3.small} and the host afterwards, November 10, 2026 (real output, BD's evidence).}
+\label{Listing:E140}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/111-image-tags-digests-amd64-and-local-config-validation-sd-2026-11-10.txt}
+\caption{Chosen tags with index and linux/amd64 digests, and local validation of the configuration, November 10, 2026 (real output).}
+\label{Listing:E111}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/112-monitoring-stack-deployed-digests-targets-probes-host-values-sd-2026-11-10.txt}
+\caption{Deployment: pull and start, container settings, pulled digests, Prometheus targets, first probe results, host values, Grafana limit change, November 10, 2026 (real output).}
+\label{Listing:E112}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/115-prometheus-grafana-restart-persistence-test-sd-2026-11-11.txt}
+\caption{Restart test of Prometheus and Grafana: state before and after, readiness times, collection gap, and the corrected dashboard check, November 11, 2026 (real output).}
+\label{Listing:E115}
+\end{longlisting}
+
+% Region: sreMetrics (single owner; edit only your own region)
+\section{Metrics and HTTPS probes (15 points)}\label{Section:sreMetrics}
+\textbf{Owner:} SD. \textbf{Status:} all targets up and host values verified November 10, 2026 \StatusPass.
+
+\paragraph{What is scraped.} Prometheus scrapes four jobs every 30~seconds, all by private service name on the
+\texttt{monitoring} network (\ListRef{SrePrometheus}): itself (\texttt{prometheus:9090}), the Node Exporter
+(\texttt{node-exporter:9100}), the Blackbox Exporter's own metrics (\texttt{blackbox-exporter:9115}), and the
+\texttt{https} probe job. Grafana reads only from Prometheus; it does not contact Gitea, Jenkins, or the exporters.
+Right after the start, all five targets were \texttt{up} with no scrape error (\ListRef{112}).
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/monitoring/prometheus/prometheus.yml}
+\caption{\texttt{prometheus.yml}: four jobs, 30\,s interval, and the multi-target relabelling that sends each URL to the Blackbox Exporter.}
+\label{Listing:ESrePrometheus}
+\end{longlisting}
+
+\paragraph{HTTPS probes and what ``success'' means.} The \texttt{https} job asks the Blackbox Exporter to fetch
+\texttt{https://git.ssw590-g1.tech/user/login} and \texttt{https://ci.ssw590-g1.tech/login}. The relabelling turns each
+URL into the \texttt{target} parameter and the \texttt{instance} label, and sends the request to
+\texttt{blackbox-exporter:9115}. A probe counts as successful (\texttt{probe\_success} = 1) only if the public DNS name
+resolves over IPv4, the TLS certificate is valid for that name (verification is on), the answer is HTTPS, and the final
+status after redirects is 2xx, all within 10~seconds (\ListRef{SreBlackbox}). The probe uses the same public names as a
+user: it leaves through the Elastic IP and comes back in through the security group and Caddy (\FigRef{SreDeployment}).
+The first probes returned success 1, HTTP 200, in 0.014\,s (Gitea) and 0.026\,s (Jenkins) (\ListRef{112}).
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/monitoring/blackbox/blackbox.yml}
+\caption{\texttt{blackbox.yml}: module \texttt{http\_2xx} with TLS verification on and plain HTTP counted as failure.}
+\label{Listing:ESreBlackbox}
+\end{longlisting}
+
+\paragraph{Metric inventory.}
+\begin{tabularx}{\linewidth}{L{4.2cm}L{1.3cm}Y}
+\caption{Metrics used in this chapter\label{Table:SreMetrics}}\\
+\toprule \textbf{Metric} & \textbf{Type} & \textbf{Meaning and limitation}\\ \midrule
+\endfirsthead
+\toprule \textbf{Metric} & \textbf{Type} & \textbf{Meaning and limitation}\\ \midrule
+\endhead \bottomrule \endlastfoot
+\texttt{node\_cpu\_seconds\_total} & counter & CPU seconds per core and mode since boot; only meaningful through \texttt{rate()}; whole host, not per container\\
+\texttt{node\_memory\_MemAvailable\_bytes} & gauge & the kernel's estimate of memory that programs can still get (not ``free'' memory)\\
+\texttt{node\_filesystem\_avail\_bytes}, \texttt{node\_filesystem\_size\_bytes} & gauge & bytes usable by normal users, and size, per filesystem; the root filesystem must be selected by its labels\\
+\texttt{up} & gauge & 1 if Prometheus' last scrape of a target worked; says nothing about the probed service\\
+\texttt{probe\_success} & gauge & 1 if the whole HTTPS check passed; a login page only, not a Git push or a build\\
+\texttt{probe\_duration\_seconds} & gauge & time of the whole probe, including DNS, TLS, and redirects\\
+\end{tabularx}
+
+\paragraph{Host values checked against the operating system.} At 03:16~UTC on November 11 (evening of November 10,
+Eastern time), the Prometheus values were compared with \texttt{free -b} and \texttt{df -B1 /} run on the host
+(\ListRef{112}). The root filesystem series has \texttt{mountpoint="/"}, \texttt{device="/dev/nvme0n1p1"}, \texttt{fstype="xfs"};
+overlay and tmpfs mounts are excluded, never averaged in.
+
+\begin{tabularx}{\linewidth}{L{3.6cm}L{3.4cm}L{3.4cm}Y}
+\caption{Prometheus compared with the host\label{Table:SreHostCheck}}\\
+\toprule \textbf{Value} & \textbf{Prometheus} & \textbf{Host command} & \textbf{Result}\\ \midrule
+\endfirsthead
+\toprule \textbf{Value} & \textbf{Prometheus} & \textbf{Host command} & \textbf{Result}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Total memory & 2,002,350,080 & \texttt{free -b}: 2,002,350,080 & equal\\
+Available memory & 823,209,984 & \texttt{free -b}: 804,671,488 & 2\,\% apart; sampled about 10\,s apart\\
+Root size & 21,395,124,224 & \texttt{df -B1}: 21,395,124,224 & equal\\
+Root available & 6,994,649,088 & \texttt{df -B1}: 6,994,644,992 & one 4~KiB block apart\\
+CPUs & 2 idle series & 2 vCPUs (\texttt{t3.small}) & equal\\
+\end{tabularx}
+
+Root free space was therefore 32.7\,\% (68\,\% used, up from 58\,\% because of the new images), well above the 15\,\%
+alert threshold of Section~\ref{Section:sreAlerts}.
+
+\paragraph{Limitations.} A 30-second scrape cannot see events shorter than about 30~seconds. The probes run on the same
+server they check, so a total server outage stops the probes and the alerts too; an independent outside check is proposed
+in Section~\ref{Section:sreIncident}. A probe from AWS does not prove that every user network can reach the services.
+Node Exporter reports the whole host; per-container usage (cAdvisor) is outside the required scope.
+
+% Region: sreAccess (single owner; edit only your own region)
+\section{Access control and exposure (10 points)}\label{Section:sreAccess}
+\textbf{Owner:} SD (Caddy block BD, accounts BD). \textbf{Status:} tested from a team and a non-team network \StatusPass.
+
+\paragraph{Login URLs.} All three services use HTTPS with Let's Encrypt certificates; no password is given here
+(see the Hosts and Passwords chapter for where each is kept):
+\begin{itemize}[nosep]
+  \item Gitea: \url{https://git.ssw590-g1.tech/user/login}
+  \item Jenkins: \url{https://ci.ssw590-g1.tech/login}
+  \item Grafana: \url{https://metrics.ssw590-g1.tech/login} (certificate issued November 11, 2026, \ListRef{113})
+\end{itemize}
+
+\paragraph{How Grafana is reached.} The DNS name \texttt{metrics.ssw590-g1.tech} points to the Elastic IP (\ListRef{141}).
+Caddy, the existing TLS proxy, is the only container with public ports (443 and 80). It forwards to \texttt{grafana:3000}
+on the private \texttt{gitea\_web} network. The block follows the Jenkins rule: addresses on the team list
+(\texttt{TEAM\_IPS}, kept only in the server's \texttt{.env}) reach all of Grafana; everyone else reaches only the login
+page, its static files, and the health check; everything else gets \texttt{403 Forbidden}.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{config/monitoring/Caddyfile.metrics-block.txt}
+\caption{Caddy site block for Grafana, as applied on the server (\texttt{infra/monitoring/Caddyfile.metrics-block.txt}).}
+\label{Listing:ESreCaddy}
+\end{longlisting}
+
+\paragraph{Authentication.} Grafana requires a sign-in: anonymous access and self sign-up are off (\ListRef{SreCompose}).
+The administrator account belongs to BD; its first password was random and server-only, and BD replaced it (\FigRef{144}).
+SD has her own named account with the Editor role, not an administrator (\ListRef{147}); her temporary password was handed
+over privately, and SD replaced it with her own on November 11, 2026, about 20:15~EST, signed in from the campus network (on the team list). A grader account is not needed: the dashboard and
+alert evidence is shown in Sections~\ref{Section:sreDashboard} and~\ref{Section:sreAlerts}.
+
+\paragraph{Exposure tests.} The security group is unchanged for monitoring: only 443, 80, and 22 (team addresses, key
+login only) are open. Ports 3000, 9090, 9100 and 9115 were closed from the internet (\ListRef{113}, \ListRef{114}).
+The decisive test was from a network that is on no team list, a T-Mobile mobile connection (\ListRef{114}):
+
+\begin{tabularx}{\linewidth}{L{5.6cm}L{2.0cm}Y}
+\caption{Grafana from a non-team network, November 11, 2026\label{Table:SreOutside}}\\
+\toprule \textbf{Request} & \textbf{Result} & \textbf{Meaning}\\ \midrule
+\endfirsthead
+\toprule \textbf{Request} & \textbf{Result} & \textbf{Meaning}\\ \midrule
+\endhead \bottomrule \endlastfoot
+\texttt{/login} and its 9 static files & 200 & the login page works for anyone, certificate verified\\
+\texttt{/api/health} & 200 & health check only\\
+\texttt{/}, \texttt{/explore}, \texttt{/d/...} & 403 & no dashboards or queries\\
+\texttt{/api/datasources}, \texttt{/api/user}, \texttt{/api/search}, \texttt{/api/admin/users} & 403 & no API\\
+\texttt{/metrics}, alert API & 403 & Grafana's own metrics and alerts hidden\\
+\texttt{POST /login} as \texttt{admin}/\texttt{admin} & 401 & the default password never worked\\
+TCP 22, 3000, 9090, 9100, 9115 & closed & SSH limited to team addresses; monitoring ports private\\
+\end{tabularx}
+
+\paragraph{Limitations.} The login form is public, so anyone can try passwords; Grafana's built-in protection against
+repeated failed logins applies. The campus network's address is on the SSH and Caddy team lists from November 11, 2026
+until teardown; it is shared by everyone on campus, so it narrows access less than a personal address. SSH still needs a
+key, and Grafana still needs a password.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/113-grafana-https-access-control-team-and-non-team-sd-2026-11-10.txt}
+\caption{Grafana HTTPS: certificate, team view, simulated non-team view, closed ports, November 10, 2026 (real output).}
+\label{Listing:E113}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/114-grafana-access-from-non-team-mobile-network-sd-2026-11-11.txt}
+\caption{Grafana from a non-team mobile network (T-Mobile): only the login page is reachable, November 11, 2026 (real output).}
+\label{Listing:E114}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/141-dns-metrics-record-and-caddy-block-applied-cert-obtained-bd-2026-11-10.txt}
+\caption{DNS record for \texttt{metrics.ssw590-g1.tech}, the Caddy block applied with the team-address rule, and the certificate, November 10, 2026 (real output, BD's evidence).}
+\label{Listing:E141}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/147-grafana-user-sakshi-created-editor-not-admin-bd-2026-11-11.txt}
+\caption{Grafana account \texttt{sakshi} with the Editor role, not an administrator, November 11, 2026 (transcribed from BD's screenshot, which shows a personal e-mail address and is not stored).}
+\label{Listing:E147}
+\end{longlisting}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{evidence/144-grafana-admin-signed-in-home-page-no-alerts-firing-bd-2026-11-11.png}
+\caption{Grafana home page after BD signed in as administrator over HTTPS with her own password, November 11, 2026 (BD's screenshot).}
+\label{Fig:E144}
+\end{figure}
+
+% ===== BD region: row 4 =====
+\section{Dashboard (15 points)}\label{Section:sreDashboard}
+% BD: the six panels with their queries and explanations (bd-drafts/queries.md), dashboard JSON link, time zone and units,
+% the normal Jenkins build comparison, the 4 s probe spike observed on the Jenkins line.
+
+% ===== SD region: row 5 =====
+% Region: sreSlo (single owner; edit only your own region)
+\section{SLI, SLO, and error budget (10 points)}\label{Section:sreSlo}
+\index{SLI}\index{SLO}\index{SLA}\index{error budget}
+\textbf{Owner:} SD. \textbf{Status:} worked example and a real 18-minute window around the controlled outage \StatusPass.
+
+\paragraph{Definitions.}
+\begin{tabularx}{\linewidth}{L{1.4cm}Y}
+\toprule \textbf{Term} & \textbf{Meaning here}\\ \midrule
+SLI & \emph{Service-level indicator}: a measured fraction. Ours is the share of scheduled HTTPS probes that succeed for one service over a stated window: successful \texttt{probe\_success} samples divided by all samples received.\\
+SLO & \emph{Service-level objective}: our internal target for that SLI, at least 99\,\% probe success over a 24-hour window, evaluated separately for Gitea and Jenkins. It is a lab target chosen by the course, not a promise.\\
+SLA & \emph{Service-level agreement}: a commitment to a customer, usually with consequences if missed. This startup has no customer SLA; nothing here is one.\\ \bottomrule
+\end{tabularx}
+\paragraph{How the SLI is computed.} For one service and a window \texttt{W}, with one sample every 30~seconds:
+\begin{minted}{text}
+100 * avg_over_time(probe_success{job="https", instance="https://ci.ssw590-g1.tech/login"}[W])
+count_over_time(probe_success{job="https", instance="https://ci.ssw590-g1.tech/login"}[W])   # samples received
+\end{minted}
+\texttt{probe\_success} is 1 or 0, so its average over the window is the success fraction. The count is compared with the
+expected number of samples (\texttt{W} / 30\,s); a missing sample is unknown, not a success. Dashboard panels~4 and~5
+(Section~\ref{Section:sreDashboard}) show the same series sample by sample.
+
+\paragraph{What this SLI does not see.} It measures availability of the login page, not speed. A probe that takes
+4~seconds but returns 200 still counts as a success: the Jenkins probe did exactly that once on Nov~11 near 16:25~EST
+(dashboard panel~6), and the availability SLI did not change. Catching slowness would need a second, latency SLI, for
+example the share of probes faster than 1~second. A login page that loads also does not prove that a Git push or a build works.
+
+The difference in one line: the SLI is what we measure, the SLO is the target we hold ourselves to, and an SLA is what we would owe
+someone else if we missed it \cite{GoogleSREWorkbookSLO}.
+
+\paragraph{Worked example (hypothetical numbers from the course manual, not our results).}
+A probe every 30~seconds for 24~hours gives $24 \times 60 \times 2 = 2{,}880$ scheduled probes per service.
+\begin{itemize}[nosep]
+  \item \textbf{Gitea:} 2,880 successes out of 2,880 probes, so the SLI is $100 \times 2880/2880 = 100\,\%$. It meets the 99\,\% SLO.
+  \item \textbf{Jenkins:} 2,850 successes and 30 failures, so the SLI is $100 \times 2850/2880 \approx 98.96\,\%$. It misses the SLO, by about 0.04 percentage points.
+  \item \textbf{Error budget:} a 99\,\% SLO allows 1\,\% of probes to fail: $0.01 \times 2880 = 28.8$ failed samples. Because each sample stands for 30~seconds, that is $28.8 \times 0.5 = 14.4$ minutes of failure in the day, if failures are spread evenly across samples.
+  \item \textbf{Jenkins over budget:} 30 failures use $30 - 28.8 = 1.2$ samples (about 0.6 minutes) more than the budget. Samples are whole, so at most 28 failed samples ($100 \times 2852/2880 \approx 99.03\,\%$) would still meet the target; 29 would not ($\approx 98.99\,\%$).
+\end{itemize}
+The budget is a way to decide, not just a score: while Jenkins has budget left, the team can accept risky changes; once it is
+spent, reliability work comes first.
+
+\paragraph{Our short window.} The real window was agreed with BD around her controlled Jenkins outage
+(Section~\ref{Section:sreIncident}): November 11, 2026, 8:20:00 to 8:38:00~PM New York time (01:20:00 to 01:38:00~UTC on
+November 12), 18~minutes. Jenkins was stopped at 8:24:25 and started again at 8:27:25~PM. The queries above were evaluated
+at the end of the window, with \texttt{W = 1080s}, once the window had closed and before the restart test of
+Section~\ref{Section:sreDeployment} could add a gap (\ListRef{116}).
+
+\begin{tabularx}{\linewidth}{L{2.0cm}L{2.0cm}L{1.6cm}L{1.6cm}L{1.6cm}Y}
+\caption{SLI for the window 8:20--8:38~PM, November 11, 2026\label{Table:SreWindow}}\\
+\toprule \textbf{Service} & \textbf{Samples (expected)} & \textbf{Success} & \textbf{Failed} & \textbf{SLI} & \textbf{99\,\% budget for 36 samples}\\ \midrule
+\endfirsthead
+\toprule \textbf{Service} & \textbf{Samples (expected)} & \textbf{Success} & \textbf{Failed} & \textbf{SLI} & \textbf{99\,\% budget for 36 samples}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Gitea & 36 (36) & 36 & 0 & 100.00\,\% & 0.36 allowed, 0 used: within\\
+Jenkins & 36 (36) & 30 & 6 & 83.33\,\% & 0.36 allowed, 6 used: over\\
+\end{tabularx}
+
+No sample was missing, so no part of the window is unknown. The 6 failed Jenkins samples are $6 \times 30 = 180$~seconds,
+matching the 3-minute outage; the probe got HTTP 502 from Caddy, so the failure was Jenkins itself, not DNS, TLS, or the
+proxy (\ListRef{117}). Gitea was not affected. A window this short cannot establish the 24-hour SLO: one failed sample
+already exceeds its 0.36-sample budget. Measured over a full day of 2,880 probes, the same 6 failures would give
+$100 \times 2874/2880 \approx 99.79\,\%$, inside the 28.8-sample budget of the worked example.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/116-sli-window-around-controlled-jenkins-outage-sd-2026-11-11.txt}
+\caption{SLI for the window around the controlled Jenkins outage: PromQL, evaluation time, coverage, successes, failures, November 11, 2026 (real output).}
+\label{Listing:E116}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/117-outage-timeline-recorder-probe-and-container-state-sd-2026-11-11.txt}
+\caption{Independent outage timeline from a read-only recorder: Jenkins container state, probe values, and direct HTTPS checks every 15 seconds, November 11, 2026 (real output).}
+\label{Listing:E117}
+\end{longlisting}
+
+% ===== BD region: rows 6, 7 =====
+\section{Alerts (15 points)}\label{Section:sreAlerts}
+% BD: contact point team-alerts (Discord), notification policy settings, rule 1 and rule 2 with owner, severity, query,
+% threshold, interval, pending period, summary, runbook, no-data and error policy; real firing and resolution for both;
+% the disk threshold raised to 55 and restored to 15.
+
+\section{Controlled incident and review (10 points)}\label{Section:sreIncident}
+% BD (with SD): timeline of the Jenkins outage, detection and restoration times, verification, restart of Prometheus and
+% Grafana (also SD's persistence test), comparison with the Chapter 4 failed build, blameless review, two Gitea issues.
+
+% ===== BD region: row 8 =====
+\section{Manual changes in this version (10 points)}\label{Section:sreManual}
+% BD: version 1.3, history entry, Hosts and Passwords changes (metrics host and DNS, monitoring containers and private ports,
+% Grafana admin hint, Discord webhook hint, campus SSH and team-list entries), glossary terms (SRE, SLI, SLO, SLA, error budget,
+% Prometheus, Grafana, exporter, probe), citations, AI and reuse attribution.

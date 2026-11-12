@@ -9,7 +9,7 @@
   bad/.style={base, fill=red!8},
   good/.style={base, fill=green!8}]
   \node[act] (open) at (0,0) {Open issue-linked PR \#10 (\texttt{Closes \#9}) to protected \texttt{main}\\[1pt]
-    {\scriptsize\itshape Oct 29: \texttt{da16c9b}, build \#1 success}};
+    {\scriptsize\itshape commit \texttt{da16c9b} (Oct 29); build \#1 success (Nov 2)}};
   \node[act] (hook) at (0,-2.0) {Gitea sends the webhook\\(Pull Request Synchronized)\\[1pt]
     {\scriptsize\itshape builds \#3--\#5 by webhook; \#2 by hand;\\ \texttt{7d7848f} never built (event missing)}};
   \node[act] (build) at (0,-4.2) {Jenkins checks out the PR head merged with \texttt{main};\\\texttt{py\_compile}, \texttt{unittest}};

@@ -1,0 +1,42 @@
+Real output, Nov 10, 2026 (evening US Eastern; Caddy timestamps are UTC, already Nov 11). Assignment 7, row 1 (access, HTTPS) and the DNS gate.
+DNS record added by Brahmi in Name.com (screenshot she showed: type A, host metrics.ssw590-g1.tech, answer 52.73.254.36, TTL 300, created 2026-11-10).
+The Caddy block was applied by Claude Code over SSH on Brahmi's go-ahead (SD's draft assignment-7/monitoring/caddy-metrics-block.txt, reviewed by BD, with one change: the team-address rule used for Jenkins).
+
+=== DNS check from Brahmi's computer (nslookup against two public resolvers) ===
+8.8.8.8:  metrics.ssw590-g1.tech  Address: 52.73.254.36
+1.1.1.1:  metrics.ssw590-g1.tech  Address: 52.73.254.36
+
+=== Block appended to ~/gitea/Caddyfile on the server (backup first: Caddyfile.bak-before-metrics) ===
+metrics.ssw590-g1.tech {
+	@team remote_ip {$TEAM_IPS}
+	@loginpage path /login /public/* /api/health /favicon.ico
+
+	handle @team {
+		reverse_proxy grafana:3000
+	}
+	handle @loginpage {
+		reverse_proxy grafana:3000
+	}
+	handle {
+		respond "Forbidden" 403
+	}
+}
+Difference from SD's draft: SD's block was a bare reverse_proxy; this one limits everything except the Grafana login page and its static files to the team addresses (the value of TEAM_IPS is in the server's .env only).
+
+=== caddy validate, then caddy reload (inside the caddy container) ===
+Valid configuration
+adapted config to JSON ... (only warning: Caddyfile not formatted)
+
+=== Caddy log, certificate (TLS-ALPN-01, Let's Encrypt) ===
+served key authentication certificate  server_name=metrics.ssw590-g1.tech  challenge=tls-alpn-01
+authorization finalized  identifier=metrics.ssw590-g1.tech  authz_status=valid
+certificate obtained successfully  identifier=metrics.ssw590-g1.tech  issuer=acme-v02.api.letsencrypt.org-directory
+
+=== HTTP checks right after (from Brahmi's computer, which is on the team address) ===
+https://metrics.ssw590-g1.tech/login  502   (certificate verified OK; Grafana is not running yet, so Caddy cannot reach grafana:3000)
+https://metrics.ssw590-g1.tech/       502
+https://git.ssw590-g1.tech/           200
+https://ci.ssw590-g1.tech/login       200
+
+=== Note ===
+The Caddy log also shows an unknown internet address already requesting the new hostname (dial tcp: lookup grafana ... no such host): ordinary scanning of a new public name. The path list was chosen from knowledge of how Grafana's login page loads and is still to be tested from outside the team address once Grafana runs (then a new evidence file).

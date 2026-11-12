@@ -1,0 +1,15 @@
+# Probe module (course manual Chapter 5, step 2.3). Success = DNS resolves, TLS certificate valid for the
+# hostname (verification ON), at most the default redirects, and a final 2xx response over IPv4.
+modules:
+  http_2xx:
+    prober: http
+    timeout: 10s
+    http:
+      method: GET
+      preferred_ip_protocol: ip4
+      ip_protocol_fallback: false
+      valid_status_codes: []                    # empty = any 2xx
+      fail_if_ssl: false
+      fail_if_not_ssl: true                     # an http:// answer would count as failure
+      tls_config:
+        insecure_skip_verify: false

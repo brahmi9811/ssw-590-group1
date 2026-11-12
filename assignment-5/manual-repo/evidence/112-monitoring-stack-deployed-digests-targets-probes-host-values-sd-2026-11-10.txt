@@ -1,0 +1,87 @@
+Real output, Nov 10, 2026 evening US Eastern (server clock UTC, already Nov 11). Assignment 7, rows 1 and 2. Run by Sakshi (Claude Code over SSH as ec2-user).
+Server: t3.small after BD's resize (evidence 140). Files copied from assignment-7/monitoring/ to ~/monitoring; .env copied from .env.example (tags only).
+
+=== Change made before the first start (security) ===
+Brahmi's Caddy block keeps /login public, and the Caddy log already showed scanners on the new name (evidence 141).
+So Grafana never started with admin/admin: compose passes GF_SECURITY_ADMIN_PASSWORD__FILE from a Compose secret,
+~/monitoring/secrets/grafana_admin_password = `openssl rand -base64 33` (44 bytes), created on the server, never printed,
+folder mode 700, gitignored. Brahmi replaces it with `docker exec -it grafana grafana cli admin reset-admin-password`.
+
+=== 2026-11-11 03:14-03:15 UTC: docker compose config --quiet && docker compose pull && docker compose up -d ===
+config OK
+ Image prom/prometheus:v3.16.0 Pulled
+ Image grafana/grafana:13.3.1 Pulled            (node-exporter and blackbox-exporter pulled likewise)
+ Volume monitoring_prometheus_data Created
+ Volume monitoring_grafana_data Created
+ Network monitoring_monitoring Created
+ Container node-exporter Started / prometheus Started / grafana Started / blackbox-exporter Started
+
+$ docker compose ps
+NAME                IMAGE                                          STATUS          PORTS
+blackbox-exporter   quay.io/prometheus/blackbox-exporter:v0.29.1   Up 20 seconds   9115/tcp
+grafana             grafana/grafana:13.3.1                         Up 20 seconds   3000/tcp
+node-exporter       quay.io/prometheus/node-exporter:v1.12.1       Up 21 seconds   9100/tcp
+prometheus          prom/prometheus:v3.16.0                        Up 20 seconds   9090/tcp
+(PORTS shows container ports only; no host bindings.)
+
+=== docker inspect (03:16:20 UTC) ===
+/prometheus        restart=unless-stopped mem=268435456 privileged=false ports={} mounts=prometheus.yml(ro), monitoring_prometheus_data:/prometheus
+/grafana           restart=unless-stopped mem=268435456 privileged=false ports={} mounts=monitoring_grafana_data:/var/lib/grafana, secret file
+/node-exporter     restart=unless-stopped mem=67108864  privileged=false ports={} mounts=/:/host (ro,rslave)
+/blackbox-exporter restart=unless-stopped mem=67108864  privileged=false ports={} mounts=blackbox.yml(ro)
+No container mounts /var/run/docker.sock.
+
+=== RepoDigests of the pulled images (match the index digests in evidence 111) ===
+prom/prometheus:v3.16.0                       prom/prometheus@sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06 amd64
+grafana/grafana:13.3.1                        grafana/grafana@sha256:0615ec4fbd4072004b7d86b46ded63013a74b7d6eb1119273dd89e8fa25c13cf amd64
+quay.io/prometheus/node-exporter:v1.12.1      quay.io/prometheus/node-exporter@sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0 amd64
+quay.io/prometheus/blackbox-exporter:v0.29.1  quay.io/prometheus/blackbox-exporter@sha256:ea1c7aa3ef3f307cd03e85f34abb604478ccb90b567fc690da0cd9776da76b13 amd64
+`docker buildx imagetools inspect` (SD's Mac) confirms each index's linux/amd64 entry is the amd64 digest in evidence 111.
+
+=== Prometheus /api/v1/targets (job instance health lastScrape lastError) ===
+blackbox   blackbox-exporter:9115                   up 2026-11-11T03:16:08 ''
+https      https://git.ssw590-g1.tech/user/login    up 2026-11-11T03:16:16 ''
+https      https://ci.ssw590-g1.tech/login          up 2026-11-11T03:16:19 ''
+node       node-exporter:9100                       up 2026-11-11T03:16:16 ''
+prometheus prometheus:9090                          up 2026-11-11T03:16:12 ''
+
+=== Instant queries (03:16 UTC) ===
+probe_success{instance="https://git.ssw590-g1.tech/user/login"}            1
+probe_success{instance="https://ci.ssw590-g1.tech/login"}                  1
+probe_http_status_code  git 200   ci 200
+probe_duration_seconds  git 0.014027061   ci 0.025555427
+probe_ssl_earliest_cert_expiry  git 1799858155   ci 1801368269
+node_memory_MemTotal_bytes      2002350080
+node_memory_MemAvailable_bytes  823209984
+node_filesystem_size_bytes{device="/dev/nvme0n1p1",fstype="xfs",mountpoint="/"}   21395124224
+node_filesystem_avail_bytes{device="/dev/nvme0n1p1",fstype="xfs",mountpoint="/"}  6994649088
+count(node_cpu_seconds_total{mode="idle"})  2
+
+=== Same moment on the host ===
+$ free -b
+               total        used        free      shared  buff/cache   available
+Mem:      2002350080  1031618560    74612736     1048576   896118784   804671488
+Swap:     2147479552   170827776  1976651776
+$ df -B1 /
+Filesystem       1B-blocks        Used  Available Use% Mounted on
+/dev/nvme0n1p1 21395124224 14400479232 6994644992  68% /
+Comparison: MemTotal equal to free's total; filesystem size equal to df 1B-blocks; avail differs by 4096 bytes (one block,
+taken a few seconds apart); MemAvailable 823 MB vs free 805 MB, sampled ~10 s apart. Root fs is 32.7% free (68% used,
+up from 58% because of the ~1.4 GB of new images).
+
+=== Host listening sockets (sudo ss -ltnp) - unchanged: only 22, 80, 443 public ===
+0.0.0.0:80 docker-proxy    0.0.0.0:443 docker-proxy    0.0.0.0:22 sshd    127.0.0.1:41143 containerd   (+ IPv6 [::]:22/80/443)
+
+=== Memory per container (docker stats --no-stream) ===
+grafana 210.1MiB / 256MiB   prometheus 45.57MiB / 256MiB   node-exporter 11.23MiB / 64MiB   blackbox-exporter 14.51MiB / 64MiB
+gitea 102MiB   caddy 20.49MiB   jenkins 330.7MiB / 640MiB   gitea-runner 10.91MiB
+
+=== Adjustment at 03:18 UTC: Grafana memory cap 256m -> 384m ===
+Reason: 216 MiB used at idle, too close to the cap; an OOM kill would also stop alerting. Host available ~780 MiB.
+$ docker compose up -d   ->  Container grafana Recreate / Recreated / Started   (volume monitoring_grafana_data kept)
+After restart: grafana 316.8MiB / 384MiB, OOMKilled=false, restarts=0; host available 747 MiB, swap used 165 MiB of 2047.
+
+=== Grafana from inside the network (from the caddy container) ===
+GET http://grafana:3000/api/health -> {"database":"ok","version":"13.3.1","commit":"da3aa3ff574e7dbbf808c66b6daa744defed0441"}
+POST http://grafana:3000/login {"user":"admin","password":"admin"} -> HTTP/1.1 401 Unauthorized
+grafana log: msg="Failed to authenticate request" ... error="[password-auth.invalid] invalid password"

@@ -1,0 +1,85 @@
+% Owner: SD. Deployment diagram of the Group 1 server with the monitoring stack (Assignment 7, row 1).
+% Adapted from the course manual's Figure 5.1 to the real hostnames, networks and volumes (evidence 112, 113, 141).
+% Blue boxes = the four new monitoring containers; white boxes = existing containers.
+% Arrows point from the side that opens the connection; responses return on the same connection.
+% Not drawn: the Gitea Actions runner (gitea-runner, Assignment 5) and the Gitea-Jenkins webhook paths (Jenkins chapter figure).
+% Suggested use in the chapter (row 1 region):
+%   \begin{figure}[htbp]\centering
+%   \resizebox{\linewidth}{!}{\input{TikZ/devopsSre/devopsSreDeployment.tex}}
+%   \caption{Deployment of the Group 1 server with monitoring, adapted from the course manual's Figure 5.1.
+%     Blue: the four new monitoring containers. Arrows start at the side that opens the connection.
+%     Gitea and Jenkins are probed only through their public HTTPS names; Prometheus, the exporters and
+%     Grafana's port 3000 are reachable only on private Docker networks.}
+%   \label{Figure:sreDeployment}\end{figure}
+% Only the tikzpicture lives here; include with \resizebox{\linewidth}{!}{\input{...}}.
+\begin{tikzpicture}[
+  font=\footnotesize, >={Stealth[length=2.2mm]},
+  new/.style={draw=devopsBlue, very thick, rounded corners=2pt, fill=devopsLightBlue, align=center,
+    minimum height=1.25cm, minimum width=3.6cm, inner sep=3pt},
+  old/.style={draw, rounded corners=2pt, fill=white, align=center, minimum height=1.1cm, minimum width=3.6cm, inner sep=3pt},
+  who/.style={draw, rounded corners=2pt, fill=white, align=center, minimum height=0.9cm, minimum width=3.0cm, inner sep=3pt},
+  store/.style={draw, fill=gray!8, align=center, minimum height=0.75cm, inner sep=3pt, font=\scriptsize},
+  pub/.style={->, thick, devopsGreen},
+  priv/.style={->, thick, devopsBlue},
+  outbound/.style={->, thick, devopsRed, dashed},
+  rd/.style={->, thick, devopsGray, dashed},
+  lbl/.style={font=\scriptsize, align=center, fill=white, inner sep=1pt}]
+
+  % ---------------- outside the instance ----------------
+  \node[who] (team) at (-0.7,3.4) {Team browser\\(team address list)};
+  \node[who] (other) at (-0.7,1.4) {Any other browser\\(login pages only)};
+  \node[who, fill=yellow!10] (discord) at (-0.7,-2.6) {Discord private channel\\(alert destination,\\webhook URL secret)};
+  \node[old, minimum width=2.4cm, minimum height=4.4cm] (sg) at (3.9,2.0) {AWS\\security group\\[2pt]in: 443, 80\\22 (team, keys)\\[2pt]\textbf{no} 3000, 9090,\\9100, 9115};
+
+  % ---------------- the EC2 instance ----------------
+  \draw[dashed, rounded corners=3pt] (5.7,-6.7) rectangle (21.9,5.6);
+  \node[anchor=north west, font=\footnotesize\bfseries] at (5.8,5.55)
+    {AWS EC2 t3.small, Amazon Linux 2023, Docker Compose, Elastic IP 52.73.254.36};
+  % networks (Grafana sits on both)
+  \draw[dotted, very thick, rounded corners] (6.1,0.45) rectangle (16.6,4.9);
+  \node[anchor=south east, font=\scriptsize\itshape] at (16.55,0.5) {network \texttt{gitea\_web} (existing)};
+  \draw[dotted, very thick, devopsBlue, rounded corners] (8.9,-6.2) rectangle (19.5,-0.55);
+  \node[anchor=south east, font=\scriptsize\itshape, text=devopsBlue] at (19.45,-6.15) {network \texttt{monitoring\_monitoring} (new, private)};
+
+  % existing containers and their volumes
+  \node[old] (caddy) at (8.0,2.8) {\texttt{caddy} 2.11.7\\TLS proxy, Let's Encrypt\\publishes 443 and 80 only};
+  \node[old] (gitea) at (13.4,4.0) {\texttt{gitea} 1.27.3\\\texttt{git.ssw590-g1.tech}};
+  \node[old] (jenkins) at (13.4,1.8) {\texttt{jenkins} 2.580.2\\\texttt{ci.ssw590-g1.tech}};
+  \node[store] (gdata) at (19.2,4.0) {volume \texttt{gitea\_gitea\_data}};
+  \node[store] (jhome) at (19.2,1.8) {volume \texttt{jenkins\_jenkins\_home}};
+
+  % new monitoring containers and their volumes
+  \node[new] (grafana) at (11.4,0.0) {\texttt{grafana} 13.3.1\\\texttt{metrics.ssw590-g1.tech}\\3000, on both networks};
+  \node[new] (prom) at (11.4,-2.6) {\texttt{prometheus} v3.16.0\\9090; scrape every 30\,s\\(also scrapes itself)};
+  \node[new] (node) at (17.4,-2.0) {\texttt{node-exporter} v1.12.1\\9100};
+  \node[new] (bbox) at (17.4,-4.3) {\texttt{blackbox-exporter} v0.29.1\\9115, module \texttt{http\_2xx}};
+  \node[store] (gfdata) at (18.2,0.0) {volume \texttt{monitoring\_grafana\_data}\\dashboard, users, alert rules};
+  \node[store] (pdata) at (11.4,-4.8) {volume \texttt{monitoring\_prometheus\_data}\\7 days or 1 GB};
+  \node[store, fill=white, minimum width=1.9cm] (host) at (20.75,-2.0) {host \texttt{/},\\\texttt{/proc}, \texttt{/sys}\\(read-only)};
+
+  % ---------------- public web paths ----------------
+  \draw[pub] (team.east) -- node[lbl, above] {HTTPS 443} (sg.west |- team.east);
+  \draw[pub] (other.east) -- node[lbl, above] {HTTPS 443} (sg.west |- other.east);
+  \draw[pub] (sg.east |- caddy.west) -- (caddy.west);
+  \draw[pub] (caddy.north) |- node[lbl, pos=0.75, above] {\texttt{git.}} (gitea.west);
+  \draw[pub] (caddy.east) -- ++(0.9,0) |- node[lbl, pos=0.75, above] {\texttt{ci.}} (jenkins.west);
+  \draw[pub] (caddy.south) |- (grafana.west);
+  \node[lbl, anchor=west, text=devopsGreen] at (8.15,1.0) {\texttt{metrics.}: team all paths; others\\only \texttt{/login}, \texttt{/public/*}, \texttt{/api/health}};
+  \draw[thick] (gitea.east) -- (gdata.west);
+  \draw[thick] (jenkins.east) -- (jhome.west);
+
+  % ---------------- private monitoring paths ----------------
+  \draw[priv] (grafana.south) -- node[lbl, right] {PromQL queries\\\texttt{http://prometheus:9090}} (prom.north);
+  \draw[priv] (prom.east) -- ++(0.5,0) |- node[lbl, pos=0.78, above] {scrape \texttt{/metrics}} (node.west);
+  \draw[priv] (prom.east) -- ++(0.5,0) |- node[lbl, pos=0.78, above] {scrape \texttt{/probe}} (bbox.west);
+  \draw[thick] (grafana.east) -- (gfdata.west);
+  \draw[thick] (prom.south) -- (pdata.north);
+  \draw[rd] (node.east) -- (host.west);
+
+  % HTTPS probes leave through the Elastic IP and re-enter like any client
+  \draw[outbound] (bbox.south) -- (bbox.south |- 0,-7.1) -| (sg.south);
+  \node[lbl, text=devopsRed, anchor=north] at (11.0,-7.2) {HTTPS probes of \texttt{https://git.ssw590-g1.tech/user/login} and \texttt{https://ci.ssw590-g1.tech/login}:\\
+    public DNS name, certificate verified; out through the Elastic IP and back in through the security group like any client};
+  % alert notifications go out to Discord
+  \draw[outbound] ([yshift=-0.35cm]grafana.west) -- (7.3,-0.35) |- node[lbl, pos=0.75, above] {alert notifications (HTTPS, outbound)} (discord.east);
+\end{tikzpicture}

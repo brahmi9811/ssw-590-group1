@@ -1,0 +1,82 @@
+# Monitoring for the Group 1 startup server (course manual Chapter 5). Non-secret; start from ~/monitoring:
+#   docker compose config --quiet && docker compose pull && docker compose up -d
+# Four separate containers from project-published images. Design for a ~1 GB host shared with Gitea and Jenkins:
+# - NO published host ports: Prometheus 9090, Node Exporter 9100 and Blackbox 9115 live only on the private
+#   `monitoring` network; Grafana 3000 is reached by Caddy by service name on the existing `gitea_web` network.
+# - No container gets the Docker socket or privileged mode.
+# - Memory caps so that a monitoring container, not Gitea or Jenkins, is killed if memory runs out.
+# - Named volumes keep Prometheus metrics history and Grafana state across container replacement.
+#   Use `docker compose stop/start`; never `docker compose down -v` (deletes the volumes).
+services:
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_TAG:?choose a release}
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d        # course's suggested lab retention
+      - --storage.tsdb.retention.size=1GB       # hard cap so the root disk keeps room for builds
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    mem_limit: 256m
+    networks: [monitoring]
+
+  grafana:
+    image: grafana/grafana:${GRAFANA_TAG:?choose a release}
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_SERVER_ROOT_URL: "https://metrics.ssw590-g1.tech/"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      # No admin/admin window on the public login page: the first admin password is a random value generated
+      # on the server (secrets/grafana_admin_password in a mode-700 folder, never printed, never in Git). The owner then
+      # sets the real one with `docker exec -it grafana grafana cli admin reset-admin-password`.
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+    secrets: [grafana_admin_password]
+    volumes:
+      - grafana_data:/var/lib/grafana
+    mem_limit: 384m                             # 256m left too little room: Grafana 13.3.1 used ~216 MiB idle
+    networks: [monitoring, web]
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:${NODE_EXPORTER_TAG:?choose a release}
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host                                   # host process namespace, for host-wide CPU/memory figures
+    command:
+      - --path.rootfs=/host
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+    volumes:
+      - /:/host:ro,rslave                       # read-only host root, for root-filesystem size/free space
+    mem_limit: 64m
+    networks: [monitoring]
+
+  blackbox-exporter:
+    image: quay.io/prometheus/blackbox-exporter:${BLACKBOX_TAG:?choose a release}
+    container_name: blackbox-exporter
+    restart: unless-stopped
+    command: ["--config.file=/config/blackbox.yml"]
+    volumes:
+      - ./blackbox/blackbox.yml:/config/blackbox.yml:ro
+    mem_limit: 64m
+    networks: [monitoring]                      # normal bridge egress: probes go out to the public HTTPS hostnames
+
+networks:
+  monitoring: {}                                # private: Prometheus <-> exporters <-> Grafana
+  web:
+    external: true
+    name: gitea_web                             # existing network shared by Caddy, Gitea and Jenkins (reused, not recreated)
+
+secrets:
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password       # created on the server only; gitignored
+
+volumes:
+  prometheus_data:
+  grafana_data:

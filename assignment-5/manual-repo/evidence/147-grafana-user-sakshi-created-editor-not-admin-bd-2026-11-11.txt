@@ -1,0 +1,11 @@
+Transcribed by Claude Code from BD's screenshot of Grafana (Administration, Users and access, Users, sakshi), Nov 11, 2026 evening US Eastern.
+The screenshot itself is not stored in the repository because it shows Sakshi's personal email address (the repository is public).
+
+User information:   Numerical identifier 2 | Name sakshi | Username sakshi | Password shown masked (********)
+Permissions:        Grafana Admin: No
+Organizations:      Main Org.: role Editor
+Message on screen:  "Organization user updated" (BD had just set the role)
+
+What this shows (row 3, access control): the first Grafana administrator account is BD's (admin, password set by BD on the server, evidence 144);
+SD has her own named account with the Editor role, not an administrator. Sign-up and anonymous access are off (compose settings, evidence 112).
+SD's temporary password was handed over privately by BD (not in the repository, this file or the manual); SD changes it at first sign-in.

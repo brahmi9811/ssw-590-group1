@@ -67,8 +67,15 @@ Read `README.md` first. Course manual V1.42 Chapter 5 is the source of truth.
   references 140, 141, 144, 147 undefined (her regions include them). Preview: `sd-drafts/devopsSre-preview-sd-sections.pdf`.
 - PR #2 merged by BD Nov 11 19:42 EST, merge commit c03fb1b (filled in). Open \Todo items: restart test (with BD's outage); row 5 real window.
 
+### Update (Nov 11, 8:45 PM New York) - SD rows done
+- Outage with BD 8:24:25-8:27:25 PM. SLI window 8:20-8:38 PM (evidence 116): Jenkins 30/36 = 83.33 %, Gitea 100 %.
+  Independent timeline (117). Restart test 8:38-8:40 PM (115), also BD's row 7 verification.
+- SD regions (rows 1, 2, 3, 5) pushed to the Gitea manual repo main as dc4aaed; Gitea Actions run #18 success.
+  Includes BD's evidence 140, 141, 144, 147 as listings/figure in the SD rows (BD must not define those labels again).
+  Mirrored to GitHub assignment-5/manual-repo/.
+
 ## Checklist
 - [x] baseline evidence · [x] image tags chosen · [x] monitoring files drafted and validated locally · [x] Gitea issue #1 + branch + PR #2 merged (c03fb1b)
 - [x] G1 decided by BD · [x] stack deployed, digests recorded · [x] targets up, probes defined, host values verified
-- [x] Grafana HTTPS, external exposure tests (phone test + own login pending) · [ ] restart persistence test · [x] deployment diagram drafted (sd-drafts/TikZ)
-- [x] row 5 worked example · [ ] row 5 real window (after BD's outage) · [ ] rows 1, 2, 3, 5 written in the chapter with inline evidence
+- [x] Grafana HTTPS, external exposure tests (phone test + own login pending) · [x] restart persistence test (115) · [x] deployment diagram drafted (sd-drafts/TikZ)
+- [x] row 5 worked example · [x] row 5 real window (116) · [x] rows 1, 2, 3, 5 written in the chapter with inline evidence (manual dc4aaed, run #18)

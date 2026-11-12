@@ -1,0 +1,31 @@
+Real output, Nov 11, 2026 19:20 EST (2026-11-12 00:20:54 UTC). Assignment 7, row 3 (access control). Run by Sakshi from her Mac
+on a mobile network (T-Mobile USA), which is NOT on the Caddy team list or the security group's SSH list. Replaces the planned phone test:
+same condition (outside the team network), but with exact status codes instead of screenshots.
+
+client IP: 172.59.210.63  (whois org: T-Mobile USA, Inc.)
+login title: <title>Grafana</title>
+login page assets: 9/9 returned 200
+/login                                        200 verify=0
+/api/health                                   200 verify=0
+/                                             403 verify=0
+/explore                                      403 verify=0
+/d/x                                          403 verify=0
+/api/datasources                              403 verify=0
+/api/user                                     403 verify=0
+/api/search                                   403 verify=0
+/metrics                                      403 verify=0
+/api/admin/users                              403 verify=0
+/api/alertmanager/grafana/api/v2/alerts       403 verify=0
+POST /login admin/admin                       401
+body of /explore: Forbidden
+tcp 22: closed/filtered      (SSH also refused from this address: "ssh: connect to host git.ssw590-g1.tech port 22: Operation timed out")
+tcp 3000: closed/filtered
+tcp 9090: closed/filtered
+tcp 9100: closed/filtered
+tcp 9115: closed/filtered
+
+Reading: from outside the team, the only Grafana surface is the login page (with its static files) and the health check;
+dashboards, Explore, the API, Grafana's own /metrics and the alert API are refused by Caddy before reaching Grafana.
+verify=0 means curl verified the Let's Encrypt certificate chain and hostname.
+Limitation: the login form itself is public, so a non-team user can attempt passwords; Grafana's default brute-force
+login protection applies, and admin/admin was never valid (evidence 112).

@@ -1,0 +1,51 @@
+=== Server baseline before monitoring (read-only), 2026-11-10 23:26:08 UTC ===
+instance type: t3.micro  zone: us-east-1c
+--- OS / kernel / arch
+PRETTY_NAME="Amazon Linux 2023.12.20261014"
+6.18.54-121.166.amzn2023.x86_64
+x86_64
+--- CPU
+2
+model name	: Intel(R) Xeon(R) Platinum 8259CL CPU @ 2.50GHz
+--- memory (MiB)
+               total        used        free      shared  buff/cache   available
+Mem:             913         575          60           0         277         200
+Swap:           2047         425        1622
+--- root filesystem
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1   20G   12G  8.4G  58% /
+/dev/nvme0n1p1 21395124224 12391948288 9003175936  58% /
+--- load
+ 23:26:08 up 26 days,  6:09,  0 users,  load average: 0.03, 0.01, 0.00
+--- docker
+Docker Engine 25.0.16
+Docker Compose version v5.6.0
+--- containers
+gitea	gitea/gitea:1.27.3	Up 8 days (healthy)	22/tcp, 3000/tcp
+caddy	caddy:2.11.7	Up 8 days	0.0.0.0:80->80/tcp, :::80->80/tcp, 0.0.0.0:443->443/tcp, :::443->443/tcp, 443/udp, 2019/tcp
+jenkins	group1/jenkins-python:2.580.2	Up 7 days	8080/tcp, 50000/tcp
+gitea-runner	gitea/act_runner:0.6.1	Up 3 weeks	
+--- container memory (one sample)
+gitea	1.57%	110.3MiB / 913.1MiB
+caddy	0.00%	20.78MiB / 913.1MiB
+jenkins	0.14%	271MiB / 640MiB
+gitea-runner	0.11%	14.14MiB / 913.1MiB
+--- Docker disk usage
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          5         4         6.669GB   5.818GB (87%)
+Containers      4         4         217.8MB   0B (0%)
+Local Volumes   6         5         275.3MB   0B (0%)
+Build Cache     30        0         1.163kB   1.163kB
+--- listening TCP sockets on the host (addresses only)
+0.0.0.0:22
+0.0.0.0:443
+0.0.0.0:80
+127.0.0.1:37001
+[::]:22
+[::]:443
+[::]:80
+--- service versions
+gitea version 1.27.3 built with go1.26.7-X:jsonv2 : bindata, timetzdata, 
+Jenkins login HTTP 200
+x-jenkins: 2.580.2
+Gitea login HTTP 200
