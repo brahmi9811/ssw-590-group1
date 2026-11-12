@@ -311,7 +311,7 @@
       "gridPos": {
         "x": 0,
         "y": 16,
-        "w": 8,
+        "w": 6,
         "h": 8
       },
       "targets": [
@@ -381,9 +381,9 @@
         "uid": "${DS_PROMETHEUS}"
       },
       "gridPos": {
-        "x": 8,
+        "x": 6,
         "y": 16,
-        "w": 8,
+        "w": 6,
         "h": 8
       },
       "targets": [
@@ -446,16 +446,16 @@
     {
       "id": 7,
       "type": "table",
-      "title": "Scrape health (up)",
+      "title": "Scrape health (up: 1 = scrape worked)",
       "description": "up = the scrape worked; up can be 1 while probe_success is 0.",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
       "gridPos": {
-        "x": 16,
+        "x": 12,
         "y": 16,
-        "w": 8,
+        "w": 12,
         "h": 8
       },
       "targets": [
@@ -500,9 +500,16 @@
           "options": {
             "excludeByName": {
               "Time": true,
-              "__name__": true
+              "__name__": true,
+              "job": true
             },
-            "indexByName": {}
+            "renameByName": {
+              "Value": "up"
+            },
+            "indexByName": {
+              "instance": 0,
+              "up": 1
+            }
           }
         }
       ]
