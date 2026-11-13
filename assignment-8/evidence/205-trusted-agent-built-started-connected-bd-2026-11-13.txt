@@ -1,0 +1,26 @@
+Real output, Nov 13, 2026 (server clock UTC). Assignment 8, gate G1 (trusted delivery agent), row 4/5.
+Run by Claude Code over SSH after Brahmi created the Jenkins node delivery-agent (Permanent Agent, 1 executor, label delivery, WebSocket) and wrote the node secret into ~/jenkins-agent/.env herself (the assistant never saw it; checked only mode, length and format: 64 hex).
+
+=== Build (05:09 UTC), classic builder (host has no buildx): DOCKER_BUILDKIT=0 docker build -t group1/jenkins-delivery-agent:1 . ===
+Successfully built d918aeed6176; image id sha256:d918aeed61764aaca2857217eb1016ce90b4e5de35162d2fd3895cb220dc5003; 648549231 bytes
+Root disk free: 6.3 GB before the build, 5.6 GB after (72 % used).
+Installed: ansible-core 2.22.0, pip-audit 2.10.1 (venv /opt/tools); the base is the pinned inbound-agent digest.
+
+=== Start (05:12:30 UTC): docker compose up -d ===
+Container jenkins-agent Created / Started; restart policy unless-stopped; memory limit 1610612736 bytes (1536 MiB); network gitea_web only.
+Tools inside the container: user uid=1000(jenkins), groups include 993 (docker); Python 3.13.5; openjdk 21.0.13; Docker CLI 25.0.5 (server 25.0.16 through the mounted socket); Trivy 0.76.2; ansible core 2.22.0; pip-audit 2.10.1.
+
+=== Incident, recorded as it happened ===
+The first minutes of the log show "Failed to connect: Handshake error." for several retries. Cause: the node name delivery-agent was already connected from Brahmi's own Windows PC (she ran the agent.jar command from the node page there; the Nodes page showed Windows 11 (amd64), 70.37 GiB disk). Two agents cannot hold one name.
+Because the label delivery is what will carry the deploy key and registry token, a delivery job on a personal PC would have been a credential exposure; she stopped the Java process on the PC and removed agent.jar. Evidence 206 shows the node afterwards.
+Also: the first .env held a 188-character value (not the 64-hex secret), so it was rewritten; the format is checked without printing it.
+
+=== After (05:14:47 UTC) ===
+log: "WebSocket connection open", "Connected" (after "Terminated" of the PC session)
+Nodes page: delivery-agent, Linux (amd64), 5.58 GiB free disk, response 454 ms (evidence 206).
+deploy-target resolves inside the agent to 172.17.0.1 (host-gateway alias); tcp 22 open from the agent.
+Host key seen from the agent for deploy-target: 256 SHA256:sJSqc/LAVTJundPSM4yrgJt7gbsQbYtyFO71buvgosM (ED25519), the same fingerprint pinned in SD's known_hosts (evidence 175).
+Memory: 3835 MiB total, 2293 MiB available with the agent idle.
+
+=== Not yet done ===
+SSH login as deploy from the agent (the private key exists only as the Jenkins credential deploy-ssh-key; it is first used by the pipeline), registry login, first delivery run.
