@@ -1,0 +1,24 @@
+Real output, Nov 12, 2026 evening US Eastern (server clock UTC, already Nov 13). Assignment 8, gate G5 (deploy account) and the Ansible inventory.
+Read-only checks run by Claude Code over SSH on Brahmi's go-ahead (a TCP connect test to port 22; nothing was changed on the server).
+Question: SD's inventory (assignment-8/sd-work/ansible/inventory.ini) uses ansible_host=git.ssw590-g1.tech (the public name, Elastic IP 52.73.254.36). Ansible runs inside a
+container on the server (the trusted agent) and connects by SSH to the same server. Can it reach port 22 that way?
+
+=== TCP connect to port 22 (bash /dev/tcp, 5 s timeout) ===
+from the host         to its own Elastic IP 52.73.254.36:22        -> blocked
+from the Jenkins container to 52.73.254.36:22                       -> blocked
+from the host         to its own private IP 172.31.29.240:22        -> open
+from the Jenkins container to 172.31.29.240:22                      -> open
+from the Jenkins container to the Docker network gateway 172.19.0.1:22 -> open
+sshd listens on 0.0.0.0:22 and [::]:22.
+
+=== Why (the explanation is an inference from the results and the security group rules; it was not tested separately) ===
+The AWS security group admits SSH (22) only from single administrator addresses (home and campus, Assignment 7); a connection made from the server itself to its own public address
+arrives with the Elastic IP as its source, which is not in that list, so it is refused. A connection to the private address stays inside the instance and is not filtered by the security group.
+Port 443 does not have this problem (it is open to everyone, which is why the Blackbox Exporter container can probe the public HTTPS names, evidence 112 of Assignment 7).
+
+=== Consequence ===
+The deployment's SSH connection must use the private address (172.31.29.240) or the Docker gateway, not git.ssw590-g1.tech; the HTTPS health checks in the playbook may keep using the public names.
+No security group rule is added for this (the alternative would be to open 22 to the Elastic IP itself, which is a firewall change and not needed).
+The pinned host key does not change: ED25519 SHA256:sJSqc/LAVTJundPSM4yrgJt7gbsQbYtyFO71buvgosM (read on the server with `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`; it is the same fingerprint SD recorded).
+The known_hosts file must list the address that Ansible uses (172.31.29.240), not only the public name.
+The private address belongs to the instance and stays the same across stop and start in this VPC; check it before each assignment step if the instance is ever replaced.
