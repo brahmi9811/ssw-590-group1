@@ -22,6 +22,12 @@
   added (evidence 174).
 - Caddy block for staging/app drafted and validated: `sd-work/Caddyfile.pricing-block.txt` (gate G4).
 
+### Update (Nov 12, ~9:40 PM New York)
+- Adapted to BD's pipeline draft: `pricing-service/VERSION` + guard test; `ansible/known_hosts` (pinned key); inventory via the
+  Docker bridge `deploy-target` with HostKeyAlias (evidence 175: the server cannot reach its own Elastic IP on 22).
+- twintrack issue #11 and PR #12 (branch `issue-11-pricing-service`, commit 55f4d15, reviewer BD); Jenkins PR-12 build #1:
+  `twintrack/pipeline/pr-main` and `head` success.
+
 ## Next (in order)
 1. Gitea issue + branch + PR in `twintrack` adding `pricing-service/` (v1), `ansible/`, `releases/` (BD reviews).
 2. After BD's gates G1-G6: first pipeline build on the trusted agent -> registry push/pull, record the digest (row 2).
@@ -32,6 +38,6 @@
 
 ## Checklist
 - [x] baseline (170) · [x] tests pass/fail/restore (171) · [x] lock + base digest + pip-audit (172) · [x] local hardened run (173)
-- [x] Ansible offline prep (174) · [x] Caddy draft · [ ] twintrack issue/branch/PR · [ ] first registry image + digest
+- [x] Ansible offline prep (174) · [x] Caddy draft · [x] twintrack issue #11 / PR #12 (Jenkins green; review by BD pending) · [ ] first registry image + digest
 - [ ] staging deploy + `changed=0` · [ ] production (after approval) · [ ] v2 release · [ ] traceability table
 - [ ] diagram · [ ] runbooks · [ ] chapter regions · [ ] final build check
