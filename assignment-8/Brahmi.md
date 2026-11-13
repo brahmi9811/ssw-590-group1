@@ -21,6 +21,6 @@ G6 registry tokens, G7 pipeline shape and approvers.
 - pip-audit command that already works on the lock (evidence 172): `pip-audit -r requirements.txt --require-hashes --disable-pip`.
 
 ## Checklist
-- [ ] G1 agent + tool versions · [ ] G2 capacity · [ ] G3 DNS · [ ] G4 Caddy · [ ] G5 deploy account · [ ] G6 tokens · [ ] G7 pipeline shape
+- [ ] G1 agent + tool versions · [x] G2 capacity (t3.medium, evidence 200) · [ ] G3 DNS · [ ] G4 Caddy · [ ] G5 deploy account · [ ] G6 tokens · [ ] G7 pipeline shape (approvers decided: brahmi and sakshi)
 - [ ] scan policy · [ ] blocked fixture · [ ] approval stage · [ ] v2 promotion · [ ] rollback (a) · [ ] failed deploy (b)
 - [ ] monitoring probe + correlation · [ ] limitations

@@ -1,0 +1,38 @@
+Real output, Nov 12, 2026 evening US Eastern (the server clock is UTC, already Nov 13). Assignment 8, gate G2 (capacity).
+Decision by Brahmi (BD): resize the single server from t3.small to t3.medium for the duration of this assignment, because Docker builds, the Trivy scanner, the trusted
+Jenkins agent and the two pricing containers would not fit into the 739-768 MiB that were available (evidence 170; a read-only check by BD's assistant at the same time showed
+739 MiB available and 222 MiB in swap). The Assignment 5 Actions runner is NOT stopped: it uses about 10 MiB, and stopping it would free nothing useful (its 5.8 GB image stays on disk, and it
+builds the final PDF).
+The AWS commands were run by Claude Code on Brahmi's explicit authorization (stop, change type, start). Same instance, same disk, same Elastic IP.
+
+=== AWS steps (us-east-1, instance i-0c68ec1bc1e16a414) ===
+before:  t3.small    running  52.73.254.36
+stop-instances            -> stopping -> stopped
+modify-instance-attribute --instance-type t3.medium    -> ok
+after:   t3.medium   stopped                  (02:06:17 UTC)
+start-instances           -> pending -> running
+after:   t3.medium   running  52.73.254.36   (02:06:40 UTC; address unchanged)
+
+=== Public pages after the restart (from BD's computer, 02:06:57 UTC) ===
+https://git.ssw590-g1.tech/            HTTP 200
+https://ci.ssw590-g1.tech/login        HTTP 200
+https://metrics.ssw590-g1.tech/login   HTTP 200
+
+=== On the server, read-only, 02:07:04 UTC (up 0 min) ===
+               total        used        free      shared  buff/cache   available
+Mem:            3835         972        1934           1         929        2645
+Swap:           2047          25        2022
+swapon: /swapfile file 2G, 25.8M used (comes back by itself)
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1   20G   14G  6.4G  69% /
+Containers 28 seconds after the start (all restarted by themselves): caddy, grafana, node-exporter, blackbox-exporter, prometheus, gitea (health: starting), jenkins, gitea-runner.
+
+=== Comparison with evidence 170 ===
+total RAM      1909 MiB  -> 3835 MiB
+available RAM   768 MiB  -> 2645 MiB      (the 2645 figure is right after a reboot, before the services have grown; it is a floor for the comparison, not a steady state)
+swap in use     225 MiB  ->   25 MiB
+root disk       6.4 GB free -> 6.4 GB free (unchanged: the resize does not add disk; the disk stays a constraint)
+Outage: Gitea, Jenkins, Grafana, and the runner were unreachable while the instance stopped, changed type, and started again: stopped at 02:06:17 UTC, running at 02:06:40, the three public pages answering at 02:06:57. The exact time of the stop command was not recorded, so the total outage is not stated more precisely.
+
+=== Cost note (to be confirmed on AWS's price page) ===
+t3.medium costs roughly twice t3.small per hour (about 0.0208 USD/hr more). Accepted by Brahmi; to be reviewed after grading.
