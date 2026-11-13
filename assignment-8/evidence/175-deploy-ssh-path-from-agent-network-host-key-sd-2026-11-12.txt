@@ -1,0 +1,28 @@
+Real output, Nov 12, 2026 9:21 PM New York time (2026-11-13 02:21:30 UTC). Assignment 8, row 3 (deployment SSH path) and row 5 (access). Run by Sakshi
+(Claude Code over SSH as ec2-user), read-only: no settings changed; the alpine test containers were removed (--rm).
+
+Question: how does the trusted agent container on gitea_web reach the server sshd for Ansible?
+
+$ timeout 6 bash -c "echo > /dev/tcp/52.73.254.36/22"   (the server to its own Elastic IP)
+NOT reachable: the security group admits SSH only from team addresses (unchanged on purpose)
+
+$ docker network inspect gitea_web (gateway)
+subnet 172.18.0.0/16 gateway 172.18.0.1
+$ sudo ss -ltn sport = :22
+State  Recv-Q Send-Q Local Address:Port Peer Address:Port
+LISTEN 0      128          0.0.0.0:22        0.0.0.0:*   
+LISTEN 0      128             [::]:22           [::]:*   
+
+$ docker run --rm --network gitea_web --add-host deploy-target:host-gateway alpine:3.20 sh -c "getent hosts deploy-target; nc -z -w 5 deploy-target 22"
+172.17.0.1        deploy-target  deploy-target
+deploy-target:22 OPEN
+
+$ ssh-keyscan -t ed25519 <address> | ssh-keygen -lf -   (same sshd on every path)
+256 SHA256:sJSqc/LAVTJundPSM4yrgJt7gbsQbYtyFO71buvgosM 172.17.0.1 (ED25519)
+256 SHA256:sJSqc/LAVTJundPSM4yrgJt7gbsQbYtyFO71buvgosM 172.18.0.1 (ED25519)
+Pinned on SD's Mac since Assignment 4 (git.ssw590-g1.tech, verified at first connection):
+256 SHA256:sJSqc/LAVTJundPSM4yrgJt7gbsQbYtyFO71buvgosM git.ssw590-g1.tech (ED25519)
+
+Decision (SD): inventory uses ansible_host=deploy-target (agent compose: extra_hosts "deploy-target:host-gateway") with
+ansible_ssh_extra_args=-o HostKeyAlias=git.ssw590-g1.tech -o StrictHostKeyChecking=yes, and ansible/known_hosts holds the single
+pinned ED25519 entry for git.ssw590-g1.tech. SSH never goes over the Internet, and the security group stays as it is.

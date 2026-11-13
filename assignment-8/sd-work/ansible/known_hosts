@@ -1,0 +1,5 @@
+# Pinned SSH host key of the Group 1 server (public information, not a secret). ED25519 fingerprint
+# SHA256:sJSqc/LAVTJundPSM4yrgJt7gbsQbYtyFO71buvgosM, verified Nov 12, 2026 on git.ssw590-g1.tech and on the Docker bridge
+# addresses 172.17.0.1 and 172.18.0.1 (same sshd). The inventory connects to deploy-target with HostKeyAlias=git.ssw590-g1.tech,
+# so this single entry is what OpenSSH checks.
+git.ssw590-g1.tech ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP7bthP0bP6lOQ24+z2zzul/kB+xh4COxobDdf2gLDgY
