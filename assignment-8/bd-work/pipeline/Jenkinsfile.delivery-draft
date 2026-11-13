@@ -1,0 +1,143 @@
+// DRAFT (BD) of the delivery pipeline for Assignment 8 (rows 4 and 5). NOT YET RUN. To be merged into twintrack's Jenkinsfile through a reviewed pull request
+// after SD's layout (pricing-service/, ansible/, releases/ at the repository root) and the agent (G1), credentials (G5, G6) and DNS/Caddy (G3, G4) exist.
+//
+// Design rules (README G7 and the course manual, sec. 6.4.4 to 6.4.7):
+//  - pull requests run ONLY the first stage, on the controller: no agent, no Docker, no credentials;
+//  - everything after it runs ONLY for the main branch, on the trusted agent labelled `delivery`;
+//  - credentials are bound only inside the delivery stages, and secrets are never interpolated into a Groovy string (single-quoted sh blocks);
+//  - one image per reviewed commit, built once; staging and production get the SAME digest;
+//  - disableConcurrentBuilds; the approval is restricted to named people, has a timeout, and records the actual approver.
+// Assumptions to agree with SD: file pricing-service/VERSION holds v1 or v2; the expected totals are 30 (v1) and 36 (v2) for quantity=3;
+// ansible/inventory.ini defines host group `delivery`; ansible/known_hosts holds the pinned host key (public information).
+pipeline {
+  agent none
+  options {
+    disableConcurrentBuilds()
+    timeout(time: 90, unit: 'MINUTES')
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+  }
+  environment {
+    REGISTRY = 'git.ssw590-g1.tech'
+    IMAGE    = 'git.ssw590-g1.tech/group1-startup/pricing'
+  }
+  stages {
+    stage('Tests (all branches, controller)') {
+      agent any
+      steps {
+        checkout scm
+        sh '''
+          set -eu
+          python3 -m venv .venv
+          . .venv/bin/activate
+          pip install --quiet --require-hashes -r pricing-service/requirements.txt
+          python -m unittest discover -s pricing-service -p 'test_*.py' -v
+        '''
+      }
+    }
+
+    stage('Delivery (main only, trusted agent)') {
+      when { branch 'main' }
+      agent { label 'delivery' }
+      environment {
+        PATH = "/opt/tools/bin:${env.PATH}"
+      }
+      stages {
+        stage('Record versions and checkout') {
+          steps {
+            checkout scm
+            sh '''
+              set -eu
+              mkdir -p reports releases
+              { echo "build ${BUILD_NUMBER} $(date -u +%FT%TZ)"; docker --version; trivy --version; ansible --version | head -1; pip-audit --version; python3 --version; } | tee reports/tool-versions.txt
+              ansible-galaxy collection install -r ansible/requirements.yml | tee -a reports/tool-versions.txt
+            '''
+          }
+        }
+
+        stage('Dependency and secret scans') {
+          steps {
+            sh '''
+              set -eu
+              set +e
+              pip-audit -r pricing-service/requirements.txt --require-hashes --disable-pip --format json --output reports/pip-audit.json
+              echo "pip-audit exit $?" | tee reports/pip-audit.exit
+              set -e
+              test -s reports/pip-audit.json            # a missing report is a failed scan
+              grep -q 'pip-audit exit 0' reports/pip-audit.exit
+              trivy fs --scanners secret --exit-code 1 --format json --output reports/trivy-secret.json .
+              test -s reports/trivy-secret.json
+            '''
+          }
+        }
+
+        stage('Build once and scan the image') {
+          steps {
+            withCredentials([usernamePassword(credentialsId: 'gitea-registry-write', usernameVariable: 'REG_USER', passwordVariable: 'REG_TOKEN')]) {
+              sh '''
+                set -eu
+                COMMIT="$(git rev-parse HEAD)"
+                VERSION="$(cat pricing-service/VERSION)"
+                echo "$COMMIT" > reports/commit.txt; echo "$VERSION" > reports/version.txt
+                docker build --build-arg APP_COMMIT="$COMMIT" -t "$IMAGE:$COMMIT" pricing-service
+                trivy image --severity HIGH,CRITICAL --exit-code 1 --format json --output reports/trivy-image.json "$IMAGE:$COMMIT"
+                test -s reports/trivy-image.json
+                printf '%s' "$REG_TOKEN" | docker login "$REGISTRY" -u "$REG_USER" --password-stdin
+                docker push "$IMAGE:$COMMIT"
+                docker pull "$IMAGE:$COMMIT"
+                DIGEST="$(docker image inspect "$IMAGE:$COMMIT" --format '{{index .RepoDigests 0}}')"
+                echo "$DIGEST" > reports/digest.txt
+                docker logout "$REGISTRY"
+              '''
+            }
+          }
+        }
+
+        stage('Deploy staging and smoke test') {
+          steps {
+            withCredentials([sshUserPrivateKey(credentialsId: 'deploy-ssh-key', keyFileVariable: 'KEYFILE', usernameVariable: 'DEPLOY_USER')]) {
+              sh '''
+                set -eu
+                . "$(pwd)/ansible/make-release-record.sh"      # writes releases/<version>-staging.yml from reports/*.txt (metadata only)
+                make_release_record staging
+                export ANSIBLE_HOST_KEY_CHECKING=True ANSIBLE_SSH_ARGS="-o UserKnownHostsFile=$(pwd)/ansible/known_hosts"
+                ansible-playbook -i ansible/inventory.ini ansible/deploy.yml --private-key "$KEYFILE" -u "$DEPLOY_USER" -e @releases/"$(cat reports/version.txt)"-staging.yml | tee reports/deploy-staging.txt
+              '''
+            }
+          }
+        }
+
+        stage('Approval (named approvers, 30 min)') {
+          steps {
+            script {
+              def decision = input(
+                message: "Promote ${readFile('reports/digest.txt').trim()} (commit ${readFile('reports/commit.txt').trim()}, ${readFile('reports/version.txt').trim()}) to production?",
+                ok: 'Promote',
+                submitter: 'brahmi,sakshi',
+                submitterParameter: 'APPROVER')
+              writeFile file: 'reports/approval.txt', text: "approved by ${decision} at ${new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} build ${env.BUILD_NUMBER}\n"
+            }
+          }
+        }
+
+        stage('Deploy production and smoke test') {
+          steps {
+            withCredentials([sshUserPrivateKey(credentialsId: 'deploy-ssh-key', keyFileVariable: 'KEYFILE', usernameVariable: 'DEPLOY_USER')]) {
+              sh '''
+                set -eu
+                . "$(pwd)/ansible/make-release-record.sh"
+                make_release_record production              # same digest and commit as staging; no rebuild
+                export ANSIBLE_HOST_KEY_CHECKING=True ANSIBLE_SSH_ARGS="-o UserKnownHostsFile=$(pwd)/ansible/known_hosts"
+                ansible-playbook -i ansible/inventory.ini ansible/deploy.yml --private-key "$KEYFILE" -u "$DEPLOY_USER" -e @releases/"$(cat reports/version.txt)"-production.yml | tee reports/deploy-production.txt
+              '''
+            }
+          }
+        }
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'reports/**, releases/*.yml', allowEmptyArchive: true, fingerprint: true
+        }
+      }
+    }
+  }
+}
