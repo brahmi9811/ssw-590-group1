@@ -1,0 +1,34 @@
+# Trusted Jenkins agent (Assignment 8, gate G1). Start from ~/jenkins-agent on the server:
+#   cp .env.example .env     (then put the node secret into .env; mode 600; never commit it)
+#   docker compose config --quiet && docker compose build && docker compose up -d
+# No published ports: the agent connects OUT to the controller over the private Docker network with Jenkins' WebSocket
+# mode (so the controller's agent port 50000 stays disabled, as in Assignment 6).
+services:
+  jenkins-agent:
+    build: .
+    image: group1/jenkins-delivery-agent:1
+    container_name: jenkins-agent
+    restart: unless-stopped
+    environment:
+      JENKINS_URL: "http://jenkins:8080"
+      JENKINS_WEB_SOCKET: "true"
+      JENKINS_AGENT_NAME: "delivery-agent"
+      JENKINS_AGENT_WORKDIR: "/home/jenkins/agent"
+      JENKINS_SECRET: "${JENKINS_AGENT_SECRET:?paste the node secret into .env}"
+    group_add:
+      - "${DOCKER_GID:?host docker group id: getent group docker}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # root-equivalent on the host; see README.md
+      - agent_work:/home/jenkins/agent
+      - trivy_cache:/home/jenkins/.cache/trivy
+    mem_limit: 1536m
+    networks: [web]
+
+networks:
+  web:
+    external: true
+    name: gitea_web
+
+volumes:
+  agent_work:
+  trivy_cache:
