@@ -6,7 +6,7 @@
 services:
   jenkins:
     build: .
-    image: group1/jenkins-python:2.580.2
+    image: group1/jenkins-python:2.580.2-venv
     container_name: jenkins
     restart: unless-stopped
     environment:

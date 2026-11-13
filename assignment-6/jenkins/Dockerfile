@@ -12,3 +12,10 @@ USER jenkins
 
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+
+# Assignment 8: pip and venv so the pull-request test stage can install the pinned application requirements (added Nov 12, 2026)
+USER root
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3-venv python3-pip \
+ && rm -rf /var/lib/apt/lists/*
+USER jenkins
