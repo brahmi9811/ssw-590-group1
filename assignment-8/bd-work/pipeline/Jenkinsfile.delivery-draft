@@ -27,6 +27,10 @@ pipeline {
         checkout scm
         sh '''
           set -eu
+          # Assignment 6 checks (the required PR check twintrack/pipeline/pr-main is built on them): keep both
+          python3 -m py_compile pricing.py
+          python3 -m unittest discover -s tests -v
+          # Assignment 8 application tests (needs python3-venv and pip in the controller image)
           python3 -m venv .venv
           . .venv/bin/activate
           pip install --quiet --require-hashes -r pricing-service/requirements.txt
@@ -106,15 +110,29 @@ pipeline {
           }
         }
 
-        stage('Approval (named approvers, 30 min)') {
+        stage('Load release facts for the approval') {
           steps {
             script {
-              def decision = input(
-                message: "Promote ${readFile('reports/digest.txt').trim()} (commit ${readFile('reports/commit.txt').trim()}, ${readFile('reports/version.txt').trim()}) to production?",
-                ok: 'Promote',
-                submitter: 'brahmi,sakshi',
-                submitterParameter: 'APPROVER')
-              writeFile file: 'reports/approval.txt', text: "approved by ${decision} at ${new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))} build ${env.BUILD_NUMBER}\n"
+              // kept in environment variables so the approval stage can wait without holding the agent's executor
+              env.REL_DIGEST  = readFile('reports/digest.txt').trim()
+              env.REL_COMMIT  = readFile('reports/commit.txt').trim()
+              env.REL_VERSION = readFile('reports/version.txt').trim()
+            }
+          }
+        }
+
+        stage('Approval (named approvers, 30 min)') {
+          agent none
+          steps {
+            script {
+              // the timeout makes a missing answer fail the run (abort), so production is never deployed unattended
+              timeout(time: 30, unit: 'MINUTES') {
+                env.APPROVER = input(
+                  message: "Promote ${env.REL_DIGEST} (commit ${env.REL_COMMIT}, ${env.REL_VERSION}) to production? Staging passed its health, version and price checks.",
+                  ok: 'Promote',
+                  submitter: 'brahmi,sakshi',
+                  submitterParameter: 'APPROVER')
+              }
             }
           }
         }
@@ -124,6 +142,7 @@ pipeline {
             withCredentials([sshUserPrivateKey(credentialsId: 'deploy-ssh-key', keyFileVariable: 'KEYFILE', usernameVariable: 'DEPLOY_USER')]) {
               sh '''
                 set -eu
+                printf 'approved by %s at %s, build %s\n' "$APPROVER" "$(date -u +%FT%TZ)" "$BUILD_NUMBER" > reports/approval.txt   # the actual approver
                 . "$(pwd)/ansible/make-release-record.sh"
                 make_release_record production              # same digest and commit as staging; no rebuild
                 export ANSIBLE_HOST_KEY_CHECKING=True ANSIBLE_SSH_ARGS="-o UserKnownHostsFile=$(pwd)/ansible/known_hosts"

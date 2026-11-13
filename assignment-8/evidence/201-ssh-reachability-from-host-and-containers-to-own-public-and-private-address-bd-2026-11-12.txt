@@ -16,6 +16,10 @@ The AWS security group admits SSH (22) only from single administrator addresses 
 arrives with the Elastic IP as its source, which is not in that list, so it is refused. A connection to the private address stays inside the instance and is not filtered by the security group.
 Port 443 does not have this problem (it is open to everyone, which is why the Blackbox Exporter container can probe the public HTTPS names, evidence 112 of Assignment 7).
 
+=== Note added later the same evening ===
+SD found the same fact independently and chose a different route (evidence 175): the agent container gets the name deploy-target through extra_hosts "deploy-target:host-gateway" (172.17.0.1), and the
+inventory uses ansible_host=deploy-target with HostKeyAlias=git.ssw590-g1.tech. That route is the one used; the private-address route below also works and is kept here as a second, verified path.
+
 === Consequence ===
 The deployment's SSH connection must use the private address (172.31.29.240) or the Docker gateway, not git.ssw590-g1.tech; the HTTPS health checks in the playbook may keep using the public names.
 No security group rule is added for this (the alternative would be to open 22 to the Elastic IP itself, which is a firewall change and not needed).

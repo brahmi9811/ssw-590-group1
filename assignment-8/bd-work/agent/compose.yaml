@@ -15,6 +15,8 @@ services:
       JENKINS_AGENT_NAME: "delivery-agent"
       JENKINS_AGENT_WORKDIR: "/home/jenkins/agent"
       JENKINS_SECRET: "${JENKINS_AGENT_SECRET:?paste the node secret into .env}"
+    extra_hosts:
+      - "deploy-target:host-gateway"   # the host's SSH (172.17.0.1) for Ansible; the Elastic IP is refused from inside the server (evidence 175, 201)
     group_add:
       - "${DOCKER_GID:?host docker group id: getent group docker}"
     volumes:
