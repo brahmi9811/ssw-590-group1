@@ -10,7 +10,8 @@ Status: DRAFT Nov 12, 2026; nothing has been run. `Jenkinsfile.delivery-draft` i
 3. `disableConcurrentBuilds`; a 90-minute overall timeout; the last 20 builds kept.
 
 ## Open points to settle before the first run
-- **Controller tests need Python venv and pip.** The controller image has python3 but may lack `python3-venv`; if so, either add it to the controller image (Assignment 6 Dockerfile, rebuilt by BD) or run the PR tests in a throw-away container on the controller (not wanted: no Docker there). Check first.
+- **Controller tests need Python venv and pip. Checked Nov 12, 2026: the controller has Python 3.13.5 and git 2.47.3, but no pip and `python3 -m venv` fails (ensurepip is missing).** Fix: add `python3-venv python3-pip` to the controller image
+  (`assignment-6/jenkins/Dockerfile`, apt-get, about 30 MB), rebuild and recreate the Jenkins container (volume kept; a short restart, as tested in Assignment 6). Until then the PR test stage cannot install Flask.
 - **Layout with SD**: `pricing-service/VERSION`, `ansible/known_hosts` (public host key), `ansible/inventory.ini` group `delivery`, and where `make-release-record.sh` lives (it can move to `ansible/`).
 - **Credentials to create (BD, typed by hand):** `gitea-registry-write` (username and token), `deploy-ssh-key` (SSH key and user `deploy`). The package-read token for root on the host is not a Jenkins credential.
 - **The `input` step needs the approver to be signed in**; the matrix permissions already give brahmi Administer and sakshi Job Build/Read, which is enough to answer the prompt; confirm in the first run.
