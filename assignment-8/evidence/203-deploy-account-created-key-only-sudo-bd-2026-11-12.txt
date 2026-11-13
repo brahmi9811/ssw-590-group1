@@ -1,0 +1,24 @@
+Real output pasted by Brahmi from the server shell, Nov 12, 2026 evening US Eastern. Assignment 8, gate G5 (deploy account) and row 3/5 (credentials).
+Run by Brahmi herself: the assistant's attempt to create the account was refused by the permission system because the account has passwordless sudo, so she ran the commands.
+The key pair was generated on her PC (ed25519, comment jenkins-deploy, no passphrase). Only the PUBLIC key was sent to the assistant and appears below; the private key goes only into the Jenkins credential deploy-ssh-key and the local copies are deleted afterwards.
+
+Commands (server shell, as ec2-user):
+  id deploy || sudo useradd -m -s /bin/bash deploy
+  sudo install -d -m 700 -o deploy -g deploy /home/deploy/.ssh
+  echo '<public key>' | sudo tee /home/deploy/.ssh/authorized_keys      (owner deploy, mode 600)
+  echo 'deploy ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/90-deploy      (mode 440)
+
+Output:
+  id: 'deploy': no such user                      (before: the account did not exist)
+  /etc/sudoers.d/90-deploy: parsed OK
+  uid=1001(deploy) gid=1001(deploy) groups=1001(deploy)
+  deploy sudo OK                                  (sudo -u deploy sudo -n true succeeded)
+
+Public key installed (fingerprint source, safe to record):
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKLuUyacLk72LkgX9uRymjxM79mNJrSZ9JLio6vVRP5K jenkins-deploy
+
+Design notes:
+- The account has no password; login is by this one key only, held as a Jenkins credential (deploy-ssh-key).
+- NOPASSWD ALL sudo is host-administrator power: Ansible needs it to run Docker and Compose and edit files on the host. It is the same trust level as the Docker socket on the agent and is recorded as an accepted risk in the manual.
+- Revoke: delete the line in /home/deploy/.ssh/authorized_keys (or userdel -r deploy) and remove /etc/sudoers.d/90-deploy.
+- Not yet verified: an actual SSH login as deploy from the agent container (done after the agent starts).
