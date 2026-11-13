@@ -1,0 +1,62 @@
+- name: Deploy a selected immutable pricing release
+  hosts: delivery
+  become: true
+  vars:
+    project_dir: "/opt/startup/pricing-{{ target_env }}"
+  tasks:
+    - name: Validate release selection
+      ansible.builtin.assert:
+        that:
+          - target_env in ['staging', 'production']
+          - "'@sha256:' in release_image"
+          - expected_version in ['v1', 'v2']
+          - expected_total | int > 0
+          - public_url.startswith('https://')
+          - proxy_network | length > 0
+    - name: Create deployment directory
+      ansible.builtin.file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: '0750'
+    - name: Render selected Compose configuration
+      ansible.builtin.template:
+        src: compose.yaml.j2
+        dest: "{{ project_dir }}/compose.yaml"
+        mode: '0640'
+    - name: Converge application without rebuilding
+      community.docker.docker_compose_v2:
+        project_src: "{{ project_dir }}"
+        project_name: "pricing-{{ target_env }}"
+        state: present
+        build: never
+        pull: missing
+        wait: true
+        wait_timeout: 90
+    - name: Verify health through public TLS endpoint
+      ansible.builtin.uri:
+        url: "{{ public_url }}/health"
+        return_content: true
+        validate_certs: true
+      register: health
+      until: health.status == 200 and health.json.status == 'ok'
+      retries: 12
+      delay: 5
+      changed_when: false
+    - name: Read release identity
+      ansible.builtin.uri:
+        url: "{{ public_url }}/"
+        return_content: true
+      register: identity
+      changed_when: false
+    - name: Exercise business behavior
+      ansible.builtin.uri:
+        url: "{{ public_url }}/price?quantity=3"
+        return_content: true
+      register: price
+      changed_when: false
+    - name: Check release identity and calculation
+      ansible.builtin.assert:
+        that:
+          - identity.json.version == expected_version
+          - identity.json.commit == expected_commit
+          - price.json.total | int == expected_total | int

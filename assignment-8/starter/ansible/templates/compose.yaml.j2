@@ -1,0 +1,19 @@
+services:
+  app:
+    image: "{{ release_image }}"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      edge:
+        aliases:
+          - "pricing-{{ target_env }}"
+networks:
+  edge:
+    external: true
+    name: "{{ proxy_network }}"

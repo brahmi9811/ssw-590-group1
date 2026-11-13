@@ -1,0 +1,8 @@
+# Copy to releases/<version>-<environment>.yml and replace EVERY placeholder. Metadata only, never credentials.
+target_env: staging                      # staging | production
+release_image: git.ssw590-g1.tech/group1-startup/pricing@sha256:REPLACE_DIGEST
+expected_version: v1                     # v1 | v2
+expected_commit: REPLACE_FULL_GIT_COMMIT # the reviewed source commit baked into the image
+expected_total: 30                       # 30 for v1, 36 for v2 (quantity=3)
+public_url: https://staging.ssw590-g1.tech   # https://app.ssw590-g1.tech for production
+proxy_network: gitea_web                 # existing Caddy network (evidence 170)

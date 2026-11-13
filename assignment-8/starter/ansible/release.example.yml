@@ -1,0 +1,8 @@
+# Copy to a release-specific file and replace EVERY placeholder.
+target_env: staging
+release_image: gitea.example.edu/team/pricing@sha256:REPLACE_DIGEST
+expected_version: v1
+expected_commit: REPLACE_FULL_GIT_COMMIT
+expected_total: 30
+public_url: https://staging.example.edu
+proxy_network: REPLACE_EXISTING_PROXY_NETWORK

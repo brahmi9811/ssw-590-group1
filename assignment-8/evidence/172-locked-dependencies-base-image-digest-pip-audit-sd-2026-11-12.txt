@@ -1,0 +1,43 @@
+Real output, Nov 12, 2026 7:59 PM New York time (2026-11-13 00:59:05 UTC). Assignment 8, row 1 (locked build inputs). Run by Sakshi (Claude Code) on her Mac.
+Base image chosen: the official Docker Hub python image, exact tag 3.13.18-slim-trixie (Debian 13), linux/amd64 like the server (x86_64, evidence 170).
+
+$ docker buildx imagetools inspect python:3.13.18-slim-trixie   (index digest and the linux/amd64 entry)
+Name:      docker.io/library/python:3.13.18-slim-trixie
+Digest:    sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+linux/amd64 manifest: sha256:48d884813cf44e927cf64c5529dd630dd3b18338c6dc727991eef9b71e934a20   (from --raw, platform os=linux architecture=amd64)
+(The floating tag python:3.13-slim had the same index digest when checked; the Dockerfile uses the exact tag plus this digest.)
+
+$ cat requirements.in   (the starter ranges, kept as input only)
+Flask>=3.1,<3.2
+gunicorn>=23,<24
+
+$ pip-compile --generate-hashes --strip-extras --no-emit-index-url -o requirements.txt requirements.in   (inside the pinned base image, linux/amd64)
+pip-tools: pip-compile, version 7.6.2
+$ diff /tmp/check.txt requirements.txt   (re-resolved now vs. the committed lock)
+5c5
+< #    pip-compile --generate-hashes --no-emit-index-url --output-file=/tmp/check.txt --strip-extras requirements.in
+---
+> #    pip-compile --generate-hashes --no-emit-index-url --output-file=requirements.txt --strip-extras requirements.in
+--- ignoring # comment lines: IDENTICAL
+(The first comparison in this run printed "re-resolve differs" because of that header comment only; the package lines and hashes are identical.)
+
+Resolved packages (direct: flask, gunicorn; the rest transitive):
+blinker==1.9.0
+click==8.5.1
+flask==3.1.3
+gunicorn==23.0.0
+itsdangerous==2.2.0
+jinja2==3.1.6
+markupsafe==3.0.4
+packaging==26.3
+werkzeug==3.1.9
+hash lines: 167
+
+$ pip-audit -r requirements.txt --require-hashes --disable-pip   (inside the pinned base image; vulnerability data from PyPI/OSV at run time)
+pip-audit: pip-audit 2.10.1
+No known vulnerabilities found
+exit code: 0
+
+Reading: this shows only that no known advisory matched these exact versions at the time above. It is not a claim that the
+packages are vulnerability-free; the image itself (OS packages) is scanned by the pipeline's Trivy gate (row 5, BD). Re-lock and rescan
+whenever requirements.in or the base image changes.

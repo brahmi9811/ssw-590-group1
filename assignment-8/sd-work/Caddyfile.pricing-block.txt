@@ -1,0 +1,17 @@
+# DRAFT (SD) for BD's review: append to ~/gitea/Caddyfile on the server, `caddy validate`, then `caddy reload`.
+# Needs DNS A records staging.ssw590-g1.tech and app.ssw590-g1.tech -> 52.73.254.36 first (BD).
+# Both hosts are public on purpose:
+#  - the service is stateless and has no customer data, logins or admin pages;
+#  - Ansible's checks (deploy.yml, ansible.builtin.uri) run on the trusted agent ON this server and reach the
+#    public name from the Elastic IP, which is not in TEAM_IPS, so a team-only staging host would answer 403
+#    to the deployment's own health check;
+#  - the grader opens both URLs.
+# The names pricing-staging and pricing-production are network aliases set by ansible/templates/compose.yaml.j2
+# on the existing gitea_web network. Port 8000 is never published on the host.
+staging.ssw590-g1.tech {
+	reverse_proxy pricing-staging:8000
+}
+
+app.ssw590-g1.tech {
+	reverse_proxy pricing-production:8000
+}

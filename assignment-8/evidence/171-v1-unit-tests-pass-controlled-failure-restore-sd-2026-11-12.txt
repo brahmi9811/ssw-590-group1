@@ -1,0 +1,51 @@
+Real output, Nov 12, 2026 7:58 PM New York time (2026-11-13 00:58:45 UTC). Assignment 8, row 1 (tests). Run by Sakshi (Claude Code) on her Mac,
+from assignment-8/sd-work/pricing-service (the course's v1 starter with the locked requirements). Python 3.13.7 venv; packages installed only from the hash lock.
+
+=== 1. Passing baseline ===
+$ python -m unittest -v
+test_invalid_quantity (test_app.PricingTests.test_invalid_quantity) ... ok
+test_price (test_app.PricingTests.test_price) ... ok
+test_release_identity (test_app.PricingTests.test_release_identity) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.007s
+
+OK
+exit code: 0
+
+=== 2. Controlled failure: the expected total in test_price changed from 30 to 31 (temporary copy, never committed) ===
+    10c10
+    <         self.assertEqual(total_price(3), 30)
+    ---
+    >         self.assertEqual(total_price(3), 31)
+$ python -m unittest -v
+test_invalid_quantity (test_app.PricingTests.test_invalid_quantity) ... ok
+test_price (test_app.PricingTests.test_price) ... FAIL
+test_release_identity (test_app.PricingTests.test_release_identity) ... ok
+
+======================================================================
+FAIL: test_price (test_app.PricingTests.test_price)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/90/yc0gqkyj5r78146db202tv940000gn/T/tmp.n6jSp14hLQ/test_app.py", line 10, in test_price
+    self.assertEqual(total_price(3), 31)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: 30 != 31
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.007s
+
+FAILED (failures=1)
+exit code: 1  (non-zero: a pipeline test stage would stop here, before any image is built)
+
+=== 3. Restored (the committed test file is unchanged) ===
+$ python -m unittest
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.005s
+
+OK
+exit code: 0
+$ sha256sum test_app.py ../../starter/v1/test_app.py
+6660a6dbaaf4c9eeaa5b1b4d3d29755a077606076273cdc01ebb2d3dfcf1a417  test_app.py
+6660a6dbaaf4c9eeaa5b1b4d3d29755a077606076273cdc01ebb2d3dfcf1a417  ../../starter/v1/test_app.py

@@ -1,0 +1,58 @@
+=== 2026-11-13 00:56:52 UTC read-only baseline for Assignment 8 (SD) ===
+$ free -m
+               total        used        free      shared  buff/cache   available
+Mem:            1909         984          69           0         856         768
+Swap:           2047         225        1822
+$ df -h /
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1   20G   14G  6.4G  68% /
+$ nproc; uname -m
+2
+x86_64
+$ python3 --version; docker --version; docker compose version
+Python 3.9.25
+Docker version 25.0.14, build 0bab007
+Docker Compose version v5.6.0
+$ docker ps (name image status)
+caddy  caddy:2.11.7  Up 25 hours
+grafana  grafana/grafana:13.3.1  Up 23 hours
+node-exporter  quay.io/prometheus/node-exporter:v1.12.1  Up 46 hours
+blackbox-exporter  quay.io/prometheus/blackbox-exporter:v0.29.1  Up 46 hours
+prometheus  prom/prometheus:v3.16.0  Up 23 hours
+gitea  gitea/gitea:1.27.3  Up 46 hours (healthy)
+jenkins  group1/jenkins-python:2.580.2  Up 23 hours
+gitea-runner  gitea/act_runner:0.6.1  Up 46 hours
+$ docker stats --no-stream (memory)
+caddy 22.26MiB / 1.865GiB
+grafana 240.8MiB / 384MiB
+node-exporter 14.18MiB / 64MiB
+blackbox-exporter 20.14MiB / 64MiB
+prometheus 56.72MiB / 256MiB
+gitea 182.6MiB / 1.865GiB
+jenkins 352.6MiB / 640MiB
+gitea-runner 57.96MiB / 1.865GiB
+$ docker network ls --filter name=gitea_web
+NETWORK ID     NAME        DRIVER    SCOPE
+ea58c8a1e342   gitea_web   bridge    local
+$ curl -s -o /dev/null -w %{http_code} https://git.ssw590-g1.tech/v2/   (OCI registry API: 401 = enabled, needs login)
+401
+$ Jenkins: agent nodes, executors, tools
+no agent nodes (builds run on the controller)
+<numExecutors>2
+docker: missing
+ansible: missing
+trivy: missing
+pip-audit: missing
+python3: /usr/bin/python3
+$ ls /opt
+aws
+containerd
+$ ss -ltn (public listeners)
+State  Recv-Q Send-Q Local Address:Port  Peer Address:Port
+LISTEN 0      4096         0.0.0.0:80         0.0.0.0:*   
+LISTEN 0      128          0.0.0.0:22         0.0.0.0:*   
+LISTEN 0      4096       127.0.0.1:41143      0.0.0.0:*   
+LISTEN 0      4096         0.0.0.0:443        0.0.0.0:*   
+LISTEN 0      4096            [::]:80            [::]:*   
+LISTEN 0      128             [::]:22            [::]:*   
+LISTEN 0      4096            [::]:443           [::]:*   

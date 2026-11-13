@@ -1,0 +1,5 @@
+# Exact version resolved and recorded Nov 12, 2026 (course range was >=4.8.0,<6.0.0).
+# community.docker 5.4.0 pulls community.library_inventory_filtering_v1 1.1.5 as a dependency.
+collections:
+  - name: community.docker
+    version: "==5.4.0"
