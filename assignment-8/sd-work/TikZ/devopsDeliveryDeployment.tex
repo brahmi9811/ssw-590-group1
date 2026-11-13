@@ -1,0 +1,84 @@
+% Owner: SD. Architecture of secure delivery on the Group 1 server (Assignment 8, row 8), adapted from the course
+% manual's Figure 6.1 to the real hosts, containers, networks, volumes and directories (evidence 170, 175; BD's agent files).
+% Blue = Chapter 6 additions; white = existing components; gray = persistent storage or host directories.
+% Arrows point from the side that opens the connection. Not drawn: the Gitea Actions runner (Assignment 5).
+% Shows the TARGET state of the assignment: the agent, the deploy account, the two environments and the app./health
+% probe are being set up (BD's gates G1, G3-G6; row 7); update this figure if anything is built differently.
+% Suggested caption: Secure delivery on the Group 1 server, adapted from the course manual's Figure 6.1. Blue: Chapter 6
+%   additions; white: existing components; gray: persistent storage or host directories. Arrows start at the side that
+%   opens the connection. The approval in Jenkins precedes the production deployment. Ansible reaches sshd over the Docker
+%   bridge (deploy-target), not over the Internet; the agent's Docker socket gives root-equivalent host access.
+% Only the tikzpicture lives here; include with \resizebox{\linewidth}{!}{\input{...}}.
+\begin{tikzpicture}[
+  font=\footnotesize, >={Stealth[length=2.2mm]},
+  new/.style={draw=devopsBlue, very thick, rounded corners=2pt, fill=devopsLightBlue, align=center,
+    minimum height=1.25cm, minimum width=3.6cm, inner sep=3pt},
+  old/.style={draw, rounded corners=2pt, fill=white, align=center, minimum height=1.2cm, minimum width=3.6cm, inner sep=3pt},
+  who/.style={draw, rounded corners=2pt, fill=white, align=center, minimum height=0.9cm, minimum width=3.0cm, inner sep=3pt},
+  store/.style={draw, fill=gray!12, align=center, minimum height=0.7cm, inner sep=3pt, font=\scriptsize},
+  pub/.style={->, thick, devopsGreen},
+  priv/.style={->, thick, devopsBlue},
+  ctl/.style={->, thick, devopsRed},
+  outbound/.style={->, thick, devopsRed, dashed},
+  lbl/.style={font=\scriptsize, align=center, fill=white, inner sep=1pt}]
+
+  % ---------------- outside the instance ----------------
+  \node[who] (team) at (-1.3,4.6) {Team / grader\\HTTPS browser};
+  \node[who] (cust) at (-1.3,2.5) {Any client\\(staging., app.)};
+  \node[old, minimum width=2.4cm, minimum height=5.0cm] (sg) at (3.4,3.0) {AWS\\security group\\[2pt]in: 443, 80\\22 (team, keys)\\[2pt]\textbf{no} 8000,\\no Docker API};
+
+  % ---------------- the EC2 instance ----------------
+  \draw[dashed, rounded corners=3pt] (5.4,-6.6) rectangle (24.6,9.0);
+  \node[anchor=north west, font=\footnotesize\bfseries] at (5.5,8.95)
+    {AWS EC2 t3.medium, Amazon Linux 2023, Elastic IP 52.73.254.36: cumulative deployment};
+  \draw[dotted, very thick, rounded corners] (5.9,1.05) rectangle (24.2,7.0);
+  \node[anchor=north east, font=\scriptsize\itshape] at (24.15,6.95) {Docker network \texttt{gitea\_web} (existing)};
+
+  % existing containers
+  \node[old] (caddy) at (7.9,2.6) {\texttt{caddy} 2.11.7\\TLS proxy\\publishes 443, 80};
+  \node[old] (gitea) at (13.0,5.7) {\texttt{gitea} 1.27.3 + OCI registry\\\texttt{git.ssw590-g1.tech/}\\\texttt{group1-startup/pricing}};
+  \node[old] (jenkins) at (18.2,5.7) {\texttt{jenkins} 2.580.2 controller\\PR tests; approval \texttt{input}\\(brahmi, sakshi)};
+  \node[store] (cdata) at (7.9,0.5) {\texttt{gitea\_caddy\_data}\\certificates};
+  \node[store] (gdata) at (13.0,7.85) {\texttt{gitea\_gitea\_data}: repos,\\packages (images), SQLite};
+  \node[store] (jhome) at (18.2,7.85) {\texttt{jenkins\_jenkins\_home}:\\jobs, credentials, builds};
+
+  % new: agent and the two application environments
+  \node[new, minimum width=3.4cm] (agent) at (22.3,3.3) {\texttt{jenkins-agent}\\label \texttt{delivery}\\Docker CLI, Trivy,\\pip-audit, Ansible};
+  \node[store] (avol) at (22.3,0.35) {\texttt{agent\_work},\\\texttt{trivy\_cache}};
+  \node[new] (stg) at (13.0,2.6) {\texttt{pricing-staging}:8000\\selected image digest\\stateless, read-only, 128m};
+  \node[new] (prd) at (18.2,2.6) {\texttt{pricing-production}:8000\\same promoted digest\\stateless, read-only, 128m};
+
+  % host and monitoring (outside the network region)
+  \node[old, minimum width=8.4cm, minimum height=1.6cm, text width=8.1cm] (host) at (15.6,-1.6)
+    {Host: Docker Engine 25 + Compose v5.6, \texttt{sshd}; account \texttt{deploy} (sudo for \texttt{become})\\
+     {\scriptsize Compose file per environment: \texttt{/opt/startup/pricing-staging},\\ \texttt{/opt/startup/pricing-production} (host directories)}};
+  \node[old, minimum width=12.2cm, minimum height=1.3cm] (mon) at (16.4,-4.9)
+    {Monitoring (Chapter 5): \texttt{prometheus}, \texttt{grafana} (\texttt{metrics.}), \texttt{blackbox-exporter}, \texttt{node-exporter}\\
+     \colorbox{gray!12}{\scriptsize volumes \texttt{monitoring\_prometheus\_data}, \texttt{monitoring\_grafana\_data}}};
+
+  % ---------------- public HTTPS through Caddy ----------------
+  \draw[pub] (team.east) -- node[lbl, above] {HTTPS 443} (sg.west |- team.east);
+  \draw[pub] (cust.east) -- node[lbl, above] {HTTPS 443} (sg.west |- cust.east);
+  \draw[pub] (sg.east |- caddy.west) -- (caddy.west);
+  \draw[pub] (caddy.east) -- node[lbl, above] {\texttt{staging.}} (stg.west);
+  \draw[pub] (caddy.east) ++(0.5,0) |- node[lbl, pos=0.75, above] {\texttt{git.}} (gitea.west);
+  \draw[pub] (caddy.east) ++(0.5,0) |- (10.2,4.35) -| node[lbl, pos=0.25, above] {\texttt{ci.}} ([xshift=-1.2cm]jenkins.south);
+  \draw[pub] (caddy.east) ++(0.5,0) |- (10.2,1.55) -| node[lbl, pos=0.3, below] {\texttt{app.}} ([xshift=-1.2cm]prd.south);
+  \draw[pub] (caddy.east) ++(0.5,0) |- (10.2,-3.0) -- node[lbl, left, pos=0.4] {\texttt{metrics.}} (10.2,0 |- mon.north);
+  \draw[thick] (caddy.south) -- (cdata.north);
+  \draw[thick] (gitea.north) -- (gdata.south);
+  \draw[thick] (jenkins.north) -- (jhome.south);
+
+  % ---------------- delivery control paths ----------------
+  \draw[priv, dashed] (gitea.east) -- node[lbl, above] {webhook} (jenkins.west);
+  \draw[priv] (agent.north) |- (jenkins.east); \node[lbl, anchor=west, text=devopsBlue] at (22.4,4.75) {WebSocket\\(agent connects)};
+  \draw[thick] (agent.south) -- (avol.north);
+  \draw[ctl] ([xshift=-1.2cm]agent.south) |- node[lbl, pos=0.72, above] {\texttt{docker.sock}: build,\\scan, push (root-equiv.)} ([yshift=0.4cm]host.east);
+  \draw[ctl] ([xshift=1.1cm]agent.south) |- node[lbl, pos=0.75, below] {Ansible: SSH \texttt{deploy@}\\\texttt{deploy-target}:22 (bridge)} ([yshift=-0.45cm]host.east);
+  \draw[priv] (stg.south |- host.north) -- node[lbl, right, pos=0.45] {compose up\\staging} (stg.south);
+  \draw[priv] (prd.south |- host.north) -- node[lbl, right, pos=0.45] {compose up\\production} (prd.south);
+  \draw[priv, dashed] (15.6,0 |- host.north) -- node[lbl, right, pos=0.18] {push / pull\\by digest\\(HTTPS name)} (15.6,4.0) -| ([xshift=1.4cm]gitea.south);
+
+  % ---------------- outbound checks ----------------
+  \draw[outbound] (mon.west) -| (sg.south); \node[lbl, text=devopsRed, anchor=north, text width=4.6cm] at (5.7,-5.05) {Blackbox HTTPS probes: \texttt{git.}, \texttt{ci.}, \texttt{app./health}, out through the Elastic IP};
+\end{tikzpicture}

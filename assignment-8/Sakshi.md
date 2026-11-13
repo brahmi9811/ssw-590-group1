@@ -40,4 +40,4 @@
 - [x] baseline (170) · [x] tests pass/fail/restore (171) · [x] lock + base digest + pip-audit (172) · [x] local hardened run (173)
 - [x] Ansible offline prep (174) · [x] Caddy draft · [x] twintrack issue #11 / PR #12 (Jenkins green; review by BD pending) · [ ] first registry image + digest
 - [ ] staging deploy + `changed=0` · [ ] production (after approval) · [ ] v2 release · [ ] traceability table
-- [ ] diagram · [ ] runbooks · [ ] chapter regions · [ ] final build check
+- [x] diagram drafted (sd-work/TikZ, target state) · [ ] runbooks · [ ] chapter regions · [ ] final build check
