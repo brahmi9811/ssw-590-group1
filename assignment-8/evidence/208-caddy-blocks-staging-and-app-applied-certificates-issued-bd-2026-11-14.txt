@@ -1,0 +1,22 @@
+Real output, Nov 14, 2026 (server clock UTC). Assignment 8, gate G4 (Caddy blocks) and row 3 (HTTPS).
+Run by Claude Code over SSH. Reason: SD's draft sd-work/Caddyfile.pricing-block.txt, applied early on SD's suggestion so the certificates exist before the first Ansible run (the playbook's first health check validates the certificate).
+
+Steps: backup ~/gitea/Caddyfile.bak-before-pricing (kept), append the two site blocks, caddy validate (inside the caddy container), caddy reload (graceful, no restart).
+  staging.ssw590-g1.tech { reverse_proxy pricing-staging:8000 }
+  app.ssw590-g1.tech     { reverse_proxy pricing-production:8000 }
+Both hosts are public by design (stateless service, no customer data, Ansible's health check reaches the public name from the server's own Elastic IP, the grader opens the URLs).
+Sites before the change in the Caddyfile: ci.ssw590-g1.tech and metrics.ssw590-g1.tech (git is the global block/other definition unchanged).
+
+Output:
+  Valid configuration
+  reloaded 06:54:53 UTC
+  try 3: staging=502 app=502    (502 is expected: the app containers do not exist yet; the TLS handshake already works)
+  staging.ssw590-g1.tech: issuer Let's Encrypt (CN=YE2), subject CN=staging.ssw590-g1.tech, valid Nov 14 05:56:26 2026 to Feb 12 05:56:25 2027 GMT
+  app.ssw590-g1.tech:     issuer Let's Encrypt (CN=YE2), subject CN=app.ssw590-g1.tech,     valid Nov 14 05:56:26 2026 to Feb 12 05:56:25 2027 GMT
+Existing sites after the reload (checked from the PC): git 200, ci 403 (anonymous root, unchanged), metrics 302 (Grafana login redirect, unchanged).
+From the PC over the Internet: https://staging.ssw590-g1.tech and https://app.ssw590-g1.tech answer 502 with a valid certificate.
+
+Notes:
+- The certificates were issued within seconds of the reload; the notBefore time is about an hour before the reload because Let's Encrypt backdates certificates.
+- The live Caddyfile and the infra repository copy now differ until a follow-up pull request adds these two blocks.
+- Revoke: restore ~/gitea/Caddyfile.bak-before-pricing and reload.
