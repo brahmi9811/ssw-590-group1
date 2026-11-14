@@ -26,7 +26,7 @@ The Trivy vulnerability database and the secret rules are downloaded when the sc
 - No live secret is committed and no deliberately vulnerable image is published as the working service.
 
 ## Credential and access controls (also row 5)
-- Registry write token: Jenkins credential, bound only in the delivery stages on the agent (main branch); registry read token: on the host for root's `docker login --password-stdin`; both typed by BD, never in Git, chat, command arguments, or logs.
+- Registry write token: Jenkins credential `gitea-registry-write` (created Nov 14, 2026 for the Gitea user `jenkins-bot`, scope package read and write only, with an expiry), bound only in the delivery stages on the agent (main branch). The `jenkins-bot` account itself is in the `developers` team with Write on code, pull requests and actions (evidence 209), so the token is scoped narrower than the account: a leaked token can publish packages but cannot change code. Registry read token: only if an anonymous pull of the public organisation's image fails (to be tested after the first push); it would live on the host for root's `docker login --password-stdin`. Tokens are typed by BD, never in Git, chat, command arguments, or logs.
 - Deploy SSH key: Jenkins credential only; host key pinned in the agent's `known_hosts`; `deploy` user's sudo scope documented (effectively host administration).
 - The agent has the Docker socket (root-equivalent); the node accepts only jobs labelled `delivery`; pull-request builds get no deploy credentials and no agent.
 - Approvers (named, `input` with `submitter`): brahmi and sakshi; timeout 30 minutes; the actual approver and decision are written into the release record.
