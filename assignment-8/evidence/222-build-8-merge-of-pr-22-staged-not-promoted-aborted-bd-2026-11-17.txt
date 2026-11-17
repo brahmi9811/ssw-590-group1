@@ -1,0 +1,19 @@
+Real output, early morning of Nov 17, 2026 (server clock UTC, Nov 17 05:07-05:12; US Eastern Nov 17 00:07-00:12). Assignment 8, rows 4 and 6 (promotion control, extra builds, traceability).
+
+=== What happened ===
+PR #22 (pipeline cleanup: reports/ cleared at the start of delivery, Jenkinsfile.rollback, skip rule for release-only changes) was approved by Sakshi (official, commit 4a48204) and merged by Brahmi. The merge started Jenkins build #8 on main, revision 102da1d2e5a5d76d6de9cf6254f568b3b22b67d1 (push event 05:07:22 UTC, build started 05:07:28).
+Its change list contains the Jenkinsfile, so the delivery stage ran (the new rule not { changeset 'releases/**' } only skips changes that touch releases/).
+
+Result of the stages (agent workspace and console): tests, pip-audit exit 0, secret scan, image build, image scan (47 HIGH rows unfiltered, 0 under the exceptions), push, staging deploy.
+New image: git.ssw590-g1.tech/group1-startup/pricing:102da1d2e5a5d76d6de9cf6254f568b3b22b67d1, digest sha256:5702d0975b2fcd510d642774f5d06d33a576307671d85f8d922ab90ac4fb44ca (different from build #7's ce514106..., because the commit differs).
+Staging after the deploy: pricing-staging-app-1 healthy; https://staging.ssw590-g1.tech/ -> {"commit":"102da1d2e5a5d76d6de9cf6254f568b3b22b67d1","service":"Startup Pricing","version":"v1"}, /health ok, /price?quantity=3 total 30.
+Production during the build: unchanged, still commit 975d13c0c4cd3d0fab5035dd3d1817166bed8f07 (the digest of build #7).
+
+=== The approval and the abort ===
+The pipeline paused at "Promote git.ssw590-g1.tech/group1-startup/pricing@sha256:5702d097... (commit 102da1d..., v1) to production?" (timeout 30 min). Brahmi clicked Abort on purpose: this build only changes the pipeline files, so nothing needed promoting.
+Console end (screenshot 221): "Rejected by Brahmi Dalvi ... Finished: ABORTED"; the stage "Deploy production and smoke test" was skipped; artifacts were still archived (the post step runs always); Gitea commit status for 102da1d: ERROR "Something is wrong with the build of this commit".
+
+=== Traceability row for the chapter ===
+build #8 | commit 102da1d2e5a5d76d6de9cf6254f568b3b22b67d1 | digest sha256:5702d0975b2fcd510d642774f5d06d33a576307671d85f8d922ab90ac4fb44ca | built and staged, NOT promoted, aborted at the approval.
+Side effects to mention in the cleanup runbook: one extra image in the registry and on the server (126 MB), staging now runs this digest (the archived v1-staging.yml of this build names it, not the committed record of main); disk 3.5 GB free (83 % used) after the build.
+Gitea shows an ERROR status on main's head commit because the build was aborted; production is not affected.
