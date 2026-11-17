@@ -21,3 +21,6 @@ Fixes first: the 6 fixable findings are fixed in pricing-service/Dockerfile (zli
 1. Existing build #6 image with the exceptions: exit 0, exactly the 6 fixable findings remained (zlib1g, msgpack x2, setuptools, urllib3 x2).
 2. Test image built from the modified Dockerfile (tag pricing-trivy-test:1, never pushed, removed afterwards): trivy with the exceptions found 0 findings (exit 0); started read-only with no capabilities, /health answered {"status":"ok","version":"v1"} and /price?quantity=3 answered total 30.
 Disk: 3.8 GB free (82 % used) after the tests; unused images cannot be pruned (the 5.8 GB runner image must stay).
+
+=== Correction after review (Sakshi, PR #16) ===
+The first version of the fix used apt-get --only-upgrade zlib1g and dated the exceptions Nov 17 (server time, UTC) with an expiry of 2026-12-01. Review asked for the input to be locked and the dates in New York time. The second commit pins zlib1g=1:1.3.dfsg+really1.3.1-1+deb13u1 (read from the tested image with dpkg -s; the image before the fix had 1:1.3.dfsg+really1.3.1-1+b1), rebuilt as a test image on the server (installed version confirmed, test image removed), writes the exceptions as Nov 16, 2026 (New York time) and sets the expiry to 2026-11-30, 14 days after they were written.
