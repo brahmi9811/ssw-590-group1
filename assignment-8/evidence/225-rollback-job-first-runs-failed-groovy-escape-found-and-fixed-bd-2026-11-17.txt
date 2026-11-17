@@ -1,0 +1,23 @@
+Real output pasted by Brahmi (console of Jenkins job rollback, build #2) and checked in the repository, Nov 17, 2026. Assignment 8, row 6 (the rollback pipeline).
+
+=== What happened ===
+Jenkins job rollback (Pipeline script from SCM, branch main, script path Jenkinsfile.rollback) was created by Brahmi before PR #22 was merged. Build #1 (5:02) failed because the file was not yet on main (expected).
+After #22 and #19 were merged, build #2 (5:12 AM, duration 0.2 s) also failed, and "Build with Parameters" never appeared (screenshot 224): a script that does not compile never registers its parameters.
+Console of build #2:
+  Obtained Jenkinsfile.rollback from git https://git.ssw590-g1.tech/group1-startup/twintrack.git
+  org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed:
+  WorkflowScript: 34: unexpected char: '\' @ line 34, column 66.
+     s/v[0-9]+-(staging|production)\.yml$ ]]
+  1 error ... Finished: FAILURE
+
+=== Cause ===
+The record-path check was written as a bash regular expression with a backslash before the dot inside a Groovy triple-single-quoted string. Groovy accepts only the escapes \b \t \n \f \r \ \' \" \$ \u and octal there; a backslash followed by a dot is a syntax error, so Jenkins refused the whole file.
+My own checks did not catch it: bash -n on the extracted shell blocks passed because the extraction un-escaped the text, and the braces/parentheses count balanced. Only Jenkins' Groovy parser rejects it.
+
+=== Fix and new check ===
+Jenkinsfile.rollback: [.] instead of the backslash-dot (a character class that means a literal dot). Check script added to the repository, bd-work/pipeline/check_groovy_escapes.py: it flags every invalid escape inside triple-single-quoted blocks. Run on main's Jenkinsfile.rollback it reports "line 34: invalid Groovy escape \."; on the fixed Jenkinsfile and Jenkinsfile.rollback it reports 0.
+The fix goes through its own pull request (main is protected), reviewed by Sakshi.
+Also in that pull request: the delivery stage is skipped when only Jenkinsfile.rollback changed, so that the fix does not itself trigger a delivery build, a staged image and an approval to abort.
+
+=== Lesson for the chapter ===
+A declarative Jenkinsfile can only be fully validated by Jenkins itself. Before relying on one: run the controller's linter or at least a first run of the new job in a harmless state (here the job failed before running any step, so no credential, no agent and no server was touched).
