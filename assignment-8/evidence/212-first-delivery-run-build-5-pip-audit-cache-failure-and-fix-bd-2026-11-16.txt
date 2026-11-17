@@ -1,0 +1,17 @@
+Real output, evening of Nov 16, 2026 US Eastern (server clock UTC, Nov 17). Assignment 8, rows 4 and 5. First delivery run after PR #14 was merged (main, commit 49202f0, Jenkins build #5, started 03:45:43 UTC).
+
+=== Result: build #5 FAILED after 26 s, in the stage "Dependency and secret scans" ===
+Archived artifacts: release.example.yml, pip-audit.exit, tool-versions.txt. pip-audit.exit contained "pip-audit exit 1"; there was NO pip-audit.json. The pipeline treats a missing report as a failed scan (set -e, test -s), so nothing after it ran: no image, no push, no deploy.
+
+=== Cause (found by re-running the same command inside the agent) ===
+PermissionError: [Errno 13] Permission denied: '/home/jenkins/.cache/pip-audit'
+The Trivy cache volume is mounted at /home/jenkins/.cache/trivy; Docker created the parent /home/jenkins/.cache as root, so the jenkins user could not create pip-audit's cache directory.
+
+=== Fix (Nov 17, 03:49 UTC) ===
+Dockerfile of the agent: mkdir -p /home/jenkins/.cache/trivy and chown -R jenkins:jenkins /home/jenkins/.cache before USER jenkins.
+compose.yaml: new volume trivy_db (so its owner comes from the image), image tag group1/jenkins-delivery-agent:2.
+Build: DOCKER_BUILDKIT=0 docker build -t group1/jenkins-delivery-agent:2 .  (Successfully built ec2946912ce9); docker compose up -d recreated the container; log: "WebSocket connection open", "Connected".
+After: /home/jenkins/.cache and /home/jenkins/.cache/trivy are owned by jenkins; mkdir /home/jenkins/.cache/pip-audit works. The workspace volume agent_work was kept.
+
+=== Also checked: what the old PR workspaces on the agent mean ===
+The agent's workspace folder had twintrack_PR-14 and track_issue-13-delivery-pipeline (dated Nov 14 06:59-07:00, when the PR was opened). They were created because the first Jenkinsfile checked "when branch main" AFTER allocating the trusted agent, so the agent did a git checkout of the PR and then skipped the stages (no step from the PR ran). Sakshi's review commit ca2032b added beforeAgent true, which prevents the allocation for non-main builds. The node's Usage setting was already "Only build jobs with label expressions matching this node" (screenshot by Brahmi).

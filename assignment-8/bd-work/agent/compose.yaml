@@ -6,7 +6,7 @@
 services:
   jenkins-agent:
     build: .
-    image: group1/jenkins-delivery-agent:1
+    image: group1/jenkins-delivery-agent:2
     container_name: jenkins-agent
     restart: unless-stopped
     environment:
@@ -22,7 +22,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock   # root-equivalent on the host; see README.md
       - agent_work:/home/jenkins/agent
-      - trivy_cache:/home/jenkins/.cache/trivy
+      - trivy_db:/home/jenkins/.cache/trivy
     mem_limit: 1536m
     networks: [web]
 
@@ -33,4 +33,4 @@ networks:
 
 volumes:
   agent_work:
-  trivy_cache:
+  trivy_db:

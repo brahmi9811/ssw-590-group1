@@ -1,0 +1,23 @@
+Real output, evening of Nov 16, 2026 US Eastern (server clock UTC, Nov 17). Assignment 8, row 5 (security scan policy, blocked release). Jenkins build #6 on main, commit 49202f0, started 03:51:23 UTC after the agent fix in evidence 212.
+
+=== What passed (from the Console Output pasted by Brahmi) ===
+Tests on the controller: A6 tests 2 OK; application tests 4 OK (hashed install with --require-hashes).
+Delivery on the trusted agent (Running on delivery-agent): versions recorded (Docker 25.0.5, Trivy 0.76.2, ansible core 2.22.0, pip-audit 2.10.1, Python 3.13.5); community.docker 5.4.0 installed.
+pip-audit: "No known vulnerabilities found", "pip-audit exit 0".
+Trivy secret scan: ran, no finding (trivy-secret.json written).
+Image build: Successfully built 2755ff29ac31, tagged git.ssw590-g1.tech/group1-startup/pricing:49202f014768289b7cf5fbe2787e723f7762800e. Trivy database downloaded (133.71 MiB).
+
+=== What failed: Trivy image scan (severity HIGH,CRITICAL, exit code 1) -> build FAILURE ===
+The stages "Deploy staging", "Load release facts", "Approval" and "Deploy production" were skipped due to earlier failure(s). Nothing was pushed and nothing was deployed. The failed commit status was reported to Gitea.
+Report reports/trivy-image.json in the workspace: 53 HIGH findings, 0 CRITICAL.
+  - 48 in Debian 13.7 packages of the pinned base image (util-linux family, acl, ncurses, sqlite, systemd, perl, zlib1g); 5 python-package findings (msgpack x2, setuptools, urllib3 x2).
+  - 47 of the 53 have NO fixed version available. 6 have a fix: zlib1g (1:1.3.dfsg+really1.3.1-1+deb13u1) and the python findings (msgpack 1.2.3 / 1.2.1, setuptools 78.1.1, urllib3 2.8.0), which are the copies vendored inside pip in the base image.
+  - 11 distinct CVE IDs in the unfixed set: CVE-2026-76642, -78408, -78409, -78410 (util-linux), CVE-2026-54369 (acl), CVE-2025-69720 (ncurses), CVE-2026-119373, -119374, -119379 (sqlite), CVE-2026-16742 (systemd), CVE-2026-9538 (perl).
+
+=== Decision, following the scan policy (assignment-8/bd-work/scan-policy.md, written before the release) ===
+Fixes first: the 6 fixable findings are fixed in pricing-service/Dockerfile (zlib1g security update; pip, setuptools and wheel uninstalled after the locked install). The 11 unfixed CVE IDs get written exceptions in .trivyignore.yaml and security/exceptions.md, each expiring 2026-12-01 (14 days), reviewed in a pull request by the other person. The pipeline keeps the full unfiltered report (reports/trivy-image-full.json) and gates on findings not covered by an exception.
+
+=== Pre-tested on the server before the pull request (nothing pushed) ===
+1. Existing build #6 image with the exceptions: exit 0, exactly the 6 fixable findings remained (zlib1g, msgpack x2, setuptools, urllib3 x2).
+2. Test image built from the modified Dockerfile (tag pricing-trivy-test:1, never pushed, removed afterwards): trivy with the exceptions found 0 findings (exit 0); started read-only with no capabilities, /health answered {"status":"ok","version":"v1"} and /price?quantity=3 answered total 30.
+Disk: 3.8 GB free (82 % used) after the tests; unused images cannot be pruned (the 5.8 GB runner image must stay).

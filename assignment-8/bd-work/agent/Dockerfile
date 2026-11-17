@@ -37,4 +37,7 @@ RUN python3 -m venv /opt/tools \
 ENV PATH="/opt/tools/bin:${PATH}"
 
 # Recorded when the image is built (README.md, "Versions to record"): docker, trivy, ansible, pip-audit, python.
+# The cache directories exist and belong to jenkins in the image, so the Trivy volume mounted below them is initialised
+# with the right owner and pip-audit/Trivy can write their caches (found in the first delivery run, build #5).
+RUN mkdir -p /home/jenkins/.cache/trivy && chown -R jenkins:jenkins /home/jenkins/.cache
 USER jenkins
