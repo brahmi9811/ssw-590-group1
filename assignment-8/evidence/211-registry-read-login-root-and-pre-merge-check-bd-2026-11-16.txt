@@ -1,0 +1,17 @@
+Real output, evening of Nov 16, 2026 US Eastern (server clock UTC, already Nov 17). Assignment 8, row 5 (credentials) and the pre-merge check for the first delivery run.
+
+=== Root's registry login on the host (run by Brahmi herself; the assistant never saw the token) ===
+Token: Gitea package READ only, created for the user jenkins-bot, name host-registry-read, with an expiry. It was pasted at a silent prompt and piped to the login with --password-stdin (never in command arguments, chat, Git or logs).
+Output:
+  WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+  Login Succeeded
+  -rw-------. 1 root root 134 Nov 17 03:33 /root/.docker/config.json
+Risk recorded: the token is stored in plain text in /root/.docker/config.json, readable by root and therefore by anyone with root on the host, including the deploy account through its NOPASSWD sudo (evidence 203) and the agent through the Docker socket. Mitigations: read-only scope, expiry, single purpose (the playbook pulls the release image by digest). Revoke: docker logout as root, then delete the token in Gitea.
+
+=== Pre-merge check (03:42 UTC, Nov 17) ===
+containers: jenkins-agent up 3 days, jenkins up 4 days, caddy up 4 days, gitea up 4 days (healthy), gitea-runner up 4 days
+root disk: 20G, 15G used, 5.5G free (73 %)
+memory: 3835 MiB total, 2117 MiB available
+agent log tail: "INFO: Connected"
+https://ci.ssw590-g1.tech/login 200; https://staging.ssw590-g1.tech and https://app.ssw590-g1.tech answer 502 (expected, containers not deployed yet; one probe of app returned no answer in 8 s, three retries all gave 502).
+PR #14 (the delivery Jenkinsfile) approved by Sakshi on commit ca2032b; pr-main green.
