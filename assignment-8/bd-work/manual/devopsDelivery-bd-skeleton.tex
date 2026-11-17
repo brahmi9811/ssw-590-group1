@@ -1,0 +1,66 @@
+% BD skeleton for the Assignment 8 chapter (course Chapter 6), to become part of devopsDelivery.tex in the Gitea manual repo
+% (included after devopsSre in devopsITManual.tex). Written Nov 16, 2026 BEFORE the release runs: text marked [PENDING] is a placeholder
+% to be replaced with real output; nothing marked PASS may be written until the evidence exists. SD owns rows 1, 2, 3, 8; BD rows 4, 5, 6, 7.
+% Evidence so far (BD): 200 resize, 201 SSH reachability, 202 controller venv, 203 deploy account, 204 credential list,
+% 205 agent, 206 nodes page, 207 registry credential, 208 Caddy blocks, 209 jenkins-bot team, 210 approver IDs, 211 root read login,
+% 212 build 5 (cache failure), 213 build 6 (image scan gate).
+
+% ===== BD region: row 4 (15 points) =====
+\section{Jenkins delivery gates, approval and promotion (15 points)}\label{Section:deliveryJenkins}
+\textbf{Owner:} BD. \textbf{Status:} [PENDING: the first successful run through production].
+
+\paragraph{Trusted agent.} Delivery runs on a separate container, \texttt{jenkins-agent}, label \texttt{delivery}, one executor, connected
+over WebSocket (the controller's agent port stays closed). The node accepts only jobs that name its label; pull-request and branch builds
+run only the test stage on the controller (\ListRef{205}, \FigRef{206}). The agent mounts the host's Docker socket, which is root-equivalent
+on the host: this is documented as an accepted risk, and the agent is the only place that credentials are bound. [PENDING: tool versions table from \ListRef{205}.]
+
+\paragraph{Pipeline.} [PENDING: stage table (tests, versions, scans, build once, scan image, push, deploy staging, approval, deploy production), with the
+Jenkinsfile as a listing and the run that deployed v1.] Design rules stated in the Jenkinsfile header: tests on every branch without credentials;
+delivery only on \texttt{main}; \texttt{beforeAgent true} so non-main builds never take the trusted agent; \texttt{disableConcurrentBuilds}; one image per commit;
+the same digest staging $\to$ production.
+
+\paragraph{Approval.} Restricted to the Jenkins users \texttt{brahmi} and \texttt{sakshi} (\FigRef{210}), 30-minute timeout, the actual approver is
+recorded in \texttt{reports/approval.txt} and in the production release record. [PENDING: screenshot of the pause, who approved, the timestamp.]
+
+\paragraph{Findings so far.} Build \#5 failed in 26~s because pip-audit could not write its cache (a root-owned directory created by a volume mount);
+a missing report correctly failed the stage (\ListRef{212}). [PENDING: v2 promotion run.]
+
+% ===== BD region: row 5 (15 points) =====
+\section{Security scans, policy and credentials (15 points)}\label{Section:deliveryScans}
+\textbf{Owner:} BD. \textbf{Status:} policy written Nov 16, 2026 before the release; first blocked release Nov 16, 2026 [PENDING: clean pass and the blocked-fixture run].
+
+\paragraph{Policy.} [PENDING: include \texttt{scan-policy.md} as a table: pip-audit 2.10.1 on the hashed requirements, Trivy 0.76.2 file-system secret scan,
+Trivy image scan for HIGH and CRITICAL; block on a secret, a HIGH/CRITICAL finding or a scanner error; fixes first; exceptions written, owned, expiring within 14 days.]
+
+\paragraph{What the gate did on the real release.} Build \#6 passed the tests, pip-audit and the secret scan, built the image, and then the image scan
+blocked the release: 53 HIGH findings, 0 CRITICAL, 47 without any fixed version (\ListRef{213}). Nothing was pushed or deployed. Six findings had a fix and were fixed in the
+Dockerfile (a zlib security update; pip, setuptools and wheel removed after the locked install); 11 CVE IDs in Debian base packages with no fix are listed in
+\texttt{.trivyignore.yaml} and \texttt{security/exceptions.md}, each expiring 2026-12-01. [PENDING: pull request \#16 merged, build \#7 clean, instructor acceptance noted.]
+
+\paragraph{Blocked fixture.} [PENDING: a branch with a synthetic fake secret and a deliberately vulnerable dependency, the run that is blocked, and proof that nothing was pushed
+or deployed; the fixture never reaches \texttt{main}.]
+
+\paragraph{Credentials.} Deploy key: ed25519, generated on BD's PC, only the public key sent on, private key stored once as Jenkins credential
+\texttt{deploy-ssh-key} (\FigRef{204}); the \texttt{deploy} account is key-only with passwordless \texttt{sudo}, documented as host-administrator power (\ListRef{203}).
+Registry write token: Gitea user \texttt{jenkins-bot}, package scope only, Jenkins credential \texttt{gitea-registry-write} (\FigRef{207}); the account is in the
+\texttt{developers} team (\FigRef{209}) so the token is narrower than the account. Registry read token for root on the host: read-only, stored in
+\texttt{/root/.docker/config.json} in plain text, a recorded risk (\ListRef{211}). No secret appears in Git, chat, command arguments or logs. [PENDING: revoke steps table.]
+
+% ===== BD region: row 6 (15 points) =====
+\section{Rollback and staging recovery (15 points)}\label{Section:deliveryRecovery}
+\textbf{Owner:} BD. \textbf{Status:} [PENDING: both recoveries run].
+
+\paragraph{Production rollback v2 $\to$ v1.} [PENDING: trigger, decision, approval, the Ansible run with the v1 record, public checks (version v1, total 30),
+digest before and after, time to recovery, matching configuration restored. Runbook draft: \texttt{bd-work/runbooks-draft.md}.]
+
+\paragraph{Staging failed-deploy recovery.} [PENDING: the deliberately broken staging release, the failure line, production unchanged, recovery with the last good record, measured times.]
+
+% ===== BD region: row 7 (5 points) =====
+\section{Monitoring correlation and limits (5 points)}\label{Section:deliveryMonitoring}
+\textbf{Owner:} BD. \textbf{Status:} [PENDING].
+
+\paragraph{What was observed.} [PENDING: production URL added to the \texttt{https} probe job, \texttt{probe\_success}/\texttt{probe\_duration\_seconds} around the v2 release and
+the rollback, any Discord alert, with timestamps and a Grafana screenshot. A planned 14-second Jenkins restart on Nov 13 (\ListRef{202}) is a measured example of an outage shorter than the 1-minute alert period.]
+
+\paragraph{Limits.} The probe shows availability, not price correctness (the Ansible smoke test checks version and total); a 30-second scrape interval and 1-minute pending period can miss
+a short rollback; staging is not probed on purpose; monitoring runs on the host it watches. Disk is the tight resource (3.7~GB free after the first runs).
