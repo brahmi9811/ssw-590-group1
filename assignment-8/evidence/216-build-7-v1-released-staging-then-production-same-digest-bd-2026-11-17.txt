@@ -1,0 +1,27 @@
+Real output, Nov 16, 2026 evening US Eastern (server clock UTC, Nov 17). Assignment 8, rows 4 and 5 (and the base for rows 2, 3 and 6). Jenkins build #7 on main, commit 975d13c0c4cd3d0fab5035dd3d1817166bed8f07 (merge of PR #16), started 04:34:08 UTC. First complete release: v1 to staging, approval, v1 to production.
+
+=== Stages and results (from the workspace reports and the console) ===
+Tests on the controller: passed. Delivery on the trusted agent delivery-agent: versions recorded; community.docker installed; pip-audit exit 0 (no known vulnerabilities); Trivy secret scan: no finding; image built once and tagged by commit.
+Image scan: reports/trivy-image-full.json 47 HIGH rows (the unfixed Debian base findings, no CRITICAL); reports/trivy-image.json 0 rows under .trivyignore.yaml (the gate passed; the six fixable findings are gone after the Dockerfile fix of PR #16).
+Push: git.ssw590-g1.tech/group1-startup/pricing@sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2 (reports/digest.txt). The registry token was bound only in this stage.
+
+=== Staging (04:34:53 UTC container start) ===
+ansible-playbook with releases/v1-staging.yml: PLAY RECAP startup ok=9 changed=3 unreachable=0 failed=0. First real SSH login as deploy from the agent with the pinned host key; community.docker docker_compose_v2 works against the host's Python 3.9.
+Container pricing-staging-app-1: healthy; image = the digest above; read-only root filesystem; 128 MiB limit; user 10001:10001.
+https://staging.ssw590-g1.tech/ -> {"commit":"975d13c0c4cd3d0fab5035dd3d1817166bed8f07","service":"Startup Pricing","version":"v1"}; /health -> {"status":"ok","version":"v1"}; /price?quantity=3 -> {"currency":"USD","quantity":3,"total":30}; certificate valid.
+
+=== Approval (evidence 214, 215) ===
+Prompt: Promote git.ssw590-g1.tech/group1-startup/pricing@sha256:ce514106... (commit 975d13c, v1) to production? Staging passed its health, version and price checks. Timeout 30 min.
+Answer: Approved by Brahmi Dalvi (Jenkins user id brahmi). reports/approval.txt: "approved by brahmi at 2026-11-17T04:36:33Z, build 7".
+
+=== Production (04:36:45 UTC container start) ===
+releases/v1-production.yml (metadata only): target_env production; release_image = the same digest; expected_version v1; expected_commit 975d13c0c4cd3d0fab5035dd3d1817166bed8f07; expected_total 30; public_url https://app.ssw590-g1.tech; proxy_network gitea_web; approval "approved by brahmi at 2026-11-17T04:36:33Z, build 7".
+Container pricing-production-app-1: healthy; image digest identical to staging (no rebuild between the environments).
+ansible-playbook: PLAY RECAP ok=9 changed=3 failed=0.
+https://app.ssw590-g1.tech/ , /health and /price?quantity=3 answer the same as staging (version v1, commit 975d13c, total 30). Brahmi also opened the URL in a browser (screenshot).
+Both app containers publish no host ports (docker port prints nothing); they join gitea_web only through the Compose aliases pricing-staging and pricing-production behind Caddy.
+Files archived by the build: reports/ (approval, commit, deploy-production, deploy-staging, digest, pip-audit.exit and .json, tool-versions, trivy-image-full, trivy-image, trivy-secret, version) and releases/ (v1-staging.yml, v1-production.yml).
+Server after the release: disk 3.7 GB free (82 % used); both app containers up.
+
+=== Finding for the next pull request ===
+The agent workspace keeps reports/ from earlier builds: build #7 still held build #6's trivy-image.json until the new scan overwrote it. A scanner that crashes without writing a report could therefore be masked by an old file. Fix: remove reports/ and releases/*.yml at the start of the delivery stage.
