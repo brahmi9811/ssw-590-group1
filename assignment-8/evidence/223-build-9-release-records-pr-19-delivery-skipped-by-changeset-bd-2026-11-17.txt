@@ -1,0 +1,11 @@
+Real output pasted by Brahmi (Jenkins console of build #9) and checked on the server, Nov 17, 2026 (server clock UTC, 05:10-05:12). Assignment 8, rows 4 and 6 (skip rule, no needless deployment).
+
+PR #19 (the v1 release records, only files under releases/) was approved by Brahmi and merged. The merge started Jenkins build #9 on main, revision 93cabd75838126a8c6d4393fe89cef2c15168671 (push event 05:10:59 UTC, build started 05:11:05).
+
+Console, as pasted:
+- Stage "Tests (all branches, controller)": ran on the controller (Running on Jenkins in /var/jenkins_home/workspace/twintrack_main): A6 tests 2 OK; application tests 4 OK (hashed install).
+- Stage "Delivery (main only, trusted agent)": "skipped due to when conditional" for the stage and for every nested stage (Record versions and checkout, Dependency and secret scans, Build once and scan the image, Deploy staging and smoke test, Load release facts, Approval, Deploy production). The condition is branch main AND not changeset 'releases/**' (introduced by PR #22); this change touched only releases/, so no scan, no image build, no push, no deploy and no approval prompt.
+- Finished: SUCCESS; Gitea status SUCCESS "This commit looks good".
+
+Checked on the server at 05:12:01 UTC: the trusted agent's workspace still sits at commit 102da1d (build #8); no new pricing image; staging and production containers unchanged (staging up 3 minutes on build #8's digest, production up 35 minutes on build #7's digest); disk 3.5 GB free (83 % used).
+Consequence: no additional image and no extra approval to abort for the records PR. The rule is first confirmed here for a change that touches releases/; it must not skip a real change: the v2 build (VERSION, app.py, tests) is the counter-test.
