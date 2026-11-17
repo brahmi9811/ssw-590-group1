@@ -28,6 +28,11 @@
 - twintrack issue #11 and PR #12 (branch `issue-11-pricing-service`, commit 55f4d15, reviewer BD); Jenkins PR-12 build #1:
   `twintrack/pipeline/pr-main` and `head` success.
 
+### Update (Nov 16, ~11:55 PM New York)
+- PR #12 merged; BD's pipeline PR #14 (my review fixes ca2032b) and scan-fix PR #16 (zlib1g pinned, 11 dated exceptions until Sun Nov 29, 7 PM New York) approved and merged.
+- Jenkins build #7: v1 to staging and, after BD's approval, production with the same digest sha256:ce514106... (commit 975d13c). Verified independently (evidence 176).
+- twintrack PR #19 (issue #18): v1 release records, byte-identical to the build #7 artifacts. PR #21 (issue #20): v2 (price 12, total 36), merge after #19, the production probe and the unchanged rerun.
+
 ## Next (in order)
 1. Gitea issue + branch + PR in `twintrack` adding `pricing-service/` (v1), `ansible/`, `releases/` (BD reviews).
 2. After BD's gates G1-G6: first pipeline build on the trusted agent -> registry push/pull, record the digest (row 2).
@@ -38,6 +43,6 @@
 
 ## Checklist
 - [x] baseline (170) · [x] tests pass/fail/restore (171) · [x] lock + base digest + pip-audit (172) · [x] local hardened run (173)
-- [x] Ansible offline prep (174) · [x] Caddy draft · [x] twintrack issue #11 / PR #12 (Jenkins green; review by BD pending) · [ ] first registry image + digest
-- [ ] staging deploy + `changed=0` · [ ] production (after approval) · [ ] v2 release · [ ] traceability table
+- [x] Ansible offline prep (174) · [x] Caddy draft · [x] twintrack issue #11 / PR #12 (Jenkins green; review by BD pending) · [x] first registry image + digest (build #7, evidence 176)
+- [x] staging deploy · [ ] `changed=0` rerun (via rollback job + v1 records) · [x] production (after approval, build #7) · [ ] v1 records PR #19 merged · [ ] v2 release (PR #21 open) · [ ] traceability table
 - [x] diagram drafted (sd-work/TikZ, target state) · [ ] runbooks · [ ] chapter regions · [ ] final build check
