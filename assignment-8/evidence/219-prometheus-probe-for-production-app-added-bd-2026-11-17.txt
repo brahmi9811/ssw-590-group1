@@ -1,0 +1,29 @@
+Real output pasted by Brahmi from the server shell, evening of Nov 16, 2026 US Eastern (server clock UTC, Nov 17). Assignment 8, row 7 (monitoring correlation).
+Brahmi made the change herself on the live monitoring file ~/monitoring/prometheus/prometheus.yml, following the assistant's steps; the file is bind-mounted as a single file, so Prometheus is restarted (docker restart prometheus) instead of reloaded; the metric history is in the volume and is kept.
+
+=== First attempt (rejected by the check, nothing restarted) ===
+A manual nano edit put the new line one line too low and removed the indentation of relabel_configs. diff showed "27c27,28" with " relabel_configs:" (one space) and promtool said:
+  FAILED: parsing YAML file /p/prometheus.yml: yaml: line 27: did not find expected key
+Prometheus kept running with the old config.
+
+=== Second attempt: restore the backup, insert one line with sed ===
+cp prometheus.yml.bak-before-app prometheus.yml
+sed -i '/ci.ssw590-g1.tech\/login/a\          - https://app.ssw590-g1.tech/health' prometheus.yml
+diff prometheus.yml.bak-before-app prometheus.yml
+  26a27
+  >           - https://app.ssw590-g1.tech/health
+promtool check config (prom/prometheus:v3.16.0, run in a throwaway container):
+  SUCCESS: /p/prometheus.yml is valid prometheus config file syntax
+Backup kept: prometheus.yml.bak-before-app.
+
+=== Restart and first query ===
+docker restart prometheus; sleep 45; query probe_success through the container (the API is not published on the host):
+  probe_success{instance="https://git.ssw590-g1.tech/user/login",job="https"} = 1
+  probe_success{instance="https://ci.ssw590-g1.tech/login",job="https"} = 1
+  probe_success{instance="https://app.ssw590-g1.tech/health",job="https"} = 1     (new)
+Sample time 1794890787 = 2026-11-17 04:46:27 UTC.
+
+Notes:
+- The existing alert rule https-service-down covers every target of the https job, so production needs no new rule. The probe-duration panel lists every https instance, so the app appears in it.
+- Staging is deliberately not probed (the failed-deploy exercise breaks it on purpose).
+- The infrastructure repository copy of prometheus.yml (and the Jenkins and Caddy changes of this assignment) is brought up to date in a pull request (branch prepared by BD).
