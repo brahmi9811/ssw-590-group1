@@ -23,3 +23,6 @@ The pipeline did not continue to anything else; a failed release cannot reach pr
 
 === Recovery (next evidence) ===
 Run the rollback job normally with releases/v1-staging.yml: the Render task restores the correct compose.yaml, Converge moves staging onto the known-good v1 digest, the smoke test verifies version v1 and total 30.
+
+=== Build numbers (added from the job's build list shown by Brahmi) ===
+Job rollback builds: #4 (2:06 UTC) failed (first run of the fixed file, parameter not yet registered); #5 (2:09), #6 (2:12), #7 (2:14) succeeded (staging record, staging record again, production record); #8 (2:23) succeeded (production rollback v2 to v1); #9 (2:39) FAILED = the replay of #6 with the non-existent digest (this record); #10 (2:45) succeeded (recovery run, evidence 238).

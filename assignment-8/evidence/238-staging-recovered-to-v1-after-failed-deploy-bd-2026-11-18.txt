@@ -23,3 +23,6 @@ About 6 minutes from the failed deploy to a verified recovery, of which most is 
 === Note for the chapter ===
 Staging now serves v1, the last release whose record is committed in main, not v2 (the candidate that was on staging before the failure). To bring staging back to v2 the v2 staging record would first be committed in a reviewed pull request and then applied with the same job. Production was never affected, which is what the approval gate and the order staging-then-production guarantee.
 Disk after the runs: see the next record.
+
+=== Build number ===
+The recovery run is build #10 of the job rollback (2:45 UTC, success); the failed replay before it is build #9 (evidence 237).
