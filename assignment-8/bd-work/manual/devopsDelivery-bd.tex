@@ -386,7 +386,7 @@ About 6~minutes passed between the failure and the verified recovery, most of it
 \paragraph{What was added.} The Chapter~\ref{Chapter:Sre} probe job \texttt{https} (Blackbox Exporter, module \texttt{http\_2xx}, 30~second interval) got one more target, the production health URL \texttt{https://app.ssw590-g1.tech/health}.
 BD edited the live file herself: the first manual edit was rejected by \texttt{promtool} (a misplaced line and a lost indentation) and was not applied; the second, a one-line \texttt{sed} insert, passed, and Prometheus was restarted
 (a single-file bind mount is not re-read on reload); \texttt{probe\_success} was 1 for all three targets (\ListRef{219}, \FigRef{220}). The existing alert rule \texttt{https-service-down} covers every target of the job, so no new rule was needed.
-Staging is deliberately \emph{not} probed, so that the planned failed-deploy exercise does not trip the alert. The infrastructure repository copy of the file, together with the Jenkins controller tag and the two Caddy blocks of this assignment, was brought up to date in \texttt{infra} pull request \#8 (issue \#7), merged by BD on November 17, 2026 as merge commit \texttt{a841904}; it was merged by its author without a review by the other team member, a deviation from \texttt{CONTRIBUTING.md} that is recorded here (\FigRef{241}).
+Staging is deliberately \emph{not} probed, so that the planned failed-deploy exercise does not trip the alert. The infrastructure repository copy of the file, together with the Jenkins controller tag and the two Caddy blocks of this assignment, was brought up to date in \texttt{infra} pull request \#8 (issue \#7), merged by BD on November 17, 2026 as merge commit \texttt{a841904}; the change only records what is already live on the server, the \texttt{infra} repository has no written review rule (the contributing rules of \texttt{CONTRIBUTING.md} belong to \texttt{twintrack}), and no review was requested (\FigRef{241}).
 
 \paragraph{What the monitoring showed and what it did not.} Across the v2 promotion at 21:21:44~EST and the rollback at 21:23:37~EST the probe stayed at 1 (\FigRef{236}); the minimum of \texttt{probe\_success} over the previous 10 and 15 minutes was 1 when queried (\ListRef{232}).
 The observer on the server saw 2 to 3 seconds without a good answer at the rollback (\ListRef{233}); the probe, with a 30~second scrape interval, never sampled it, and the alert rule, with a 1-minute pending period, cannot fire for a gap that short; BD checked the Discord alerts channel after the runs of the evening of November 17, 2026 and reported that no alert had fired (no screenshot was taken). The same blind spot holds for the 14-second restart of Jenkins (\ListRef{202}).
@@ -410,7 +410,7 @@ The observer on the server saw 2 to 3 seconds without a good answer at the rollb
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\linewidth]{evidence/241-infra-pr-8-merged-sync-with-server-bd-2026-11-18.png}
-\caption{Pull request \#8 of the \texttt{infra} repository, merged by its author: the repository matches the server again (BD's screenshot).}
+\caption{Pull request \#8 of the \texttt{infra} repository, merged: the repository matches the server again (BD's screenshot).}
 \label{Fig:E241}
 \end{figure}
 
