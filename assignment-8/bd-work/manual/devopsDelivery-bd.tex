@@ -205,7 +205,7 @@ after the locked install, which also removed the vendored urllib3, msgpack and s
 with a reason in \texttt{security/exceptions.md}. The base-image findings are about local privilege escalation, mount helpers and libraries the service does not call; the service runs as UID 10001 on a read-only file system with all capabilities dropped.
 \textbf{The exceptions expire on 2026-11-30 at 00:00~UTC, that is Sunday, November 29, 2026, 7~pm in New York}; after that every build blocks again until a reviewed pull request renews or removes them. The instructor's acceptance is requested for the use of these exceptions.
 
-\paragraph{What reached the registry.} The package page of the \texttt{pricing} image lists exactly three versions: the commits \texttt{975d13c} (v1, build \#7), \texttt{102da1d} (build \#8, staged and not promoted) and \texttt{06550eb} (v2, build \#11). The image of the blocked build \#6 and nothing of the fixture build \#12 was ever pushed, which is what the order scan, then push, guarantees [PENDING: screenshot file of the package page].
+\paragraph{What reached the registry.} The package page of the \texttt{pricing} image lists exactly three versions: the commits \texttt{975d13c} (v1, build \#7), \texttt{102da1d} (build \#8, staged and not promoted) and \texttt{06550eb} (v2, build \#11). The image of the blocked build \#6 and nothing of the fixture build \#12 was ever pushed, which is what the order scan, then push, guarantees The page of the v2 version shows the digest the pipeline recorded and the user \texttt{jenkins-bot} as publisher (\FigRef{242}).
 
 \paragraph{After the fix.} Every later build keeps the full report (\texttt{trivy-image-full.json}: 47 HIGH rows) and gates on the filtered one (0 rows). The tested change: the image built from the modified Dockerfile scans with 0 findings and the service
 answered \texttt{/health} and \texttt{/price}; the pinned package installed in the real build (\ListRef{213}, \ListRef{216}).
@@ -271,6 +271,13 @@ Let's Encrypt certificates issued within seconds of the reload (\ListRef{208}); 
 \includegraphics[width=0.9\linewidth]{evidence/207-jenkins-credentials-gitea-registry-write-added-bd-2026-11-14.png}
 \caption{Jenkins credentials after the registry write credential was added; the token is masked (BD's screenshot).}
 \label{Fig:E207}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{evidence/242-gitea-package-pricing-v2-published-by-jenkins-bot-digest-bd-2026-11-18.png}
+\caption{The package page of the v2 image: published by \texttt{jenkins-bot}, digest \texttt{sha256:ba2e211c\ldots f01c} (BD's screenshot).}
+\label{Fig:E242}
 \end{figure}
 
 \begin{figure}[htbp]
