@@ -1,0 +1,27 @@
+Real output pasted by Brahmi (Jenkins console of job rollback) and checked on the server, evening of Nov 17, 2026 US Eastern (server clock UTC, Nov 18 02:09-02:16). Assignment 8, rows 3 (unchanged second run) and 6 (the restore mechanism).
+Job rollback: Pipeline script from SCM, repository twintrack, branch main, script Jenkinsfile.rollback, parameter RELEASE_RECORD; main at 61273c0 (merge of PR #24, the Groovy fix, issue #23). Runs on delivery-agent only.
+Failed builds before it worked (all harmless, no step reached any server): #1 (file not on main yet), #2 and #3 (invalid Groovy escape, evidence 224-225), #4 (the first run of the fixed file, with the parameter not yet registered: "RELEASE_RECORD: unbound variable", the safe stop of set -u; builds #5 to #7 below).
+
+=== Starting point (before run 1) ===
+Production: build #7's digest. Staging: build #8's digest sha256:5702d097... (a pipeline-only change staged and aborted, evidence 222).
+
+=== Run 1: releases/v1-staging.yml (build #5; the number is the job's next build after #4) ===
+Checks passed: path pattern releases/v<n>-staging.yml, record tracked in main (committed in 3f6918f "Add the v1 release records from Jenkins build #7"), target_env staging, digest form, 40-hex commit, commit an ancestor of main. Approval stage: skipped due to when conditional (staging record).
+Ansible: PLAY RECAP ok=9 changed=2 unreachable=0 failed=0 (changed: Render selected Compose configuration, Converge application without rebuilding).
+After: pricing-staging-app-1 image sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2, healthy, started 2026-11-18 02:09:35 UTC; https://staging.ssw590-g1.tech/ -> commit 975d13c0c4cd3d0fab5035dd3d1817166bed8f07, v1.
+
+=== Run 2: releases/v1-staging.yml again (build #6) ===
+Same checks, approval skipped. Ansible: PLAY RECAP ok=9 changed=0 unreachable=0 failed=0: Render selected Compose configuration ok, Converge application without rebuilding ok.
+After: the staging container was not restarted (still started 02:09:35 UTC, checked at 02:14:21 UTC). This is the unchanged second run (idempotence) for row 3.
+
+=== Run 3: releases/v1-production.yml, with approval (build #7) ===
+Checks as above with target_env production (the record carries the original approval line "approved by brahmi at 2026-11-17T04:36:33Z, build 7").
+Approval prompt (screenshot 226): "Restore production to v1 (git.ssw590-g1.tech/group1-startup/pricing@sha256:ce514106...) from releases/v1-production.yml? The same digest as the original release; no rebuild." Roll back or Abort; timeout 30 min.
+Answer (screenshot 227): "Approved by Brahmi Dalvi" (Jenkins user brahmi).
+Ansible: PLAY RECAP ok=9 changed=0 unreachable=0 failed=0.
+After (02:16:03 UTC): pricing-production-app-1 same digest ce514106..., healthy, started 2026-11-17 04:36:45 UTC (not restarted). Public checks: https://app.ssw590-g1.tech/ -> commit 975d13c..., v1; /price?quantity=3 -> total 30; same on staging.
+
+=== Notes ===
+- Two warnings in every run: "sftp transfer mechanism failed on [deploy-target]" and "scp transfer mechanism failed": Ansible falls back to another transfer method and continues; the host's sshd does not offer the sftp subsystem to the deploy user's non-interactive path. Not hidden; no effect on the results.
+- Disk 3.5 GB free (83 % used); three pricing images on the host (build #7, #8 and an older build #6 image).
+- The restore job needs the record committed in main and checks the record's commit against main's history: a rollback cannot target an unreviewed release.
