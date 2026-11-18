@@ -1,0 +1,211 @@
+% SD region of the Assignment 8 chapter (course Chapter 6): chapter head, overview, rows 1, 2, 3. Written Nov 17, 2026 from evidence 170-177
+% and BD's 200-242. devopsDelivery.tex = this file + BD's devopsDelivery-bd.tex (rows 4-7) + devopsDelivery-sd-tail.tex (row 8).
+% Section labels are fixed so both regions can cite each other. Times: New York (EST = UTC - 5 h); Jenkins and the server store UTC.
+\chapter{Secure delivery and rollback}
+\ChapterLabel{Delivery}
+\index{delivery}\index{release}\index{rollback}
+
+\paragraph{In one paragraph.} This chapter releases the course's small \emph{Startup Pricing Service} (Flask and Gunicorn; v1 charges USD~10 per unit, v2 USD~12)
+on the Group~1 server through a secure pipeline \cite{DosManualV143}. Jenkins runs the tests on every pull request; for \texttt{main}, a trusted agent scans the dependencies and the source, builds \emph{one} image per reviewed commit,
+scans it, pushes it to the Gitea container registry and records its digest; Ansible deploys that exact digest to \emph{staging}, and after a named person approves, the same digest to \emph{production}.
+Every deployment is described by a \emph{release record} committed in Git, so a rollback re-applies an earlier record instead of rebuilding. Both releases (v1 on November~16 and v2 on November~17, 2026),
+a production rollback from v2 to v1, a deliberately failed staging deployment and its recovery, a blocked scan and the monitoring view were run for real. SD owns rows 1, 2, 3 and 8 (application, image, Ansible,
+diagram, release records and runbooks), BD rows 4 to 7 (Jenkins, scans and credentials, recoveries, monitoring). Grader access: the source is public at
+\href{\GiteaRepoURL}{\texttt{group1-startup/twintrack}}; Jenkins pages behind the links below need a team account, so every number they show is also in the evidence listings of this chapter.
+
+% ===== SD region: row 1 (10 points) =====
+\section{The pricing service, its tests and locked inputs (10 points)}\label{Section:deliveryService}
+\textbf{Owner:} SD. \textbf{Status:} v1 and v2 merged through reviewed pull requests and running as released images \StatusPass.
+
+\paragraph{The service.} Three endpoints, from the course starter: \texttt{/} returns the service name, the version and the source commit; \texttt{/health} returns \texttt{ok} and the version; \texttt{/price?quantity=}$n$ returns
+the total for $1 \le n \le 1000$ and HTTP~400 otherwise. v1 multiplies by 10, v2 by 12, so \texttt{quantity=3} gives 30 or 36 (\ListRef{DeliveryApp}). It keeps no state, which is why both environments and the rollback need no data plan.
+The code entered \texttt{twintrack} through \href{\GiteaRepoURL/issues/11}{issue \#11} and \href{\GiteaRepoURL/pulls/12}{pull request \#12} (reviewed by BD, merge commit \href{\GiteaRepoURL/commit/12cdac7}{\texttt{12cdac7}}); v2 is a separate reviewed change,
+\href{\GiteaRepoURL/pulls/21}{pull request \#21} (issue \#20, merge commit \href{\GiteaRepoURL/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f}{\texttt{06550eb}}), identical to the course's v2: two constants and the expected totals in the tests.
+
+\paragraph{Meaningful tests.} Four unit tests (\ListRef{DeliveryTests}): the price of 3 units through the function \emph{and} the HTTP endpoint; five invalid quantities (\texttt{0}, \texttt{-1}, \texttt{1001}, \texttt{abc}, \texttt{1.5}) must answer 400;
+the release identity (\texttt{/} says the expected version, \texttt{/health} says \texttt{ok}); and a guard added by the team: the file \texttt{pricing-service/VERSION}, from which the pipeline names the release record, must equal the version
+in \texttt{app.py}. They passed, a deliberately wrong expectation (31 instead of 30) failed with exit~1, and the restored file was identical to the starter (\ListRef{171}). The same tests run in the pipeline's first stage for every pull request and for \texttt{main}
+(Section~\ref{Section:deliveryJenkins}); they are what makes a wrong price fail before an image exists.
+
+\paragraph{Source identity.} The pipeline builds with \texttt{--build-arg APP\_COMMIT=}\emph{full commit}, the Dockerfile turns it into an environment variable, and \texttt{/} reports it. Ansible's last check compares the reported commit and version with the release record,
+so a container that runs anything else fails the deployment. The public URLs report \texttt{975d13c\ldots} for v1 and reported \texttt{06550eb\ldots} for v2 (\ListRef{176}, \ListRef{230}, \ListRef{177}).
+
+\paragraph{Locked build inputs.} \texttt{requirements.in} keeps the starter's ranges (Flask 3.1.x, Gunicorn 23.x). \texttt{pip-compile} 7.6.2 turned them into \texttt{requirements.txt} with exact versions and SHA-256 hashes for all 9 packages, direct and transitive (167 hashes);
+recompiling gave the same packages and versions (\ListRef{172}). The image installs with \texttt{pip install --require-hashes --no-deps}, so a package that is not in the lock, or whose file differs, is refused.
+The base image is pinned by digest, \texttt{python:3.13.18-slim-trixie@sha256:e48f59cd\ldots ed90} (the OCI index; its linux/amd64 manifest \texttt{48d88481\ldots} is recorded too), never by a moving tag \cite{DockerBuildBestPractices}.
+pip-audit 2.10.1 found no known vulnerability in the lock at that time, which is not a claim that none exist (\ListRef{172}). After build \#6's image scan, BD's reviewed \href{\GiteaRepoURL/pulls/16}{pull request \#16} pinned the one OS package with a fix, \texttt{zlib1g}, to the exact tested version,
+and removed \texttt{pip}, \texttt{setuptools} and \texttt{wheel} after the locked install (Section~\ref{Section:deliveryScans}); SD reviewed that the pin keeps the inputs locked: if Debian replaces that version, the build fails loudly and is fixed in a pull request.
+The Dockerfile (\ListRef{DeliveryDockerfile}) also runs the service as UID 10001 with a health check; the Compose template adds a read-only root file system, \texttt{/tmp} as tmpfs, all capabilities dropped, no new privileges and 128~MiB of memory
+\cite{DockerEngineSecurity,FlaskDeploying}. A local amd64 build of v1, which was never published, already answered correctly under those restrictions (\ListRef{173}).
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{python}{config/twintrack/pricing-service/app.py}
+\caption{\texttt{pricing-service/app.py} on \texttt{main} (v2; v1 differs only in \texttt{VERSION = "v1"} and \texttt{UNIT\_PRICE = 10}).}
+\label{Listing:EDeliveryApp}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{python}{config/twintrack/pricing-service/test_app.py}
+\caption{\texttt{pricing-service/test\_app.py} on \texttt{main} (v2 expectations: version v2, total 36).}
+\label{Listing:EDeliveryTests}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{docker}{config/twintrack/pricing-service/Dockerfile}
+\caption{\texttt{pricing-service/Dockerfile} on \texttt{main}: base image by digest, hashed install, pinned \texttt{zlib1g}, non-root user.}
+\label{Listing:EDeliveryDockerfile}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/170-server-baseline-before-delivery-sd-2026-11-12.txt}
+\caption{Read-only server baseline before any delivery work, November 12, 2026, 7:56~PM (real output).}
+\label{Listing:E170}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/171-v1-unit-tests-pass-controlled-failure-restore-sd-2026-11-12.txt}
+\caption{v1 tests: pass, a controlled failure, and the restore, November 12, 2026 (real output).}
+\label{Listing:E171}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/172-locked-dependencies-base-image-digest-pip-audit-sd-2026-11-12.txt}
+\caption{The lock with hashes, the base-image digests and pip-audit, November 12, 2026 (real output).}
+\label{Listing:E172}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/173-v1-image-local-build-hardened-run-endpoint-checks-sd-2026-11-12.txt}
+\caption{A local, unpublished v1 build run with the production restrictions; endpoint checks, November 12, 2026 (real output).}
+\label{Listing:E173}
+\end{longlisting}
+
+% ===== SD region: row 2 (10 points) =====
+\section{One image per reviewed commit, and the same digest promoted (10 points)}\label{Section:deliveryImage}
+\textbf{Owner:} SD. \textbf{Status:} v1 (build \#7) and v2 (build \#11) each reached production with the digest that staging tested \StatusPass.
+
+\paragraph{How an image is made and named.} Only the pipeline on \texttt{main} builds a release image, once per merged commit, tagged with the full commit and pushed to the Gitea registry as
+\texttt{git.ssw590-g1.tech/group1-startup/pricing} \cite{GiteaContainerRegistry}. Right after the push the agent pulls the image back and reads its repository digest, which is the identity of the release from then on;
+tags are only labels and are never deployed. The digest goes into \texttt{reports/digest.txt} and into the release records, and both Ansible runs of a build receive that same record, so staging and production cannot run different images
+of the same release (Section~\ref{Section:deliveryJenkins} for the stages, \ListRef{216}).
+
+\paragraph{Release records.} A release record is a small YAML file per release and environment (\texttt{releases/v1-staging.yml}, \ldots): digest, full commit, expected version and total, public URL, proxy network and, for production,
+who approved and when. It holds metadata only. Jenkins writes and archives them; because \texttt{main} is protected they are committed afterwards through reviewed pull requests, byte-identical to the archived files
+(SHA-256 compared; \href{\GiteaRepoURL/pulls/19}{pull request \#19} for v1, \href{\GiteaRepoURL/pulls/26}{pull request \#26} for v2; \ListRef{176}, \ListRef{177}). A change that touches \texttt{releases/} builds and deploys nothing (build \#9, \ListRef{223}).
+The four records are in Section~\ref{Section:deliveryRecords}.
+
+\paragraph{Traceability.} \ref{Table:DeliveryTrace} lists every build of \texttt{main} that reached the image stage. v1 and v2 each have one image, built once, scanned, tested in staging and promoted with the same digest.
+Build \#8 shows the rule from the other side: merging a pipeline change produced a new image of the same v1, which staging ran but nobody promoted. The registry holds exactly the three pushed images (BD's reading of the package page, Section~\ref{Section:deliveryScans}; \FigRef{242}).
+
+{\footnotesize
+\begin{tabularx}{\linewidth}{L{1.2cm}L{1.3cm}L{2.75cm}YL{2.2cm}}
+\caption{Traceability of the releases (Jenkins job \texttt{twintrack}, branch \texttt{main}; New York times)\label{Table:DeliveryTrace}}\\
+\toprule \textbf{Build} & \textbf{Commit} & \textbf{Image digest} & \textbf{Scans, staging, approval, production} & \textbf{Evidence}\\ \midrule
+\endfirsthead
+\toprule \textbf{Build} & \textbf{Commit} & \textbf{Image digest} & \textbf{Scans, staging, approval, production} & \textbf{Evidence}\\ \midrule
+\endhead \bottomrule \endlastfoot
+\#6 (v1) & \href{\GiteaRepoURL/commit/49202f0}{\texttt{49202f0}} & none (not pushed) & tests, pip-audit and secret scan passed; image scan blocked: 53 HIGH, 0 CRITICAL; nothing deployed & \ListRef{213}\\
+\#7 (v1) & \href{\GiteaRepoURL/commit/975d13c0c4cd3d0fab5035dd3d1817166bed8f07}{\texttt{975d13c}} & \texttt{sha256:}\newline\texttt{ce514106\ldots 98b2} & all scans passed (11 dated exceptions); staging v1, total 30, \texttt{changed=3}; approved by \texttt{brahmi} Nov~16, 11:36:33~PM; production same digest, v1, 30, \texttt{ok=9 failed=0} & \ListRef{216}, \ListRef{176}, \FigRef{217}\\
+\#8 (v1) & \href{\GiteaRepoURL/commit/102da1d2e5a5d76d6de9cf6254f568b3b22b67d1}{\texttt{102da1d}} & \texttt{sha256:}\newline\texttt{5702d097\ldots 44ca} & scans passed; staging v1, 30; \textbf{rejected} at the approval by \texttt{brahmi}; production unchanged (``built and staged, not promoted'') & \ListRef{222}, \FigRef{221}, \ListRef{177}\\
+\#11 (v2) & \href{\GiteaRepoURL/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f}{\texttt{06550eb}} & \texttt{sha256:}\newline\texttt{ba2e211c\ldots f01c} & scans passed; staging v2, total 36; approved by \texttt{brahmi} Nov~17, 9:21:44~PM; production same digest, v2, 36; rolled back to v1 at 9:23:37~PM (Section~\ref{Section:deliveryRecovery}) & \ListRef{230}, \ListRef{231}, \FigRef{229}, \ListRef{177}\\
+\#12 (fixture) & replay of \#11 & none (nothing built) & pip-audit exit 1 and secret scan exit 1 on a synthetic fixture; every later stage skipped & \ListRef{239}\\
+\end{tabularx}
+}
+Builds \#5 (pip-audit could not write its cache, \ListRef{212}), \#9 (release records only) and \#10 (rollback file only) built no image. The full digests (\ListRef{177}):
+{\footnotesize\begin{itemize}
+\item v1, build \#7: \texttt{sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2}
+\item build \#8: \texttt{sha256:5702d0975b2fcd510d642774f5d06d33a576307671d85f8d922ab90ac4fb44ca}
+\item v2, build \#11: \texttt{sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c}
+\end{itemize}}
+Jenkins runs:
+\href{https://ci.ssw590-g1.tech/job/twintrack/job/main/7/}{build \#7}, \href{https://ci.ssw590-g1.tech/job/twintrack/job/main/8/}{\#8}, \href{https://ci.ssw590-g1.tech/job/twintrack/job/main/11/}{\#11} (team sign-in required).
+
+\paragraph{What is not claimed.} The images are not reproducible bit for bit: building the same commit again gives a new digest (build \#8 shows it), which is exactly why the digest, not the commit, is what gets promoted.
+SD has no registry token, so the registry's own list is BD's screenshot (\FigRef{242}); SD checked the digests in Jenkins' archived reports and the identity through the public URLs.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/176-v1-release-records-same-digest-staging-production-verified-sd-2026-11-16.txt}
+\caption{Build \#7: the v1 digest, the two release records, their checksums against Jenkins, and SD's own HTTPS checks, November 16, 2026, about 11:55~PM (real output).}
+\label{Listing:E176}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/177-v2-records-build-list-restore-run-recaps-traceability-final-state-sd-2026-11-17.txt}
+\caption{Build lists of both jobs, the restore-run recaps, the build \#8 and v2 digests, the v2 records and the final public state, November 17, 2026, 11:34~PM (real output; read-only).}
+\label{Listing:E177}
+\end{longlisting}
+
+% ===== SD region: row 3 (20 points) =====
+\section{Ansible deployment, two environments and HTTPS (20 points)}\label{Section:deliveryAnsible}
+\textbf{Owner:} SD. \textbf{Status:} every release and restore deployed by the playbook; unchanged second run shown on staging and production \StatusPass.
+
+\paragraph{Tools and the path to the host.} ansible-core 2.22.0 on the trusted agent with the collection \texttt{community.docker} pinned to 5.4.0 (\texttt{ansible/requirements.yml}); the host meets both minimums (Python 3.9.25; Compose v5.6, where 2.18 is needed);
+the playbook passed a syntax check and its template rendered into a Compose file that Compose accepted (\ListRef{174}) \cite{AnsibleGettingStarted}. Ansible connects as the account \texttt{deploy} with a key held only by Jenkins and uses \texttt{become}
+for root \cite{AnsibleBecome}; that \texttt{sudo} and Docker access amount to host administration, which is written down as a risk (Section~\ref{Section:deliveryScans}). The server cannot reach its own Elastic IP on port~22 through the security group, so the agent reaches
+\texttt{sshd} over the Docker bridge under the name \texttt{deploy-target}; \texttt{HostKeyAlias} and the committed \texttt{ansible/known\_hosts} make OpenSSH verify the same ED25519 key that has been pinned since Chapter~\ref{Chapter:Gitea}
+(\texttt{SHA256:sJSqc\ldots}; \ListRef{175}, \ListRef{201}). The inventory holds no secret (\ListRef{DeliveryInventory}).
+
+\paragraph{What the playbook does.} \texttt{ansible/deploy.yml} (\ListRef{DeliveryPlaybook}) takes one release record as variables and (1) checks it (environment name, \texttt{@sha256:} digest, version, total, \texttt{https://} URL);
+(2) creates \texttt{/opt/startup/pricing-}\emph{env}; (3) renders the Compose file from the template (\ListRef{DeliveryTemplate}); (4) converges the Compose project \texttt{pricing-}\emph{env} with \texttt{build: never} and \texttt{pull: missing}, so the host can only
+pull the named digest and never builds; (5) waits until \texttt{/health} answers \texttt{ok} \emph{through the public HTTPS name with certificate validation}; and (6) asserts that \texttt{/} reports the record's version and commit and that \texttt{/price?quantity=3}
+gives the record's total. A record that names a missing image fails at step~4 (BD's staging failure, \ListRef{237}); a container that answers with the wrong version or price fails at step~6.
+
+\paragraph{Environment separation.}
+\begin{tabularx}{\linewidth}{L{3.0cm}YY}
+\caption{Staging and production on the same host\label{Table:DeliveryEnvs}}\\
+\toprule & \textbf{Staging} & \textbf{Production}\\ \midrule
+\endfirsthead
+\toprule & \textbf{Staging} & \textbf{Production}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Public URL & \href{https://staging.ssw590-g1.tech/health}{\texttt{staging.ssw590-g1.tech}} & \href{https://app.ssw590-g1.tech/health}{\texttt{app.ssw590-g1.tech}}\\
+Compose project and folder & \texttt{pricing-staging},\newline \texttt{/opt/startup/}\newline\texttt{pricing-staging} & \texttt{pricing-production},\newline \texttt{/opt/startup/}\newline\texttt{pricing-production}\\
+Name on \texttt{gitea\_web} & \texttt{pricing-staging:8000} & \texttt{pricing-production:8000}\\
+Release record & \texttt{releases/v}$n$\texttt{-staging.yml} & \texttt{releases/v}$n$\texttt{-production.yml} (with the approval)\\
+Who deploys & the pipeline for every \texttt{main} build with an image; the \texttt{rollback} job without approval & only after the named approval (\texttt{brahmi} or \texttt{sakshi}), in the pipeline or the \texttt{rollback} job\\
+Monitored & no (on purpose, Section~\ref{Section:deliveryMonitoring}) & Blackbox probe of \texttt{/health} every 30~s\\
+\end{tabularx}
+Neither container publishes a port: Caddy, the only service on 80 and 443, routes each name to its alias (BD applied SD's two blocks; certificates from Let's Encrypt, \ListRef{208}). A failed staging deployment stops the pipeline before the approval, so production is never touched by it.
+Both share the host, Docker and the network, which is the single-server limitation (Section~\ref{Section:deliveryManual}).
+
+\paragraph{Valid HTTPS.} The playbook's own checks run with \texttt{validate\_certs: true} and went through the public names in every successful run; SD's checks from outside used curl with certificate verification, and both URLs answered with HTTP~200 and a verified certificate
+(\texttt{ssl\_verify=0} in \ListRef{176} and \ListRef{177}).
+
+\paragraph{Runs and the unchanged second run.} The first deployment of each environment (build \#7) changed three tasks: the folder, the Compose file and the container (\texttt{ok=9 changed=3 failed=0}, \ListRef{176}). Idempotence was shown with the \texttt{rollback} job,
+which runs the same playbook with a committed record and no rebuild (\ListRef{177}, BD's \ListRef{228}):
+\begin{itemize}
+\item rollback build \#5, \texttt{releases/v1-staging.yml}, Nov~17, 9:09~PM: \texttt{ok=9 changed=2} (staging was on build \#8's image, so the Compose file and the container moved back to the v1 digest);
+\item rollback build \#6, the \emph{same} record, 9:12~PM: \texttt{ok=9 changed=0}, nothing reported as changed and the container was not restarted;
+\item rollback build \#7, \texttt{releases/v1-production.yml}, approved by \texttt{brahmi}, 9:15~PM: \texttt{ok=9 changed=0} (production had run this record since build \#7).
+\end{itemize}
+Every check task is \texttt{changed\_when: false}, so \texttt{changed=0} really means that the desired state was already in place, not that the checks were skipped: they ran and passed each time.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/twintrack/ansible/deploy.yml}
+\caption{\texttt{ansible/deploy.yml}: the playbook for every release, restore and rollback (course starter, unchanged).}
+\label{Listing:EDeliveryPlaybook}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/twintrack/ansible/templates/compose.yaml.j2}
+\caption{\texttt{ansible/templates/compose.yaml.j2}: the course template plus a 128~MiB memory limit.}
+\label{Listing:EDeliveryTemplate}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{ini}{config/twintrack/ansible/inventory.ini}
+\caption{\texttt{ansible/inventory.ini}: no secret; the key is a Jenkins credential and the host key is pinned in \texttt{ansible/known\_hosts}.}
+\label{Listing:EDeliveryInventory}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/174-ansible-versions-syntax-check-rendered-compose-sd-2026-11-12.txt}
+\caption{Ansible and collection versions, target prerequisites, syntax check and the rendered template, November 12, 2026 (real output).}
+\label{Listing:E174}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/175-deploy-ssh-path-from-agent-network-host-key-sd-2026-11-12.txt}
+\caption{The deploy SSH path over the Docker bridge and the pinned host key, November 12, 2026 (real output).}
+\label{Listing:E175}
+\end{longlisting}
+

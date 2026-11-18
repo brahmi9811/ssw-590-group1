@@ -1,0 +1,104 @@
+Evidence 177 (SD): v2 release records, Jenkins build lists, restore-run recaps, traceability data, final public state
+Rows 2, 3, 8. Read by SD (with Claude Code) on Nov 17, 2026, about 11:30 PM New York, through the Jenkins API while signed in as sakshi
+(read-only; nothing was run or changed in Jenkins) and with curl from SD's laptop. Times: UTC as Jenkins stores them, New York = UTC - 5 h.
+
+== Job twintrack/main: builds 5-12 (number, result, duration, start UTC, start New York)
+  #12  FAILURE    10s  2026-11-18T02:53:33Z  Nov 17 9:53:33 PM
+  #11  SUCCESS   257s  2026-11-18T02:17:58Z  Nov 17 9:17:58 PM
+  #10  SUCCESS     5s  2026-11-17T05:21:35Z  Nov 17 12:21:35 AM
+  #9   SUCCESS     6s  2026-11-17T05:11:05Z  Nov 17 12:11:05 AM
+  #8   ABORTED   156s  2026-11-17T05:07:28Z  Nov 17 12:07:28 AM
+  #7   SUCCESS   175s  2026-11-17T04:34:08Z  Nov 16 11:34:08 PM
+  #6   FAILURE    48s  2026-11-17T03:51:12Z  Nov 16 10:51:12 PM
+  #5   FAILURE    27s  2026-11-17T03:45:43Z  Nov 16 10:45:43 PM
+
+== Job rollback: builds 1-10
+  #10  SUCCESS    33s  2026-11-18T02:45:05Z  Nov 17 9:45:05 PM
+  #9   FAILURE    16s  2026-11-18T02:39:27Z  Nov 17 9:39:27 PM
+  #8   SUCCESS    44s  2026-11-18T02:23:25Z  Nov 17 9:23:25 PM
+  #7   SUCCESS    52s  2026-11-18T02:14:46Z  Nov 17 9:14:46 PM
+  #6   SUCCESS    21s  2026-11-18T02:12:36Z  Nov 17 9:12:36 PM
+  #5   SUCCESS    32s  2026-11-18T02:09:20Z  Nov 17 9:09:20 PM
+  #4   FAILURE     3s  2026-11-18T02:06:59Z  Nov 17 9:06:59 PM
+  #3   FAILURE     0s  2026-11-17T05:15:33Z  Nov 17 12:15:33 AM
+  #2   FAILURE     0s  2026-11-17T05:12:38Z  Nov 17 12:12:38 AM
+  #1   FAILURE     0s  2026-11-17T05:02:02Z  Nov 17 12:02:02 AM
+
+== Restore runs of the job rollback (reports/rollback-approval.txt, the PLAY RECAP line and the tasks reported as changed)
+  #5: restore applied by none (staging record, no approval) at 2026-11-18T02:09:22Z, build 5, record releases/v1-staging.yml
+       recap: ok=9 changed=2 unreachable=0 failed=0
+       changed: Render selected Compose configuration; Converge application without rebuilding
+  #6: restore applied by none (staging record, no approval) at 2026-11-18T02:12:38Z, build 6, record releases/v1-staging.yml
+       recap: ok=9 changed=0 unreachable=0 failed=0
+       changed: (none)
+  #7: restore applied by brahmi at 2026-11-18T02:15:20Z, build 7, record releases/v1-production.yml
+       recap: ok=9 changed=0 unreachable=0 failed=0
+       changed: (none)
+  #8: restore applied by brahmi at 2026-11-18T02:23:37Z, build 8, record releases/v1-production.yml
+       recap: ok=9 changed=2 unreachable=0 failed=0
+       changed: Render selected Compose configuration; Converge application without rebuilding
+  #9: restore applied by none (staging record, no approval) at 2026-11-18T02:39:29Z, build 9, record releases/v1-staging.yml
+       recap: no PLAY RECAP in the archived deploy report (build FAILURE; BD's replay with a missing digest, evidence 237)
+       changed: -
+  #10: restore applied by none (staging record, no approval) at 2026-11-18T02:45:07Z, build 10, record releases/v1-staging.yml
+       recap: ok=9 changed=2 unreachable=0 failed=0
+       changed: Render selected Compose configuration; Converge application without rebuilding
+  => unchanged second run: #6 repeats #5's staging record with changed=0; #7 applies the production record that was live with changed=0.
+
+== Build #8 of twintrack/main (staged, not promoted): reports/digest.txt and commit.txt
+  git.ssw590-g1.tech/group1-startup/pricing@sha256:5702d0975b2fcd510d642774f5d06d33a576307671d85f8d922ab90ac4fb44ca
+  102da1d2e5a5d76d6de9cf6254f568b3b22b67d1
+
+== Build #11 of twintrack/main (v2): reports/digest.txt and commit.txt
+  git.ssw590-g1.tech/group1-startup/pricing@sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c
+  06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f
+
+== v2 release records, committed in twintrack PR #26 (issue #25, branch issue-25-v2-release-records, commit 07ba67e)
+SHA-256 of the committed files (shasum) and of the files Jenkins serves for build #11 (computed in the browser):
+3788c8cc4c8ffb196ba2838cc16b8884b96bf4927fddf7fb05bb6a6f6b56f70c  releases/v2-staging.yml
+a61998d64872e960bd005c99005fb416594182ba237513b18b079becc04c2163  releases/v2-production.yml
+Jenkins: v2-staging.yml 3788c8cc4c8ffb196ba2838cc16b8884b96bf4927fddf7fb05bb6a6f6b56f70c
+Jenkins: v2-production.yml a61998d64872e960bd005c99005fb416594182ba237513b18b079becc04c2163
+--- releases/v2-staging.yml
+# release record, written by Jenkins build 11; metadata only
+target_env: staging
+release_image: git.ssw590-g1.tech/group1-startup/pricing@sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c
+expected_version: v2
+expected_commit: 06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f
+expected_total: 36
+public_url: https://staging.ssw590-g1.tech
+proxy_network: gitea_web
+--- releases/v2-production.yml
+# release record, written by Jenkins build 11; metadata only
+target_env: production
+release_image: git.ssw590-g1.tech/group1-startup/pricing@sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c
+expected_version: v2
+expected_commit: 06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f
+expected_total: 36
+public_url: https://app.ssw590-g1.tech
+proxy_network: gitea_web
+approval: "approved by brahmi at 2026-11-18T02:21:44Z, build 11"
+--- 06550eb is an ancestor of main:
+  yes (git merge-base --is-ancestor, exit 0)
+
+== Release records on twintrack main now:
+  releases/README.md
+  releases/release.example.yml
+  releases/v1-production.yml
+  releases/v1-staging.yml
+
+== Public state at the end (curl from SD's laptop, certificate verified), Nov 17 11:34 PM EST
+https://staging.ssw590-g1.tech/ -> {"commit":"975d13c0c4cd3d0fab5035dd3d1817166bed8f07","service":"Startup Pricing","version":"v1"}
+  [HTTP 200, ssl_verify=0]
+https://staging.ssw590-g1.tech/health -> {"status":"ok","version":"v1"}
+  [HTTP 200, ssl_verify=0]
+https://staging.ssw590-g1.tech/price?quantity=3 -> {"currency":"USD","quantity":3,"total":30}
+  [HTTP 200, ssl_verify=0]
+https://app.ssw590-g1.tech/ -> {"commit":"975d13c0c4cd3d0fab5035dd3d1817166bed8f07","service":"Startup Pricing","version":"v1"}
+  [HTTP 200, ssl_verify=0]
+https://app.ssw590-g1.tech/health -> {"status":"ok","version":"v1"}
+  [HTTP 200, ssl_verify=0]
+https://app.ssw590-g1.tech/price?quantity=3 -> {"currency":"USD","quantity":3,"total":30}
+  [HTTP 200, ssl_verify=0]
+
+Not shown: the registry's own list of images (it needs a login SD does not hold); BD's screenshot of the package page is evidence 242.

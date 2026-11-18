@@ -2,8 +2,8 @@
 % manual's Figure 6.1 to the real hosts, containers, networks, volumes and directories (evidence 170, 175; BD's agent files).
 % Blue = Chapter 6 additions; white = existing components; gray = persistent storage or host directories.
 % Arrows point from the side that opens the connection. Not drawn: the Gitea Actions runner (Assignment 5).
-% Shows the TARGET state of the assignment: the agent, the deploy account, the two environments and the app./health
-% probe are being set up (BD's gates G1, G3-G6; row 7); update this figure if anything is built differently.
+% Shows the system AS BUILT (checked Nov 17, 2026 against evidence 176, 177 and BD's 205-242): two Jenkins jobs (twintrack
+% multibranch, rollback), the agent, the deploy account, both environments and the app./health probe all exist.
 % Suggested caption: Secure delivery on the Group 1 server, adapted from the course manual's Figure 6.1. Blue: Chapter 6
 %   additions; white: existing components; gray: persistent storage or host directories. Arrows start at the side that
 %   opens the connection. The approval in Jenkins precedes the production deployment. Ansible reaches sshd over the Docker
@@ -37,7 +37,7 @@
   % existing containers
   \node[old] (caddy) at (7.9,2.6) {\texttt{caddy} 2.11.7\\TLS proxy\\publishes 443, 80};
   \node[old] (gitea) at (13.0,5.7) {\texttt{gitea} 1.27.3 + OCI registry\\\texttt{git.ssw590-g1.tech/}\\\texttt{group1-startup/pricing}};
-  \node[old] (jenkins) at (18.2,5.7) {\texttt{jenkins} 2.580.2 controller\\PR tests; approval \texttt{input}\\(brahmi, sakshi)};
+  \node[old] (jenkins) at (18.2,5.7) {\texttt{jenkins} 2.580.2 controller\\jobs \texttt{twintrack}, \texttt{rollback}\\approval \texttt{input} (brahmi, sakshi)};
   \node[store] (cdata) at (7.9,0.5) {\texttt{gitea\_caddy\_data}\\certificates};
   \node[store] (gdata) at (13.0,7.85) {\texttt{gitea\_gitea\_data}: repos,\\packages (images), SQLite};
   \node[store] (jhome) at (18.2,7.85) {\texttt{jenkins\_jenkins\_home}:\\jobs, credentials, builds};

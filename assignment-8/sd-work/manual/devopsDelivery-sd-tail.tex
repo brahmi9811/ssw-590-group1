@@ -1,0 +1,133 @@
+% ===== SD region: row 8 (10 points) =====
+% Written Nov 17, 2026 by SD with Claude Code. Comes after BD's rows 4-7 in devopsDelivery.tex.
+\section{Architecture, release records, runbooks and this manual (10 points)}\label{Section:deliveryManual}
+\textbf{Owner:} SD (the final build and read-through together with BD). \textbf{Status:} diagram, records, links and runbooks written November 17, 2026 \StatusPass.
+
+\paragraph{Architecture.} \FigRef{DeliveryDeployment} adapts the course's Figure~6.1 to the real server: one EC2 instance (\texttt{t3.medium} since November 12) runs every container.
+\emph{Public} connections (green) enter only through Caddy on 443 and 80; the two pricing containers, Gitea's registry, Jenkins and Grafana publish no port of their own. \emph{Private} connections (blue) stay on the host:
+the webhook from Gitea to Jenkins, the agent's outbound WebSocket to the controller, and the Compose projects that Ansible starts. The red paths carry \emph{deployment rights}: the agent's Docker socket (root-equivalent) and Ansible's
+SSH login as \texttt{deploy} with \texttt{sudo}; both exist only on the trusted agent and only in stages that run for \texttt{main}. The agent pushes and the host pulls the image through the registry's public HTTPS name, authenticated with
+two different tokens (write for the agent, read for root on the host).
+
+\begin{figure}[htbp]\centering
+\resizebox{\linewidth}{!}{\input{TikZ/devopsDelivery/devopsDeliveryDeployment.tex}}
+\caption{Secure delivery on the Group~1 server as built, adapted from the course manual's Figure~6.1. Blue: Chapter~6 additions; white: existing components; gray: persistent storage or host directories.
+Arrows start at the side that opens the connection. The approval in Jenkins precedes every production deployment. Ansible reaches \texttt{sshd} over the Docker bridge (\texttt{deploy-target}), not over the Internet;
+the agent's Docker socket gives root-equivalent host access. Not drawn: the Gitea Actions runner that builds this manual (Chapter~\ref{Chapter:AutomatedBuild}).}
+\label{Fig:EDeliveryDeployment}
+\end{figure}
+
+\paragraph{Inventory and links.} Everything that defines a release is in Gitea, linked at the commit that released v2 (v1 differs only in the two constants of \texttt{app.py}, the test expectations and \texttt{VERSION}):
+\begin{tabularx}{\linewidth}{L{4.2cm}Y}
+\caption{Where each part lives (links open the file in Gitea)\label{Table:DeliveryFiles}}\\
+\toprule \textbf{Part} & \textbf{File, version}\\ \midrule
+\endfirsthead
+\toprule \textbf{Part} & \textbf{File, version}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Application v1 / v2 & \href{\GiteaRepoURL/src/commit/975d13c0c4cd3d0fab5035dd3d1817166bed8f07/pricing-service/app.py}{\texttt{app.py} at \texttt{975d13c} (v1)}, \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/pricing-service/app.py}{at \texttt{06550eb} (v2)}; Flask 3.1.3, Gunicorn 23.0.0\\
+Tests & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/pricing-service/test_app.py}{\texttt{pricing-service/test\_app.py}} (4 tests)\\
+Locked inputs & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/pricing-service/requirements.txt}{\texttt{requirements.txt}} (9 packages, 167 hashes) from \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/pricing-service/requirements.in}{\texttt{requirements.in}}\\
+Image & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/pricing-service/Dockerfile}{\texttt{pricing-service/Dockerfile}}; base \texttt{python:3.13.18-slim-trixie} by digest\\
+Pipeline & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/Jenkinsfile}{\texttt{Jenkinsfile}}, \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/Jenkinsfile.rollback}{\texttt{Jenkinsfile.rollback}}, \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/make-release-record.sh}{\texttt{ansible/make-release-record.sh}}; Jenkins 2.580.2, agent tools in Section~\ref{Section:deliveryJenkins}\\
+Deployment & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/deploy.yml}{\texttt{deploy.yml}}, \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/templates/compose.yaml.j2}{\texttt{compose.yaml.j2}}, \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/inventory.ini}{\texttt{inventory.ini}} (no secrets), \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/known_hosts}{\texttt{known\_hosts}}; ansible-core 2.22.0, \texttt{community.docker} 5.4.0\\
+Scan exceptions & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/security/exceptions.md}{\texttt{security/exceptions.md}}, \texttt{.trivyignore.yaml} (expire Sunday, November 29, 2026, 7~PM New York)\\
+Release records & \href{\GiteaRepoURL/src/branch/main/releases}{\texttt{releases/}} on \texttt{main}: v1 through \href{\GiteaRepoURL/pulls/19}{pull request \#19}, v2 through \href{\GiteaRepoURL/pulls/26}{\#26}\\
+Reviewed changes & pull requests \href{\GiteaRepoURL/pulls/12}{\#12} (service), \href{\GiteaRepoURL/pulls/14}{\#14} (pipeline), \href{\GiteaRepoURL/pulls/16}{\#16} (scan fixes), \href{\GiteaRepoURL/pulls/22}{\#22} and \href{\GiteaRepoURL/pulls/24}{\#24} (rollback job), \href{\GiteaRepoURL/pulls/21}{\#21} (v2)\\
+\end{tabularx}
+
+\subsection{Release records}\label{Section:deliveryRecords}
+The four records as committed in \texttt{main}; they are what the \texttt{rollback} job accepts. Staging and production of one release differ only in the environment, the URL and the approval line.
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/twintrack/releases/v1-staging.yml}
+\caption{\texttt{releases/v1-staging.yml} (Jenkins build \#7).}
+\label{Listing:EDeliveryRecV1S}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/twintrack/releases/v1-production.yml}
+\caption{\texttt{releases/v1-production.yml} (Jenkins build \#7; approved by \texttt{brahmi}, 04:36:33~UTC = November~16, 11:36~PM New York).}
+\label{Listing:EDeliveryRecV1P}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/twintrack/releases/v2-staging.yml}
+\caption{\texttt{releases/v2-staging.yml} (Jenkins build \#11).}
+\label{Listing:EDeliveryRecV2S}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{yaml}{config/twintrack/releases/v2-production.yml}
+\caption{\texttt{releases/v2-production.yml} (Jenkins build \#11; approved by \texttt{brahmi}, 02:21:44~UTC = November~17, 9:21~PM New York).}
+\label{Listing:EDeliveryRecV2P}
+\end{longlisting}
+
+\subsection{Runbooks}\label{Section:deliveryRunbooks}
+\begin{tabularx}{\linewidth}{L{3.2cm}Y}
+\caption{Who may do what\label{Table:DeliveryRights}}\\
+\toprule \textbf{Action} & \textbf{Who and how}\\ \midrule
+\endfirsthead
+\toprule \textbf{Action} & \textbf{Who and how}\\ \midrule
+\endhead \bottomrule \endlastfoot
+Change the service or pipeline & anyone in the team, through a pull request with one approval and the green check \texttt{twintrack/pipeline/pr-main} (\texttt{main} is protected)\\
+Deploy to staging & only Jenkins (the \texttt{deploy} key is a Jenkins credential): automatically for every merge that builds an image, or the \texttt{rollback} job with a staging record\\
+Approve production & the Jenkins users \texttt{brahmi} and \texttt{sakshi}, within 30~minutes, in the pipeline or the \texttt{rollback} job; the approver is recorded\\
+Roll back & either of them, by running \texttt{rollback} with a committed production record and approving it\\
+Administer the host & BD and SD as \texttt{ec2-user} over SSH from the two allowed addresses, outside the pipeline: BD made this chapter's server changes (agent, controller image, \texttt{deploy} account, Caddy blocks, probe); SD ran checks that changed no setting (the baseline and the SSH-path test with temporary \texttt{--rm} containers)\\
+\end{tabularx}
+
+\paragraph{Release.}
+\begin{enumerate}
+\item Change the code in a branch; open a pull request; wait for \texttt{pr-main} to pass and for the other person's approval; merge.
+\item The merge starts the \texttt{twintrack} build of \texttt{main}: tests, pip-audit, secret scan, image build, image scan, push, staging deploy. A red stage stops the release; nothing after it runs.
+\item Open \href{https://staging.ssw590-g1.tech/}{\texttt{staging.ssw590-g1.tech}}: \texttt{/} must show the new version and the merge commit, \texttt{/price?quantity=3} the new total.
+\item In Jenkins, read the digest, commit and version in the approval prompt and choose \emph{Promote} (or \emph{Abort} to stop; production keeps its release). Without an answer the build ends after 30~minutes.
+\item The production deploy checks the same things through \texttt{app.ssw590-g1.tech}; confirm them from outside and in Grafana (the \texttt{app} probe stays at 1).
+\item Copy the two archived records into \texttt{releases/} in a pull request that changes nothing else (a change touching \texttt{releases/} never deploys), compare their SHA-256 with Jenkins, and add the release to \ref{Table:DeliveryTrace}.
+\end{enumerate}
+
+\paragraph{Failed deployment.}
+\begin{enumerate}
+\item Signal: the build stops in \emph{Deploy staging} (or \emph{Deploy production}); the console shows the failing Ansible task. A failed staging deploy never reaches the approval, so production is unchanged; confirm with \texttt{curl https://app.ssw590-g1.tech/}.
+\item Read the failure: a missing or unreachable image fails in \emph{Converge application} (``manifest unknown''); a wrong version, commit or price fails in \emph{Check release identity and calculation}.
+\item Expect drift: Compose pulls before it replaces a container, so an image failure leaves the old container running while the rendered \texttt{compose.yaml} already names the new digest (BD's case, \ListRef{237}).
+\item Restore: run the \texttt{rollback} job with the last good record of that environment (for staging no approval is needed); it must end \texttt{failed=0} and pass the identity and price checks (\ListRef{238}).
+\item Fix the cause in a new pull request; never edit a committed record to make a deployment pass.
+\end{enumerate}
+
+\paragraph{Rollback of production.}
+\begin{enumerate}
+\item Decide which earlier release to restore and name its committed record (for v2 to v1: \texttt{releases/v1-production.yml}); note the time.
+\item Run the Jenkins job \texttt{rollback} with \texttt{RELEASE\_RECORD} set to that path. It refuses a path that is not \texttt{releases/v}$n$\texttt{-staging.yml} or \texttt{-production.yml}, a record that is not in \texttt{main}, a tag instead of a digest, or a commit that is not part of \texttt{main}.
+\item Approve in the prompt (the same two people, 30~minutes). Ansible re-applies the old digest; nothing is rebuilt.
+\item Verify: \texttt{/} shows the old version and commit, \texttt{/price?quantity=3} the old total, the probe stays at 1; keep the console times. BD's run took 12~seconds from approval to the new container, with 2 to 3~seconds without a good answer (\ListRef{232}, \ListRef{233}).
+\item Leave the bad image in the registry for analysis; open an issue for the cause; the next forward release goes through the normal release runbook.
+\end{enumerate}
+The service keeps no data, so a rollback needs no data migration. A service with a database would need backward-compatible schema changes or a restore plan before a rollback like this could be safe.
+
+\paragraph{Cleanup (only after grading, and only when the instructor says so).}
+\begin{enumerate}
+\item Stop the two application projects with \texttt{docker compose -p pricing-staging down} and \texttt{-p pricing-production down} in their folders under \texttt{/opt/startup} (they have no volumes; \textbf{never} \texttt{down -v} on other projects, never \texttt{prune}).
+\item Remove the \texttt{staging} and \texttt{app} blocks from the Caddyfile and reload Caddy; remove the \texttt{app} target from the Blackbox probe and reload Prometheus.
+\item BD deletes the DNS records \texttt{staging} and \texttt{app} at Name.com.
+\item Revoke the credentials: delete the Jenkins credentials \texttt{deploy-ssh-key} and \texttt{gitea-registry-write}, revoke the \texttt{jenkins-bot} package token and root's read token in Gitea, run \texttt{docker logout git.ssw590-g1.tech} as root, and remove the key line from \texttt{/home/deploy/.ssh/authorized\_keys} (or the \texttt{deploy} account and its \texttt{sudo} rule).
+\item Stop the \texttt{jenkins-agent} container; delete the three \texttt{pricing} package versions in Gitea and the local images on the host (about 126~MB each).
+\item Keep Gitea, Jenkins, Caddy, the monitoring stack, the repositories with their history and records, and this manual's evidence: the earlier chapters depend on them.
+\end{enumerate}
+
+\paragraph{Resources and the single-server limitation.} Everything runs on one \texttt{t3.medium}: 3,835~MiB of RAM, of which the agent may use 1,536~MiB and each pricing container 128~MiB; the disk had 3.5~GB free (83\% used) after all runs (Section~\ref{Section:deliveryJenkins}).
+Staging and production share the host, the Docker daemon, the proxy and the disk, so they are separated in configuration but not in failure: a host or Docker outage stops both, and the monitoring with them. The Docker socket on the agent means that a compromised
+pipeline would own the host. These are accepted for a course system and would be the first things to split in a real one: a separate production host, an agent without the host's socket, and monitoring outside the host.
+
+\paragraph{Version and history.} The manual's version rises from 1.3 to \textbf{1.4} (title page and \ref{Table:DocumentHistory}). The entry of November 17, 2026 names BD, SD and the AI assistant, lists this chapter, says that the Hosts and Passwords tables \emph{changed},
+and links to \ChapterRef{Delivery} and \ChapterRef{HostsPasswords}.
+
+\paragraph{Hosts and Passwords changes.} \textbf{Hosts:} the instance type \texttt{t3.medium}; a new row for the pricing service with its two names, \texttt{staging.ssw590-g1.tech} and \texttt{app.ssw590-g1.tech}, their Compose projects and probe; a new row for the trusted agent;
+the DNS records \texttt{staging} and \texttt{app}; the registry on the Gitea row. \textbf{Passwords (hints only):} the \texttt{deploy} account and its key, the registry write and read tokens, and the approvers. No secret is in either table.
+
+\paragraph{Glossary, references and attribution.} New glossary entries: image digest, release record, release, staging, promotion, idempotent and trusted agent (rollback was already defined). New references: the course manual's Chapter~6 version \cite{DosManualV143} and the sources it lists for this work
+\cite{AnsibleGettingStarted,AnsibleBecome,DockerBuildBestPractices,DockerCompose,DockerEngineSecurity,GiteaContainerRegistry,JenkinsPipelineSyntax,FlaskDeploying}; those marked \emph{not separately opened} were not opened by the authors.
+The service, playbook and template are the course starter's \cite{DosManualV143}; the team's changes are named where they occur. The AI Prompt Log has SD's record for this chapter; BD adds hers.
+
+\paragraph{Build and review.} SD's regions were test-built into the whole manual on November 17, 2026 in the team's own build image (\texttt{group1/texlive-node:2026.09}), with no LaTeX error and no undefined or duplicate reference. The chapter enters the manual repository through one reviewed pull request by BD
+with both regions and the evidence; the PDF handed in is built by Gitea Actions from its merge commit, and the build identifier on the title page and in the footer names that run and commit. Both authors read the built PDF before it is handed in.
