@@ -1,0 +1,25 @@
+Real output pasted by Brahmi (Jenkins console of the replayed build of job rollback) and checked on the server and from the PC, evening of Nov 17, 2026 US Eastern (server clock UTC, Nov 18 about 02:39-02:40). Assignment 8, row 6 (recovery case 2: staging failed deployment).
+
+=== How the failure was injected (deliberate, traceable) ===
+Jenkins job rollback, build #6 (parameter RELEASE_RECORD = releases/v1-staging.yml) was REPLAYED with one edit in the Apply and verify step: the ansible-playbook command got an extra variable overriding the record's digest,
+  -e release_image=git.ssw590-g1.tech/group1-startup/pricing@sha256:0000000000000000000000000000000000000000000000000000000000000000
+(64 zeros: a digest that does not exist in the registry). The console header says "Replayed #6". Nothing was changed in the repository or on main; production was not part of the run (staging record, own Compose project pricing-staging).
+Why Replay: the deploy key exists only as a Jenkins credential, and the rollback job refuses records that are not committed in main; Replay keeps both rules.
+
+=== What the console shows ===
+Check the record: passed (releases/v1-staging.yml, tracked in main, committed in 3f6918f); approval skipped (staging).
+PLAY: Gathering Facts ok; Validate release selection ok (All assertions passed); Create deployment directory ok; Render selected Compose configuration CHANGED (the compose.yaml in /opt/startup/pricing-staging now names the zero digest);
+TASK Converge application without rebuilding: [ERROR] Task failed: Module failed: Error when processing image git.ssw590-g1.tech/group1-startup/pricing@sha256:0000...0000: Error response from daemon: manifest unknown
+  command run by the module: docker compose ... --project-name pricing-staging up --detach --no-color --quiet-pull --pull missing --no-build --wait --wait-timeout 90
+  (the module's output also lists the still-running container: pricing-staging-app-1, image ...@sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c, Up 20 minutes (healthy))
+PLAY RECAP: ok=4 changed=1 unreachable=0 failed=1; the verification tasks after Converge were not reached.
+Build result: ERROR: script returned exit code 2; Finished: FAILURE; Gitea: "do not publish assets due to build being non-Successfully".
+
+=== State right after the failure (02:40:20 UTC) ===
+Staging: the old container was NOT replaced: pricing-staging-app-1 on sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c, healthy, started 2026-11-18 02:18:57 UTC (v2 of build #11); https://staging.ssw590-g1.tech/ -> commit 06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f, version v2; /price?quantity=3 -> total 36. Compose pulls the new image BEFORE it touches the running container, so a missing image fails the deployment without an outage.
+Drift: the rendered compose.yaml on the server now names the non-existent digest while the container runs the v2 digest: the configuration and the running release disagree until a good record is applied.
+Production: unchanged: sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2, started 2026-11-18 02:23:49 UTC (the rollback), https://app.ssw590-g1.tech/ -> version v1, commit 975d13c0c4cd3d0fab5035dd3d1817166bed8f07, total 30.
+The pipeline did not continue to anything else; a failed release cannot reach production because the approval and production stages come after a successful staging deploy.
+
+=== Recovery (next evidence) ===
+Run the rollback job normally with releases/v1-staging.yml: the Render task restores the correct compose.yaml, Converge moves staging onto the known-good v1 digest, the smoke test verifies version v1 and total 30.
