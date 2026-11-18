@@ -1,0 +1,10 @@
+Real output, evening of Nov 17, 2026 US Eastern (server clock UTC, Nov 18 02:21-02:23). Assignment 8, rows 1-4 and 7 (the v2 release in production).
+Build #11 (commit 06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f, digest sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c) after Brahmi clicked Promote at the approval (evidence 229, 230).
+
+reports/approval.txt: "approved by brahmi at 2026-11-18T02:21:44Z, build 11".
+releases/v2-production.yml (metadata only): target_env production; release_image = the same digest staging served and was verified on; expected_version v2; expected_commit 06550eb4...; expected_total 36; public_url https://app.ssw590-g1.tech; approval "approved by brahmi at 2026-11-18T02:21:44Z, build 11". Archived next to v2-staging.yml.
+Production deploy: PLAY RECAP ok=9 changed=2 unreachable=0 failed=0.
+Containers at 02:22:20 UTC: pricing-production-app-1 on sha256:ba2e211c... healthy, started 2026-11-18 02:21:57 UTC (13 s after the approval); pricing-staging-app-1 on the same digest, started 02:18:57 UTC.
+Public checks at 02:22 UTC: https://app.ssw590-g1.tech/ -> {"commit":"06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f","service":"Startup Pricing","version":"v2"}; /health -> {"status":"ok","version":"v2"}; /price?quantity=3 -> {"currency":"USD","quantity":3,"total":36}. Brahmi saw total 36 in a browser at https://app.ssw590-g1.tech/price?quantity=3.
+Monitoring: min over the last 10 minutes of probe_success{instance="https://app.ssw590-g1.tech/health"} = 1 (queried at 02:22:20 UTC): the container swap of the promotion did not produce a failed probe sample (30 s scrape interval, the replacement is short). The probe is availability only and also answers 200 for v1.
+Disk 3.5 GB free (83 % used).
