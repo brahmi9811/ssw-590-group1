@@ -1,0 +1,25 @@
+Real output pasted by Brahmi (Jenkins console of job rollback) and checked on the server and from the PC, evening of Nov 17, 2026 US Eastern (server clock UTC, Nov 18 02:45-02:46). Assignment 8, row 6 (recovery case 2: staging recovered, configuration restored, measured verification).
+
+=== Recovery run: job rollback (normal run, not a replay), RELEASE_RECORD = releases/v1-staging.yml ===
+main at 06550eb. Record checks passed (tracked in main, committed in 3f6918f, target_env staging, digest sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2, expected_commit 975d13c0c4cd3d0fab5035dd3d1817166bed8f07, expected_total 30). Approval skipped (staging record).
+Ansible: PLAY RECAP ok=9 changed=2 unreachable=0 failed=0.
+  Render selected Compose configuration: changed (the compose.yaml that named the non-existent digest is replaced by the one for the v1 digest: the configuration is restored);
+  Converge application without rebuilding: changed (staging moves from the v2 container to the v1 digest);
+  Verify health through public TLS endpoint, Read release identity, Exercise business behavior, Check release identity and calculation: ok (All assertions passed).
+
+=== Measured verification (02:46:03 UTC) ===
+pricing-staging-app-1: image sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2, healthy, started 2026-11-18 02:45:21 UTC.
+https://staging.ssw590-g1.tech/ -> {"commit":"975d13c0c4cd3d0fab5035dd3d1817166bed8f07","service":"Startup Pricing","version":"v1"}; /health -> {"status":"ok","version":"v1"}; /price?quantity=3 -> {"currency":"USD","quantity":3,"total":30}.
+Production throughout the failure and the recovery: pricing-production-app-1 on the same v1 digest, started 2026-11-18 02:23:49 UTC (not restarted since the rollback); https://app.ssw590-g1.tech/ -> version v1, commit 975d13c..., total 30.
+
+=== Timeline of the case (UTC, Nov 18) ===
+02:18:57 staging container of v2 starts (build #11)
+about 02:39 replay of rollback #6 with the non-existent digest fails at Converge (manifest unknown, failed=1); the running v2 container is not replaced; compose.yaml drifts (evidence 237)
+02:40:20 checked: staging still v2 healthy, production v1
+02:45:21 recovery run applies releases/v1-staging.yml: compose.yaml restored, staging container restarted on the known-good v1 digest
+02:46:03 checked: staging v1 total 30, production unchanged
+About 6 minutes from the failed deploy to a verified recovery, of which most is waiting for the person to start the second run.
+
+=== Note for the chapter ===
+Staging now serves v1, the last release whose record is committed in main, not v2 (the candidate that was on staging before the failure). To bring staging back to v2 the v2 staging record would first be committed in a reviewed pull request and then applied with the same job. Production was never affected, which is what the approval gate and the order staging-then-production guarantee.
+Disk after the runs: see the next record.
