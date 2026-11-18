@@ -1,0 +1,16 @@
+Real output, evening of Nov 17, 2026 US Eastern (server clock UTC, Nov 18 02:18-02:21). Assignment 8, rows 1-2 (v2), 4 and 5 (promotion control, scans). Jenkins build #11 on main: merge of PR #21 (v2: unit price 12, total 36), commit 06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f.
+
+The delivery stage RAN (not skipped): the change touches pricing-service/**, so the rule not { anyOf { changeset 'releases/**'; changeset 'Jenkinsfile.rollback' } } does not match. This is the counter-test for the skip rule of builds #9 and #10.
+
+Stages (workspace reports on the agent): pip-audit exit 0; image scan: reports/trivy-image-full.json 47 HIGH rows unfiltered, reports/trivy-image.json 0 rows under .trivyignore.yaml; image pushed.
+New image digest: git.ssw590-g1.tech/group1-startup/pricing@sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c.
+Release record written by build 11: releases/v2-staging.yml (target_env staging, expected_version v2, expected_commit 06550eb4..., expected_total 36, public_url https://staging.ssw590-g1.tech, proxy_network gitea_web).
+Staging deploy: PLAY RECAP ok=9 changed=2 failed=0 (new release, the changes are expected). Container pricing-staging-app-1 on the new digest, healthy, started 2026-11-18 02:18:57 UTC.
+
+Public checks at 02:20:44 UTC (from the PC):
+  staging / -> {"commit":"06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f","service":"Startup Pricing","version":"v2"}
+  staging /health -> {"status":"ok","version":"v2"}; staging /price?quantity=3 -> {"currency":"USD","quantity":3,"total":36}
+  production / -> commit 975d13c..., v1; /price?quantity=3 -> total 30 (unchanged; container started 2026-11-17 04:36:45 UTC on sha256:ce514106...).
+
+Approval prompt (screenshot 229): "Promote git.ssw590-g1.tech/group1-startup/pricing@sha256:ba2e211c... (commit 06550eb..., v2) to production? Staging passed its health, version and price checks." (timeout 30 min). Brahmi waits for the staging check before answering.
+Disk 3.5 GB free (83 % used).
