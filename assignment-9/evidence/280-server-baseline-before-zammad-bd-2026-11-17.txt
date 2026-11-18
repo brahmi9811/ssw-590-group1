@@ -1,0 +1,14 @@
+Real output, read-only (no change made), evening of Nov 17, 2026 US Eastern (server clock UTC, Nov 18 04:06 UTC). Assignment 9, gate G1 (capacity), row 1 baseline. Read by Claude Code over SSH at BD's request while preparing the layout. Nothing was installed or changed.
+
+Instance: t3.medium (instance metadata), 2 vCPU (nproc 2).
+Memory: total 3,835 MiB; used 1,698; free 243; buff/cache 1,893; available 1,837. Swap total 2,047 MiB, used 246.
+Root disk: /dev/nvme0n1p1 20 GB, 17 GB used, 3.5 GB free (83 %); no other volume.
+Kernel setting for Elasticsearch: vm.max_map_count = 65530 (Zammad needs 262144).
+Docker 25.0.14, Docker Compose v5.6.0.
+Docker disk use: images 20 (10 active) 9.292 GB, 7.194 GB reclaimable (mostly the 5.8 GB LaTeX runner image that must stay for the manual build and unused older images); containers 234.5 MB; volumes 12, 2.625 GB; build cache about 0.
+Running containers and memory (docker stats, one sample): blackbox-exporter 26 MiB / 64 MiB; caddy 40 MiB; gitea 210 MiB; gitea-runner 11 MiB; grafana 273 MiB / 384 MiB (71 %); jenkins 601 MiB / 640 MiB (94 %); jenkins-agent 219 MiB / 1.5 GiB; node-exporter 17 MiB / 64 MiB; pricing-production-app-1 40 MiB / 128 MiB; pricing-staging-app-1 40 MiB / 128 MiB; prometheus 65 MiB / 256 MiB.
+Docker networks: bridge, gitea_web, host, monitoring_monitoring, none, runner_default. Caddy is on gitea_web.
+Caddyfile site names: git (first block), ci, metrics, staging, app (all *.ssw590-g1.tech).
+Published host ports: only Caddy (80, 443, and 443/udp); all other services expose container ports only (gitea 22 and 3000, jenkins 8080 and 50000, grafana 3000, prometheus 9090, node-exporter 9100, blackbox 9115, pricing apps 8000 are not published on the host).
+
+Reading for the gate: Zammad's general hardware guide asks for at least 2 CPU cores and 6 GB RAM, plus 4 GB when Elasticsearch is on the same host (course sec. 7.4 step 1). The server has 1.8 GB of RAM available, 3.5 GB of disk free and the Jenkins container near its limit. A larger instance and a larger disk are needed before the stack starts; options and approximate costs are in the README (to be verified in the AWS console).

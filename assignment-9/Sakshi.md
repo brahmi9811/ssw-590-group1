@@ -1,0 +1,19 @@
+# Sakshi (SD): rows 1, 3, 4 = 50 points
+
+## Scope
+- **Row 1 (20) Deployment and continuity.** Capacity baseline and the post-installation comparison (with BD's G1 decision); official `zammad-docker-compose` checkout in a **separate directory and Compose project** (`~/dos-support`, `COMPOSE_PROJECT_NAME=dos-support`), `git switch --detach`, the **commit recorded** and the fixed image versions kept (no `latest`); `.env` from `.env.dist` with `COMPOSE_FILE=docker-compose.yml:scenarios/add-external-network-to-nginx.yml`, `ZAMMAD_NGINX_EXTERNAL_NETWORK=gitea_web`, `ZAMMAD_FQDN`, `ZAMMAD_HTTP_TYPE=https`, `NGINX_SERVER_SCHEME=https`, unique generated database and search credentials (real `.env` mode 600, outside Git and the PDF); `vm.max_map_count` (G3); `docker compose config --quiet`, `pull`, `up -d`, `ps -a`, `zammad-init` exited 0; all services healthy; **storage inventory** (PostgreSQL, Elasticsearch, Redis, Zammad storage and backup volumes) and **backup evidence** (upstream backup service enabled, backup produced without showing contents, how the matching release's restore guide is followed); earlier services retained and re-tested.
+- **Row 3 (20) Support workflow and access.** First-run setup over HTTPS; administrator, group *Startup Support*, a student Agent, a synthetic Customer, a separate named **TA Agent** with rights to view, create, assign, reply and close in that group but **no administrator permission**; no public self-registration; **three synthetic tickets** (one open, one assigned and being investigated, one closed with a resolution) with priority, owner, customer and description; an **internal note** and a **customer-visible reply** through the web portal; proof that a customer cannot see an internal note or another customer's ticket; the TA tested in a separate browser session; role and group permissions and the evaluation URL recorded; the **TA checklist** (URL, account and role, group, example ticket numbers, steps to create, reply to, assign and close a test ticket).
+- **Row 4 (10) Engineering traceability.** For one ticket that needs a software or configuration change: a Gitea issue with an acceptance criterion, its clickable URL in the Zammad ticket and the ticket reference in the Gitea issue; use the normal branch/review/Jenkins process if code changes; close the ticket with a short resolution and verification result. A manual link is the required integration (no webhook claims).
+- **Gate G3** `vm.max_map_count`; **G4** Compose and commit record; **G5** the Caddy block draft (`sd-work/Caddyfile.support-block.txt`); **G6** Zammad accounts and secrets; **G8** backups; **G9** TA account.
+
+## Secrets rule for SD's part
+Real passwords (administrator, student agent, customer, TA, database) are typed by a person at the prompt or in the web UI and stored outside Git and the PDF. The **TA username and password go only into the Canvas submission text**. The manual shows account names and roles, never passwords or reset links.
+
+## Inputs from BD
+- The capacity decision and the resize (G1) before the stack starts; DNS for the hostname (G2); the Caddy route applied after the stack is healthy (G5); the external firewall test results.
+
+## Checklist
+- [ ] baseline summary (row 1) · [ ] official checkout at a detached commit, commit hash recorded · [ ] `.env` prepared and checked (sanitized example in repo)
+- [ ] `vm.max_map_count` set · [ ] `config --quiet` passes · [ ] stack up, `zammad-init` exit 0, services healthy · [ ] storage inventory · [ ] backup produced and restore guide documented
+- [ ] Caddy block draft for BD · [ ] admin, group, agent, customer, TA agent created · [ ] three tickets · [ ] internal note and customer reply · [ ] visibility checks · [ ] TA tested in a separate session · [ ] TA checklist
+- [ ] Gitea issue, both links, resolution (row 4) · [ ] earlier services re-tested · [ ] review of BD's Hosts and Passwords tables
