@@ -1,0 +1,25 @@
+Real output pasted by Brahmi (Jenkins console of job rollback, build #8) and checked on the server, evening of Nov 17, 2026 US Eastern (server clock UTC, Nov 18 02:22-02:25). Assignment 8, row 6 (production rollback v2 to v1), row 7 (monitoring correlation) and row 3 (same mechanism as a release).
+
+=== Starting point ===
+Production on v2: pricing-production-app-1 on sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c (build #11, commit 06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f), started 02:21:57 UTC; https://app.ssw590-g1.tech/price?quantity=3 -> total 36 (evidence 231).
+Staging on the same v2 digest (started 02:18:57 UTC).
+
+=== The rollback: job rollback, build #8, parameter RELEASE_RECORD = releases/v1-production.yml ===
+Checked out main at 06550eb (the v2 merge). Record checks passed (path pattern, tracked in main, committed in 3f6918f "Add the v1 release records from Jenkins build #7", target_env production, digest form, expected_commit 975d13c0c4cd3d0fab5035dd3d1817166bed8f07 of 40 hex and an ancestor of main).
+Approval prompt: "Restore production to v1 (git.ssw590-g1.tech/group1-startup/pricing@sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2) from releases/v1-production.yml? The same digest as the original release; no rebuild." Roll back or Abort (timeout 30 min). Answer: Approved by Brahmi Dalvi.
+reports/rollback-approval.txt: "restore applied by brahmi at 2026-11-18T02:23:37Z, build 8, record releases/v1-production.yml".
+Ansible: PLAY RECAP ok=9 changed=2 unreachable=0 failed=0 (changed: Render selected Compose configuration; Converge application without rebuilding). The smoke test inside the playbook asserted identity version v1, commit 975d13c..., total 30 through https://app.ssw590-g1.tech.
+No image was built or pushed; the digest is the one of the original v1 release (build #7).
+
+=== After ===
+pricing-production-app-1: sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2, healthy, started 2026-11-18 02:23:49 UTC (12 s after the approval); pricing-staging-app-1 unchanged on v2 (started 02:18:57 UTC).
+https://app.ssw590-g1.tech/ -> {"commit":"975d13c0c4cd3d0fab5035dd3d1817166bed8f07","service":"Startup Pricing","version":"v1"}; /health -> {"status":"ok","version":"v1"}; /price?quantity=3 -> {"currency":"USD","quantity":3,"total":30}. Brahmi's browser screenshots: 234 and 235.
+Matching configuration restored: the rendered Compose file on the server names the v1 digest again (Render selected Compose configuration changed), the release record is the committed one from main.
+
+=== What a visitor saw (read-only observer on the server, once per second, evidence 233) ===
+02:22:51 / and /price 200 version v2 total 36 (the observer starts)
+02:23:48 last v2 answer (no sample at 02:23:49: the loop was held by the swap); 02:23:50 HTTP 502 on both URLs (the container swap); 02:23:51 version v1 total 30.
+One 502 sample (02:23:50) between the last v2 answer (02:23:48) and the first v1 answer (02:23:51), i.e. about 2 to 3 seconds without a good answer at one-second sampling; the only non-200 line in the log (532 lines copied at 02:32:19 UTC, before the observer's last 30 s); from the approval (02:23:37) to the first v1 answer (02:23:51) 14 s.
+
+=== Monitoring (row 7) ===
+min over the previous 10 and 15 minutes of probe_success{instance="https://app.ssw590-g1.tech/health"} = 1 (queried at 02:24:18 and 02:25:14 UTC): the Prometheus probe (30 s interval) never sampled the one-second 502. No Discord alert fired (the rule needs 1 minute). The probe answers 200 for v1 and v2, so it would not show a wrong version either. Detection of the rollback therefore comes from the Ansible smoke test and the pipeline record, not from the metrics. Disk 3.5 GB free (83 % used).
