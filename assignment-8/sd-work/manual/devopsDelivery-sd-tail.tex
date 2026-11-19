@@ -73,7 +73,7 @@ Change the service or pipeline & anyone in the team, through a pull request with
 Deploy to staging & only Jenkins (the \texttt{deploy} key is a Jenkins credential): automatically for every merge that builds an image, or the \texttt{rollback} job with a staging record\\
 Approve production & the Jenkins users \texttt{brahmi} and \texttt{sakshi}, within 30~minutes, in the pipeline or the \texttt{rollback} job; the approver is recorded\\
 Roll back & either of them, by running \texttt{rollback} with a committed production record and approving it\\
-Administer the host & BD and SD as \texttt{ec2-user} over SSH from the two allowed addresses, outside the pipeline: BD made this chapter's server changes (agent, controller image, \texttt{deploy} account, Caddy blocks, probe); SD ran checks that changed no setting (the baseline and the SSH-path test with temporary \texttt{--rm} containers)\\
+Administer the host & BD and SD as \texttt{ec2-user} over SSH from the two allowed addresses, outside the pipeline: BD made this chapter's server changes (agent, controller image, \texttt{deploy} account, Caddy blocks, probe); SD ran checks that changed no setting (the baseline and the SSH-path test with temporary \texttt{-{}-rm} containers)\\
 \end{tabularx}
 
 \paragraph{Release.}

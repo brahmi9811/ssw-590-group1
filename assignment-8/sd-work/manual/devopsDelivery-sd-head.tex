@@ -27,11 +27,11 @@ the release identity (\texttt{/} says the expected version, \texttt{/health} say
 in \texttt{app.py}. They passed, a deliberately wrong expectation (31 instead of 30) failed with exit~1, and the restored file was identical to the starter (\ListRef{171}). The same tests run in the pipeline's first stage for every pull request and for \texttt{main}
 (Section~\ref{Section:deliveryJenkins}); they are what makes a wrong price fail before an image exists.
 
-\paragraph{Source identity.} The pipeline builds with \texttt{--build-arg APP\_COMMIT=}\emph{full commit}, the Dockerfile turns it into an environment variable, and \texttt{/} reports it. Ansible's last check compares the reported commit and version with the release record,
+\paragraph{Source identity.} The pipeline builds with \texttt{-{}-build-arg APP\_COMMIT=}\emph{full commit}, the Dockerfile turns it into an environment variable, and \texttt{/} reports it. Ansible's last check compares the reported commit and version with the release record,
 so a container that runs anything else fails the deployment. The public URLs report \texttt{975d13c\ldots} for v1 and reported \texttt{06550eb\ldots} for v2 (\ListRef{176}, \ListRef{230}, \ListRef{177}).
 
 \paragraph{Locked build inputs.} \texttt{requirements.in} keeps the starter's ranges (Flask 3.1.x, Gunicorn 23.x). \texttt{pip-compile} 7.6.2 turned them into \texttt{requirements.txt} with exact versions and SHA-256 hashes for all 9 packages, direct and transitive (167 hashes);
-recompiling gave the same packages and versions (\ListRef{172}). The image installs with \texttt{pip install --require-hashes --no-deps}, so a package that is not in the lock, or whose file differs, is refused.
+recompiling gave the same packages and versions (\ListRef{172}). The image installs with \texttt{pip install -{}-require-hashes -{}-no-deps}, so a package that is not in the lock, or whose file differs, is refused.
 The base image is pinned by digest, \texttt{python:3.13.18-slim-trixie@sha256:e48f59cd\ldots ed90} (the OCI index; its linux/amd64 manifest \texttt{48d88481\ldots} is recorded too), never by a moving tag \cite{DockerBuildBestPractices}.
 pip-audit 2.10.1 found no known vulnerability in the lock at that time, which is not a claim that none exist (\ListRef{172}). After build \#6's image scan, BD's reviewed \href{\GiteaRepoURL/pulls/16}{pull request \#16} pinned the one OS package with a fix, \texttt{zlib1g}, to the exact tested version,
 and removed \texttt{pip}, \texttt{setuptools} and \texttt{wheel} after the locked install (Section~\ref{Section:deliveryScans}); SD reviewed that the pin keeps the inputs locked: if Debian replaces that version, the build fails loudly and is fixed in a pull request.
