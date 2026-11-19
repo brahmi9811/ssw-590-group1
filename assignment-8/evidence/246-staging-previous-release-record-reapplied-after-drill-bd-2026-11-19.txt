@@ -1,0 +1,11 @@
+Real output pasted by Brahmi (Jenkins console of the job rollback) and checked on the server and from the PC, night of Nov 18, 2026 US Eastern (server clock UTC, Nov 19 05:15-05:20). Assignment 8, row 6 (case b: redeploy the previous release record after restoring the configuration).
+
+Job rollback (the next build after #10), RELEASE_RECORD = releases/v1-staging.yml. Why this record: before the drill, staging had been put back on the v1 release by the recovery run of evidence 238 (build #10), so releases/v1-staging.yml is the previous staging release record. (The restore build of evidence 245 had deployed a new image of v2 code; this run puts the previous release back.)
+Checked out main at 99a061e2f80e9b81b0ab9e56b1d1a1d69eee7442 (the restored template). Record checks passed (tracked in main, committed in 3f6918f, target_env staging, digest sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2, expected_commit 975d13c0c4cd3d0fab5035dd3d1817166bed8f07, expected_total 30). Approval skipped (staging record).
+Ansible: PLAY RECAP ok=9 changed=2 unreachable=0 failed=0 (Render selected Compose configuration changed, Converge application without rebuilding changed; health, identity and price assertions passed). Finished: SUCCESS.
+
+Verified at 05:20:11 UTC:
+Staging: pricing-staging-app-1 on sha256:ce514106...98b2, healthy, started 2026-11-19 05:15:42 UTC; https://staging.ssw590-g1.tech/ -> {"commit":"975d13c0c4cd3d0fab5035dd3d1817166bed8f07","service":"Startup Pricing","version":"v1"}; /price?quantity=3 -> total 30.
+Production: pricing-production-app-1 on the same digest, healthy, started 2026-11-18 02:23:49 UTC, untouched through the whole drill; version v1, commit 975d13c..., total 30.
+
+State of the two environments after case (b): configuration commit restored (main at 99a061e with the reviewed template), previous release record applied, verified; the drill and restore commits remain in the history as the record. Both environments serve the original v1 release (digest ce514106...).

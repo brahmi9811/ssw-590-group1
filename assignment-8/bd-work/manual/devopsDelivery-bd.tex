@@ -314,12 +314,16 @@ at an unset parameter, which is the safe behaviour of \texttt{set -u}, and regis
 Ansible ended \texttt{ok=9 changed=2 failed=0} and its smoke test asserted version v1, the right commit and total 30. The container started 12~seconds after the approval; public checks: version v1, commit \texttt{975d13c}, total 30 (\FigRef{234}, \FigRef{235}, \ListRef{232}).
 A read-only observer on the server asked the production URL once a second (\ListRef{233}): the last v2 answer at 02:23:48, one 502 sample at 02:23:50, the first v1 answer at 02:23:51, that is about 2 to 3~seconds without a good answer, and the only non-200 line. The matching configuration came back with it: the rendered Compose file names the v1 digest again.
 
-\paragraph{Case B: staging failed deployment and recovery.} The failure was injected on purpose and traceably by replaying rollback build \#6 (the replay is build \#9 of the job) with the digest replaced by 64 zeros, an image that does not exist (the deploy key lives only in Jenkins and the job refuses records that are not in \texttt{main}, so a replay is the safe way).
+\paragraph{Case B, first drill: a missing image.} The failure was injected on purpose and traceably by replaying rollback build \#6 (the replay is build \#9 of the job) with the digest replaced by 64 zeros, an image that does not exist (the deploy key lives only in Jenkins and the job refuses records that are not in \texttt{main}, so a replay is the safe way).
 Ansible failed at \emph{Converge application without rebuilding} with ``manifest unknown'', recap \texttt{ok=4 changed=1 failed=1} (\ListRef{237}). Compose pulls the image before it touches the running container, so staging stayed on the v2 container, healthy, still answering v2 and 36; only the rendered Compose file had changed to name the missing digest, a drift between configuration and running release.
 Production was untouched and the approval and production stages are never reached after a failed staging deploy. Recovery: the same job as a normal run (build \#10) with \texttt{releases/v1-staging.yml}, \texttt{ok=9 changed=2 failed=0} (the Compose file restored, staging moved onto the known-good digest), verified at 02:46~UTC: version v1, commit \texttt{975d13c}, total 30 on both URLs (\ListRef{238}).
 About 6~minutes passed between the failure and the verified recovery, most of it waiting for the person to start the second run. Staging ends on v1, the last release whose record is in \texttt{main}; to put v2 back, its record is committed in a reviewed pull request first.
 
-\paragraph{What is not claimed.} The rollback was practised on a release whose previous version is still in the registry; if a registry image were deleted, a rollback to it would fail like Case B. The runs were short because the service is a single stateless container; a service with data would need a data plan that this exercise does not cover.
+\paragraph{Case B as the course describes it: a configuration commit.} The course asks for a separate configuration commit that binds Gunicorn to port 8001 in staging while the image's healthcheck still probes 8000, so BD did that too. Issue \#27 and pull request \#28 (merged by BD as administrator, a deliberate drill commit) changed three lines of \texttt{ansible/templates/compose.yaml.j2}: for staging only, the Compose command became \texttt{["gunicorn", "--bind", "0.0.0.0:8001", "app:app"]}. Jenkins built the merge commit \texttt{306242f} (tests, scans, image and push passed), and then \emph{Deploy staging} failed with \texttt{container pricing-staging-app-1 is unhealthy}, recap \texttt{ok=4 changed=1 failed=1} (\ListRef{243}). The run stopped there: no approval prompt, no production stage, production unchanged. Unlike the first drill, the image exists, so Compose replaced the running container with one that listens on 8001; staging answered 502 until the configuration was restored, about 12~minutes of planned outage, while production kept serving v1.
+
+Recovery: the previous reviewed template was put back in its own pull request (\#29, merge \texttt{99a061e}; issue \#27 closed). The restore build (\#15) staged the restored configuration with \texttt{ok=9 changed=2 failed=0}, staging was healthy on port 8000 again and answered v2 with total 36, and BD aborted the build at the approval (\FigRef{244}, \ListRef{245}). Last, the \texttt{rollback} job re-applied the previous staging release record, \texttt{releases/v1-staging.yml}, on the restored \texttt{main}: \texttt{ok=9 changed=2 failed=0}, staging on the known-good digest \texttt{ce514106}\ldots, version v1 and total 30, production untouched (\ListRef{246}). The failure and the restore both stay in the history; the configuration commit and the release record were restored together, as the course requires.
+
+\paragraph{What is not claimed.} The rollback was practised on a release whose previous version is still in the registry; if a registry image were deleted, a rollback to it would fail like the first drill of Case B. The runs were short because the service is a single stateless container; a service with data would need a data plan that this exercise does not cover.
 
 \begin{longlisting}
 \inputminted[fontsize=\scriptsize]{text}{evidence/228-restore-runs-staging-twice-and-production-changed-0-bd-2026-11-18.txt}
@@ -383,6 +387,32 @@ About 6~minutes passed between the failure and the verified recovery, most of it
 \inputminted[fontsize=\scriptsize]{text}{evidence/238-staging-recovered-to-v1-after-failed-deploy-bd-2026-11-18.txt}
 \caption{Staging recovered to v1; the Compose file restored; times (real output).}
 \label{Listing:E238}
+\end{longlisting}
+
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/243-failed-deployment-drill-gunicorn-8001-staging-compose-wait-fails-bd-2026-11-18.txt}
+\caption{The course's failed-deployment drill: Gunicorn on 8001 in staging, the Compose wait fails, the Jenkins run stops (real output).}
+\label{Listing:E243}
+\end{longlisting}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{evidence/244-build-15-restore-build-aborted-at-the-approval-bd-2026-11-18.png}
+\caption{Jenkins build \#15, the restore build: production stage skipped, ``Rejected by Brahmi Dalvi'', aborted at the approval (BD's screenshot).}
+\label{Fig:E244}
+\end{figure}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/245-failed-deployment-drill-restore-template-staging-healthy-again-bd-2026-11-18.txt}
+\caption{The reviewed template restored through its own pull request; staging healthy on 8000 again (real output).}
+\label{Listing:E245}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/246-staging-previous-release-record-reapplied-after-drill-bd-2026-11-19.txt}
+\caption{The previous staging release record applied again; both environments on the known-good digest (real output).}
+\label{Listing:E246}
 \end{longlisting}
 
 
