@@ -51,5 +51,5 @@
 ## Checklist
 - [x] baseline (170) · [x] tests pass/fail/restore (171) · [x] lock + base digest + pip-audit (172) · [x] local hardened run (173)
 - [x] Ansible offline prep (174) · [x] Caddy draft · [x] twintrack issue #11 / PR #12 (Jenkins green; review by BD pending) · [x] first registry image + digest (build #7, evidence 176)
-- [x] staging deploy · [x] `changed=0` rerun (rollback #6 and #7, evidence 177/228) · [x] production (after approval, build #7) · [x] v1 records PR #19 merged · [x] v2 release (PR #21, build #11) · [ ] v2 records PR #26 merged · [x] traceability table
-- [x] diagram drafted (sd-work/TikZ, target state) · [x] runbooks · [x] chapter regions (sd-work/manual) · [x] local test build · [ ] joint final build
+- [x] staging deploy · [x] `changed=0` rerun (rollback #6 and #7, evidence 177/228) · [x] production (after approval, build #7) · [x] v1 records PR #19 merged · [x] v2 release (PR #21, build #11) · [x] v2 records PR #26 merged · [x] traceability table
+- [x] diagram drafted (sd-work/TikZ, target state) · [x] runbooks · [x] chapter regions (sd-work/manual) · [x] local test build · [x] joint final build (run #24, a953531, read by SD Nov 19)
