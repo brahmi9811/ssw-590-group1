@@ -1,0 +1,25 @@
+Real output read over SSH from the trusted agent's workspace and the host, and from the Gitea API, evening of Nov 18, 2026 US Eastern (server clock UTC, Nov 19 04:56-04:58). Assignment 8, row 6 (recovery case b as the course describes it: a separate staging-only configuration commit binds Gunicorn to 8001 while the image healthcheck still tests 8000).
+
+=== The configuration commit ===
+Issue #27 "Failed-deployment drill: bind Gunicorn to 8001 in staging (Assignment 8, case b)" (twintrack); pull request #28, merged into main by Brahmi (administrator, no review; a deliberate drill commit) as merge commit 306242f10c867b3920d688d38d031bed8791da2e.
+The change (ansible/templates/compose.yaml.j2, 3 lines): for target_env staging only, the Compose command is ["gunicorn", "--bind", "0.0.0.0:8001", "app:app"]; the image's own healthcheck still probes http://127.0.0.1:8000/health. Production is not affected by the template.
+
+=== What Jenkins did (build on main for 306242f; Gitea status: twintrack/pipeline/head FAILURE "There was a failure building this commit", the final state arrived about 90 s after the merge) ===
+Tests, pip-audit, secret scan, image build, image scan (0 rows under the exceptions) and push passed: new image git.ssw590-g1.tech/group1-startup/pricing@sha256:cd8037e5802836a6dd83598ba0e3b8fa61a180812b83069d97efba4298ba9dd3 for commit 306242f (same application code as v2; a new image per commit).
+Deploy staging (reports/deploy-staging.txt in the workspace):
+  Render selected Compose configuration: changed
+  TASK Converge application without rebuilding: [ERROR] Task failed: Module failed: General error: container pricing-staging-app-1 is unhealthy
+     actions: pricing-staging-app-1 Recreate, then Starting
+  PLAY RECAP: ok=4 changed=1 unreachable=0 failed=1
+The run stopped there: no reports/deploy-production.txt, no approval prompt, no production deployment.
+
+=== State of the environments at 04:58 UTC ===
+Staging: pricing-staging-app-1 on the new image, command "gunicorn --bind 0.0.0.0:8001 app:app", state running, health UNHEALTHY, started 04:57:25 UTC; its log: "Listening at: http://0.0.0.0:8001". https://staging.ssw590-g1.tech/health answers HTTP 502 (Caddy proxies to pricing-staging:8000, where nothing listens): staging is down, as designed for the drill.
+Production: pricing-production-app-1 on sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2, healthy, command with --bind 0.0.0.0:8000, started 2026-11-18 02:23:49 UTC (not restarted); https://app.ssw590-g1.tech/ -> commit 975d13c0c4cd3d0fab5035dd3d1817166bed8f07, version v1.
+Disk 3.3 GB free (84 % used).
+
+=== Contrast with the first drill (evidence 237) ===
+There the digest did not exist: Compose could not pull and the running v2 container was kept (staging stayed up). Here the image exists but the configuration makes the new container unhealthy, so Compose replaced the container and the environment is down until the configuration is restored: the case the course asks for.
+
+=== Next: recovery ===
+Restore the previous reviewed template in its own pull request and apply its release record again (evidence to follow).
