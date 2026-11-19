@@ -120,7 +120,7 @@ The service keeps no data, so a rollback needs no data migration. A service with
 Staging and production share the host, the Docker daemon, the proxy and the disk, so they are separated in configuration but not in failure: a host or Docker outage stops both, and the monitoring with them. The Docker socket on the agent means that a compromised
 pipeline would own the host. These are accepted for a course system and would be the first things to split in a real one: a separate production host, an agent without the host's socket, and monitoring outside the host.
 
-\paragraph{Version and history.} The manual's version rises from 1.3 to \textbf{1.4} (title page and \ref{Table:DocumentHistory}). The entry of November 17, 2026 names BD, SD and the AI assistant, lists this chapter, says that the Hosts and Passwords tables \emph{changed},
+\paragraph{Version and history.} The manual's version rises from 1.3 to \textbf{1.4} (title page and \ref{Table:DocumentHistory}). The entry of November 19, 2026 names BD, SD and the AI assistant, lists this chapter, says that the Hosts and Passwords tables \emph{changed},
 and links to \ChapterRef{Delivery} and \ChapterRef{HostsPasswords}.
 
 \paragraph{Hosts and Passwords changes.} \textbf{Hosts:} the instance type \texttt{t3.medium}; a new row for the pricing service with its two names, \texttt{staging.ssw590-g1.tech} and \texttt{app.ssw590-g1.tech}, their Compose projects and probe; a new row for the trusted agent;
