@@ -20,7 +20,16 @@ G6 registry tokens, G7 pipeline shape and approvers.
 - `sd-work/pricing-service/` (locked, pinned, tested), `sd-work/ansible/` (pinned, syntax-checked), `sd-work/releases/release.example.yml`.
 - pip-audit command that already works on the lock (evidence 172): `pip-audit -r requirements.txt --require-hashes --disable-pip`.
 
-## Checklist
-- [x] G1 agent + tool versions (evidence 205, 206) · [x] G2 capacity (t3.medium, evidence 200) · [x] G3 DNS (Nov 12) · [x] G4 Caddy (evidence 208) · [x] G5 deploy account (evidence 203, 204; login test via pipeline) · [~] G6 tokens (write token in Jenkins, evidence 207; read token for host only if anonymous pull fails) · [ ] G7 pipeline shape (approvers decided: brahmi and sakshi)
-- [ ] scan policy · [ ] blocked fixture · [ ] approval stage · [ ] v2 promotion · [ ] rollback (a) · [ ] failed deploy (b)
-- [ ] monitoring probe + correlation · [ ] limitations
+## Checklist (final, Nov 19, 2026)
+- [x] G1 agent (205, 206) · [x] G2 capacity t3.medium (200) · [x] G3 DNS · [x] G4 Caddy (208) · [x] G5 deploy account (203, 204) · [x] G6 registry tokens (207, 209, 211) · [x] G7 approvers (210)
+- [x] scan policy written before the release · [x] real block (build #6, 213) and blocked fixture (239) · [x] approval stage (214-217)
+- [x] v1 and v2 released with the same digest staging to production (216, 230, 231) · [x] rollback v2 to v1 with observer log (232, 233)
+- [x] failed deployment: first drill by replay (237, 238) and the course drill, Gunicorn on 8001 (243-246)
+- [x] monitoring probe and correlation (219, 220, 236) · [x] limitations in the chapter
+- [x] manual: BD rows 4-7 written, SD regions merged, PR #2, official PDF built (Gitea Actions run #24, a953531, 275 pages), read by SD
+- [x] file: `assignment-8/IT-manual+build.24.a953531-grp1.pdf`
+- [ ] **Upload to Canvas (#8, due Tue Nov 24, 11:59 pm): BD**
+
+## After submission (server stays up until grading ends; teardown is BD's alone)
+- Trivy exceptions end Sun Nov 29, 7 PM New York: after that a delivery build blocks again until a reviewed pull request renews or removes them.
+- Keep Gitea, Jenkins, the agent, Caddy, monitoring, staging and production running; disk is the tight resource (3.3 GB free).
