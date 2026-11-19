@@ -95,7 +95,7 @@ who approved and when. It holds metadata only. Jenkins writes and archives them;
 The four records are in Section~\ref{Section:deliveryRecords}.
 
 \paragraph{Traceability.} \ref{Table:DeliveryTrace} lists every build of \texttt{main} that reached the image stage. v1 and v2 each have one image, built once, scanned, tested in staging and promoted with the same digest.
-Build \#8 shows the rule from the other side: merging a pipeline change produced a new image of the same v1, which staging ran but nobody promoted. The registry holds exactly the three pushed images (BD's reading of the package page, Section~\ref{Section:deliveryScans}; \FigRef{242}).
+Build \#8 shows the rule from the other side: merging a pipeline change produced a new image of the same v1, which staging ran but nobody promoted. Builds \#14 and \#15, the configuration drill of Section~\ref{Section:deliveryRecovery}, produced two more images that never reached production. BD's reading of the package page after build \#12 listed exactly the three images pushed until then (Section~\ref{Section:deliveryScans}, \FigRef{242}); the drill added the other two, so five \texttt{pricing} versions exist.
 
 {\footnotesize
 \begin{tabularx}{\linewidth}{L{1.2cm}L{1.3cm}L{2.75cm}YL{2.2cm}}
@@ -109,13 +109,17 @@ Build \#8 shows the rule from the other side: merging a pipeline change produced
 \#8 (v1) & \href{\GiteaRepoURL/commit/102da1d2e5a5d76d6de9cf6254f568b3b22b67d1}{\texttt{102da1d}} & \texttt{sha256:}\newline\texttt{5702d097\ldots 44ca} & scans passed; staging v1, 30; \textbf{rejected} at the approval by \texttt{brahmi}; production unchanged (``built and staged, not promoted'') & \ListRef{222}, \FigRef{221}, \ListRef{177}\\
 \#11 (v2) & \href{\GiteaRepoURL/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f}{\texttt{06550eb}} & \texttt{sha256:}\newline\texttt{ba2e211c\ldots f01c} & scans passed; staging v2, total 36; approved by \texttt{brahmi} Nov~17, 9:21:44~PM; production same digest, v2, 36; rolled back to v1 at 9:23:37~PM (Section~\ref{Section:deliveryRecovery}) & \ListRef{230}, \ListRef{231}, \FigRef{229}, \ListRef{177}\\
 \#12 (fixture) & replay of \#11 & none (nothing built) & pip-audit exit 1 and secret scan exit 1 on a synthetic fixture; every later stage skipped & \ListRef{239}\\
+\#14 (drill) & \href{\GiteaRepoURL/commit/306242f}{\texttt{306242f}} & \texttt{sha256:}\newline\texttt{cd8037e5\ldots 9dd3} & configuration commit binding Gunicorn to 8001 in staging (pull request \#28); scans passed; staging \textbf{failed}: container unhealthy, \texttt{ok=4 changed=1 failed=1}; no approval, production unchanged & \ListRef{243}\\
+\#15 (restore) & \href{\GiteaRepoURL/commit/99a061e}{\texttt{99a061e}} & \texttt{sha256:}\newline\texttt{4a797e7d\ldots 4af3} & reviewed template restored (pull request \#29); staging healthy, \texttt{changed=2}; \textbf{rejected} at the approval; staging then set back to the v1 record by the \texttt{rollback} job & \ListRef{245}, \FigRef{244}, \ListRef{246}\\
 \end{tabularx}
 }
-Builds \#5 (pip-audit could not write its cache, \ListRef{212}), \#9 (release records only) and \#10 (rollback file only) built no image. The full digests (\ListRef{177}):
+Builds \#5 (pip-audit could not write its cache, \ListRef{212}), \#9 and \#13 (release records only) and \#10 (rollback file only) built no image. The full digests (\ListRef{177}, \ListRef{243}, \ListRef{245}):
 {\footnotesize\begin{itemize}
 \item v1, build \#7: \texttt{sha256:ce514106aead540576c4a9a67dd76e3a358547e5dcdf1be3c5057b82b92098b2}
 \item build \#8: \texttt{sha256:5702d0975b2fcd510d642774f5d06d33a576307671d85f8d922ab90ac4fb44ca}
 \item v2, build \#11: \texttt{sha256:ba2e211c8babc532913a9342325adbe5d897e4381aff560827f55b065d13f01c}
+\item build \#14: \texttt{sha256:cd8037e5802836a6dd83598ba0e3b8fa61a180812b83069d97efba4298ba9dd3}
+\item build \#15: \texttt{sha256:4a797e7d2144a29ed58ce064489df8def61df38c33adec0c6ec092d0e7524af3}
 \end{itemize}}
 Jenkins runs:
 \href{https://ci.ssw590-g1.tech/job/twintrack/job/main/7/}{build \#7}, \href{https://ci.ssw590-g1.tech/job/twintrack/job/main/8/}{\#8}, \href{https://ci.ssw590-g1.tech/job/twintrack/job/main/11/}{\#11} (team sign-in required).
@@ -148,7 +152,7 @@ for root \cite{AnsibleBecome}; that \texttt{sudo} and Docker access amount to ho
 \paragraph{What the playbook does.} \texttt{ansible/deploy.yml} (\ListRef{DeliveryPlaybook}) takes one release record as variables and (1) checks it (environment name, \texttt{@sha256:} digest, version, total, \texttt{https://} URL);
 (2) creates \texttt{/opt/startup/pricing-}\emph{env}; (3) renders the Compose file from the template (\ListRef{DeliveryTemplate}); (4) converges the Compose project \texttt{pricing-}\emph{env} with \texttt{build: never} and \texttt{pull: missing}, so the host can only
 pull the named digest and never builds; (5) waits until \texttt{/health} answers \texttt{ok} \emph{through the public HTTPS name with certificate validation}; and (6) asserts that \texttt{/} reports the record's version and commit and that \texttt{/price?quantity=3}
-gives the record's total. A record that names a missing image fails at step~4 (BD's staging failure, \ListRef{237}); a container that answers with the wrong version or price fails at step~6.
+gives the record's total. A record that names a missing image fails at step~4 (BD's first drill, \ListRef{237}); so does a configuration that leaves the new container unhealthy, because the convergence waits for the health check (Gunicorn bound to 8001, \ListRef{243}); a container that answers with the wrong version or price fails at step~6.
 
 \paragraph{Environment separation.}
 \begin{tabularx}{\linewidth}{L{3.0cm}YY}
@@ -434,8 +438,8 @@ skipped; no image was built, nothing was pushed, both environments were untouche
 \toprule \textbf{Credential} & \textbf{Where it lives} & \textbf{Scope and risk}\\ \midrule
 \endhead \bottomrule \endlastfoot
 \texttt{deploy-ssh-key} & Jenkins credential only (\FigRef{204}); the local key files were deleted & ed25519 key for the \texttt{deploy} account: key-only login, no password, passwordless \texttt{sudo} (documented as host-administrator power, \ListRef{203}); revoke by deleting the line in \texttt{authorized\_keys}.\\
-\texttt{gitea-registry-write} & Jenkins credential, bound only in the push stage & Gitea user \texttt{jenkins-bot}, package scope only, with an expiry (\FigRef{207}); the account has more rights in the \texttt{developers} team (\FigRef{209}), so the token is narrower than the account.\\
-registry read token & root's \texttt{/root/.docker/config.json} on the host & read-only, with an expiry; stored in plain text, readable by root and so by the \texttt{deploy} account and the agent; used for the pull by digest (\ListRef{211}).\\
+\texttt{gitea-registry-\allowbreak write} & Jenkins credential, bound only in the push stage & Gitea user \texttt{jenkins-bot}, package scope only, with an expiry (\FigRef{207}); the account has more rights in the \texttt{developers} team (\FigRef{209}), so the token is narrower than the account.\\
+registry read token & root's \texttt{/root/.docker/\allowbreak config.json} on the host & read-only, with an expiry; stored in plain text, readable by root and so by the \texttt{deploy} account and the agent; used for the pull by digest (\ListRef{211}).\\
 Jenkins users & Jenkins' own database & exactly \texttt{brahmi} and \texttt{sakshi} may approve (\FigRef{210}).\\
 \end{tabularx}
 The deploy path is the host's Docker bridge (alias \texttt{deploy-target}) with a pinned SSH host key, because the host cannot reach its own Elastic IP on port 22 through the security group (\ListRef{201}). The two public hostnames, \texttt{staging} and \texttt{app}, are served by Caddy with
@@ -516,7 +520,7 @@ characters and an ancestor of \texttt{main}, so a rollback cannot target an unre
 The v1 records are committed in \texttt{main} (pull request \#19, byte-identical to the archived artifacts of build \#7).
 
 \paragraph{Three problems before it ran.} Builds \#1 to \#4 of the job failed without touching any server: the file was not on \texttt{main} yet; then Jenkins refused the whole file because of an invalid Groovy escape (a backslash-dot in a regular expression inside a triple-quoted
-shell block): ``unexpected char: \textbackslash{}'' (\FigRef{224}, \ListRef{225}). BD's local checks missed it because they tested the unescaped shell text; a check script that finds invalid escapes was added, and the fix went through its own pull request (\#24). The first run of the fixed file stopped
+shell block): ``unexpected char: \textbackslash{}'' (\FigRef{224}, \ListRef{225}). BD's local checks missed it because they tested the unescaped shell text; a check script that finds invalid escapes was added, and the fix went through its own pull request (\#24), which BD merged as administrator without a review by SD because it was a one-line repair of a job that could not run. The first run of the fixed file stopped
 at an unset parameter, which is the safe behaviour of \texttt{set -u}, and registered the parameter.
 
 \paragraph{Unchanged second run (row 3).} With \texttt{releases/v1-staging.yml}: the first run changed 2 tasks (staging moved back from a staged candidate to the build \#7 digest), the second run of the same record showed \texttt{changed=0} and the container was not restarted; the production record, approved by BD, also showed \texttt{changed=0}
@@ -526,12 +530,16 @@ at an unset parameter, which is the safe behaviour of \texttt{set -u}, and regis
 Ansible ended \texttt{ok=9 changed=2 failed=0} and its smoke test asserted version v1, the right commit and total 30. The container started 12~seconds after the approval; public checks: version v1, commit \texttt{975d13c}, total 30 (\FigRef{234}, \FigRef{235}, \ListRef{232}).
 A read-only observer on the server asked the production URL once a second (\ListRef{233}): the last v2 answer at 02:23:48, one 502 sample at 02:23:50, the first v1 answer at 02:23:51, that is about 2 to 3~seconds without a good answer, and the only non-200 line. The matching configuration came back with it: the rendered Compose file names the v1 digest again.
 
-\paragraph{Case B: staging failed deployment and recovery.} The failure was injected on purpose and traceably by replaying rollback build \#6 (the replay is build \#9 of the job) with the digest replaced by 64 zeros, an image that does not exist (the deploy key lives only in Jenkins and the job refuses records that are not in \texttt{main}, so a replay is the safe way).
+\paragraph{Case B, first drill: a missing image.} The failure was injected on purpose and traceably by replaying rollback build \#6 (the replay is build \#9 of the job) with the digest replaced by 64 zeros, an image that does not exist (the deploy key lives only in Jenkins and the job refuses records that are not in \texttt{main}, so a replay is the safe way).
 Ansible failed at \emph{Converge application without rebuilding} with ``manifest unknown'', recap \texttt{ok=4 changed=1 failed=1} (\ListRef{237}). Compose pulls the image before it touches the running container, so staging stayed on the v2 container, healthy, still answering v2 and 36; only the rendered Compose file had changed to name the missing digest, a drift between configuration and running release.
 Production was untouched and the approval and production stages are never reached after a failed staging deploy. Recovery: the same job as a normal run (build \#10) with \texttt{releases/v1-staging.yml}, \texttt{ok=9 changed=2 failed=0} (the Compose file restored, staging moved onto the known-good digest), verified at 02:46~UTC: version v1, commit \texttt{975d13c}, total 30 on both URLs (\ListRef{238}).
 About 6~minutes passed between the failure and the verified recovery, most of it waiting for the person to start the second run. Staging ends on v1, the last release whose record is in \texttt{main}; to put v2 back, its record is committed in a reviewed pull request first.
 
-\paragraph{What is not claimed.} The rollback was practised on a release whose previous version is still in the registry; if a registry image were deleted, a rollback to it would fail like Case B. The runs were short because the service is a single stateless container; a service with data would need a data plan that this exercise does not cover.
+\paragraph{Case B as the course describes it: a configuration commit.} The course asks for a separate configuration commit that binds Gunicorn to port 8001 in staging while the image's healthcheck still probes 8000, so BD did that too. Issue \#27 and pull request \#28 (merged by BD as administrator, a deliberate drill commit) changed three lines of \texttt{ansible/templates/compose.yaml.j2}: for staging only, the Compose command became \texttt{["gunicorn", "--bind", "0.0.0.0:8001", "app:app"]}. Jenkins built the merge commit \texttt{306242f} (tests, scans, image and push passed), and then \emph{Deploy staging} failed with \texttt{container pricing-staging-app-1 is unhealthy}, recap \texttt{ok=4 changed=1 failed=1} (\ListRef{243}). The run stopped there: no approval prompt, no production stage, production unchanged. Unlike the first drill, the image exists, so Compose replaced the running container with one that listens on 8001; staging answered 502 until the configuration was restored, about 12~minutes of planned outage, while production kept serving v1.
+
+Recovery: the previous reviewed template was put back in its own pull request (\#29, merge \texttt{99a061e}; issue \#27 closed). The restore build (\#15) staged the restored configuration with \texttt{ok=9 changed=2 failed=0}, staging was healthy on port 8000 again and answered v2 with total 36, and BD aborted the build at the approval (\FigRef{244}, \ListRef{245}). Last, the \texttt{rollback} job re-applied the previous staging release record, \texttt{releases/v1-staging.yml}, on the restored \texttt{main}: \texttt{ok=9 changed=2 failed=0}, staging on the known-good digest \texttt{ce514106}\ldots, version v1 and total 30, production untouched (\ListRef{246}). The failure and the restore both stay in the history; the configuration commit and the release record were restored together, as the course requires.
+
+\paragraph{What is not claimed.} The rollback was practised on a release whose previous version is still in the registry; if a registry image were deleted, a rollback to it would fail like the first drill of Case B. The runs were short because the service is a single stateless container; a service with data would need a data plan that this exercise does not cover.
 
 \begin{longlisting}
 \inputminted[fontsize=\scriptsize]{text}{evidence/228-restore-runs-staging-twice-and-production-changed-0-bd-2026-11-18.txt}
@@ -595,6 +603,32 @@ About 6~minutes passed between the failure and the verified recovery, most of it
 \inputminted[fontsize=\scriptsize]{text}{evidence/238-staging-recovered-to-v1-after-failed-deploy-bd-2026-11-18.txt}
 \caption{Staging recovered to v1; the Compose file restored; times (real output).}
 \label{Listing:E238}
+\end{longlisting}
+
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/243-failed-deployment-drill-gunicorn-8001-staging-compose-wait-fails-bd-2026-11-18.txt}
+\caption{The course's failed-deployment drill: Gunicorn on 8001 in staging, the Compose wait fails, the Jenkins run stops (real output).}
+\label{Listing:E243}
+\end{longlisting}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{evidence/244-build-15-restore-build-aborted-at-the-approval-bd-2026-11-18.png}
+\caption{Jenkins build \#15, the restore build: production stage skipped, ``Rejected by Brahmi Dalvi'', aborted at the approval (BD's screenshot).}
+\label{Fig:E244}
+\end{figure}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/245-failed-deployment-drill-restore-template-staging-healthy-again-bd-2026-11-18.txt}
+\caption{The reviewed template restored through its own pull request; staging healthy on 8000 again (real output).}
+\label{Listing:E245}
+\end{longlisting}
+
+\begin{longlisting}
+\inputminted[fontsize=\scriptsize]{text}{evidence/246-staging-previous-release-record-reapplied-after-drill-bd-2026-11-19.txt}
+\caption{The previous staging release record applied again; both environments on the known-good digest (real output).}
+\label{Listing:E246}
 \end{longlisting}
 
 
@@ -675,7 +709,7 @@ Pipeline & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af7
 Deployment & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/deploy.yml}{\texttt{deploy.yml}}, \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/templates/compose.yaml.j2}{\texttt{compose.yaml.j2}}, \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/inventory.ini}{\texttt{inventory.ini}} (no secrets), \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/known_hosts}{\texttt{known\_hosts}}; ansible-core 2.22.0, \texttt{community.docker} 5.4.0\\
 Scan exceptions & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/security/exceptions.md}{\texttt{security/exceptions.md}}, \texttt{.trivyignore.yaml} (expire Sunday, November 29, 2026, 7~PM New York)\\
 Release records & \href{\GiteaRepoURL/src/branch/main/releases}{\texttt{releases/}} on \texttt{main}: v1 through \href{\GiteaRepoURL/pulls/19}{pull request \#19}, v2 through \href{\GiteaRepoURL/pulls/26}{\#26}\\
-Reviewed changes & pull requests \href{\GiteaRepoURL/pulls/12}{\#12} (service), \href{\GiteaRepoURL/pulls/14}{\#14} (pipeline), \href{\GiteaRepoURL/pulls/16}{\#16} (scan fixes), \href{\GiteaRepoURL/pulls/22}{\#22} and \href{\GiteaRepoURL/pulls/24}{\#24} (rollback job), \href{\GiteaRepoURL/pulls/21}{\#21} (v2)\\
+Reviewed changes & pull requests \href{\GiteaRepoURL/pulls/12}{\#12} (service), \href{\GiteaRepoURL/pulls/14}{\#14} (pipeline), \href{\GiteaRepoURL/pulls/16}{\#16} (scan fixes), \href{\GiteaRepoURL/pulls/22}{\#22} and \href{\GiteaRepoURL/pulls/24}{\#24} (rollback job), \href{\GiteaRepoURL/pulls/21}{\#21} (v2), \href{\GiteaRepoURL/pulls/19}{\#19} and \href{\GiteaRepoURL/pulls/26}{\#26} (records); the drill: \href{\GiteaRepoURL/pulls/28}{\#28} (merged without review on purpose) and \href{\GiteaRepoURL/pulls/29}{\#29} (restore)\\
 \end{tabularx}
 
 \subsection{Release records}\label{Section:deliveryRecords}
@@ -732,10 +766,11 @@ Administer the host & BD and SD as \texttt{ec2-user} over SSH from the two allow
 \paragraph{Failed deployment.}
 \begin{enumerate}
 \item Signal: the build stops in \emph{Deploy staging} (or \emph{Deploy production}); the console shows the failing Ansible task. A failed staging deploy never reaches the approval, so production is unchanged; confirm with \texttt{curl https://app.ssw590-g1.tech/}.
-\item Read the failure: a missing or unreachable image fails in \emph{Converge application} (``manifest unknown''); a wrong version, commit or price fails in \emph{Check release identity and calculation}.
-\item Expect drift: Compose pulls before it replaces a container, so an image failure leaves the old container running while the rendered \texttt{compose.yaml} already names the new digest (BD's case, \ListRef{237}).
-\item Restore: run the \texttt{rollback} job with the last good record of that environment (for staging no approval is needed); it must end \texttt{failed=0} and pass the identity and price checks (\ListRef{238}).
-\item Fix the cause in a new pull request; never edit a committed record to make a deployment pass.
+\item Read the failure: a missing or unreachable image fails in \emph{Converge application} (``manifest unknown''); a configuration that makes the new container unhealthy fails there too (``container \ldots{} is unhealthy''); a wrong version, commit or price fails in \emph{Check release identity and calculation}.
+\item Know what is running: Compose pulls before it replaces a container, so an image failure leaves the old container running while the rendered \texttt{compose.yaml} already names the new digest (\ListRef{237}); a bad configuration has already replaced the container, so that environment is down until it is restored (staging answered 502 for about 12~minutes in the drill, \ListRef{243}).
+\item If a \emph{configuration commit} caused it (the template, the inventory, the playbook): restore the previous reviewed version in its own pull request (for the drill, \href{\GiteaRepoURL/pulls/29}{\#29}); its merge build redeploys staging with the restored configuration; reject its approval if production should stay where it is (\ListRef{245}).
+\item Re-apply the last good release record of that environment with the \texttt{rollback} job (for staging no approval is needed); it must end \texttt{failed=0} and pass the identity and price checks (\ListRef{238}, \ListRef{246}). The environment then runs the recorded digest with the reviewed configuration again.
+\item Never edit a committed record to make a deployment pass; fix the cause in a pull request.
 \end{enumerate}
 
 \paragraph{Rollback of production.}
@@ -754,7 +789,7 @@ The service keeps no data, so a rollback needs no data migration. A service with
 \item Remove the \texttt{staging} and \texttt{app} blocks from the Caddyfile and reload Caddy; remove the \texttt{app} target from the Blackbox probe and reload Prometheus.
 \item BD deletes the DNS records \texttt{staging} and \texttt{app} at Name.com.
 \item Revoke the credentials: delete the Jenkins credentials \texttt{deploy-ssh-key} and \texttt{gitea-registry-write}, revoke the \texttt{jenkins-bot} package token and root's read token in Gitea, run \texttt{docker logout git.ssw590-g1.tech} as root, and remove the key line from \texttt{/home/deploy/.ssh/authorized\_keys} (or the \texttt{deploy} account and its \texttt{sudo} rule).
-\item Stop the \texttt{jenkins-agent} container; delete the three \texttt{pricing} package versions in Gitea and the local images on the host (about 126~MB each).
+\item Stop the \texttt{jenkins-agent} container; delete the \texttt{pricing} package versions in Gitea (five: builds \#7, \#8, \#11, \#14, \#15) and the local images on the host (about 126~MB each).
 \item Keep Gitea, Jenkins, Caddy, the monitoring stack, the repositories with their history and records, and this manual's evidence: the earlier chapters depend on them.
 \end{enumerate}
 

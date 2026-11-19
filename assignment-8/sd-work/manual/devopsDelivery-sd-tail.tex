@@ -32,7 +32,7 @@ Pipeline & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af7
 Deployment & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/deploy.yml}{\texttt{deploy.yml}}, \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/templates/compose.yaml.j2}{\texttt{compose.yaml.j2}}, \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/inventory.ini}{\texttt{inventory.ini}} (no secrets), \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/ansible/known_hosts}{\texttt{known\_hosts}}; ansible-core 2.22.0, \texttt{community.docker} 5.4.0\\
 Scan exceptions & \href{\GiteaRepoURL/src/commit/06550eb4fe5d3315b31e1a1bd2fe1b4f034af77f/security/exceptions.md}{\texttt{security/exceptions.md}}, \texttt{.trivyignore.yaml} (expire Sunday, November 29, 2026, 7~PM New York)\\
 Release records & \href{\GiteaRepoURL/src/branch/main/releases}{\texttt{releases/}} on \texttt{main}: v1 through \href{\GiteaRepoURL/pulls/19}{pull request \#19}, v2 through \href{\GiteaRepoURL/pulls/26}{\#26}\\
-Reviewed changes & pull requests \href{\GiteaRepoURL/pulls/12}{\#12} (service), \href{\GiteaRepoURL/pulls/14}{\#14} (pipeline), \href{\GiteaRepoURL/pulls/16}{\#16} (scan fixes), \href{\GiteaRepoURL/pulls/22}{\#22} and \href{\GiteaRepoURL/pulls/24}{\#24} (rollback job), \href{\GiteaRepoURL/pulls/21}{\#21} (v2)\\
+Reviewed changes & pull requests \href{\GiteaRepoURL/pulls/12}{\#12} (service), \href{\GiteaRepoURL/pulls/14}{\#14} (pipeline), \href{\GiteaRepoURL/pulls/16}{\#16} (scan fixes), \href{\GiteaRepoURL/pulls/22}{\#22} and \href{\GiteaRepoURL/pulls/24}{\#24} (rollback job), \href{\GiteaRepoURL/pulls/21}{\#21} (v2), \href{\GiteaRepoURL/pulls/19}{\#19} and \href{\GiteaRepoURL/pulls/26}{\#26} (records); the drill: \href{\GiteaRepoURL/pulls/28}{\#28} (merged without review on purpose) and \href{\GiteaRepoURL/pulls/29}{\#29} (restore)\\
 \end{tabularx}
 
 \subsection{Release records}\label{Section:deliveryRecords}
@@ -89,10 +89,11 @@ Administer the host & BD and SD as \texttt{ec2-user} over SSH from the two allow
 \paragraph{Failed deployment.}
 \begin{enumerate}
 \item Signal: the build stops in \emph{Deploy staging} (or \emph{Deploy production}); the console shows the failing Ansible task. A failed staging deploy never reaches the approval, so production is unchanged; confirm with \texttt{curl https://app.ssw590-g1.tech/}.
-\item Read the failure: a missing or unreachable image fails in \emph{Converge application} (``manifest unknown''); a wrong version, commit or price fails in \emph{Check release identity and calculation}.
-\item Expect drift: Compose pulls before it replaces a container, so an image failure leaves the old container running while the rendered \texttt{compose.yaml} already names the new digest (BD's case, \ListRef{237}).
-\item Restore: run the \texttt{rollback} job with the last good record of that environment (for staging no approval is needed); it must end \texttt{failed=0} and pass the identity and price checks (\ListRef{238}).
-\item Fix the cause in a new pull request; never edit a committed record to make a deployment pass.
+\item Read the failure: a missing or unreachable image fails in \emph{Converge application} (``manifest unknown''); a configuration that makes the new container unhealthy fails there too (``container \ldots{} is unhealthy''); a wrong version, commit or price fails in \emph{Check release identity and calculation}.
+\item Know what is running: Compose pulls before it replaces a container, so an image failure leaves the old container running while the rendered \texttt{compose.yaml} already names the new digest (\ListRef{237}); a bad configuration has already replaced the container, so that environment is down until it is restored (staging answered 502 for about 12~minutes in the drill, \ListRef{243}).
+\item If a \emph{configuration commit} caused it (the template, the inventory, the playbook): restore the previous reviewed version in its own pull request (for the drill, \href{\GiteaRepoURL/pulls/29}{\#29}); its merge build redeploys staging with the restored configuration; reject its approval if production should stay where it is (\ListRef{245}).
+\item Re-apply the last good release record of that environment with the \texttt{rollback} job (for staging no approval is needed); it must end \texttt{failed=0} and pass the identity and price checks (\ListRef{238}, \ListRef{246}). The environment then runs the recorded digest with the reviewed configuration again.
+\item Never edit a committed record to make a deployment pass; fix the cause in a pull request.
 \end{enumerate}
 
 \paragraph{Rollback of production.}
@@ -111,7 +112,7 @@ The service keeps no data, so a rollback needs no data migration. A service with
 \item Remove the \texttt{staging} and \texttt{app} blocks from the Caddyfile and reload Caddy; remove the \texttt{app} target from the Blackbox probe and reload Prometheus.
 \item BD deletes the DNS records \texttt{staging} and \texttt{app} at Name.com.
 \item Revoke the credentials: delete the Jenkins credentials \texttt{deploy-ssh-key} and \texttt{gitea-registry-write}, revoke the \texttt{jenkins-bot} package token and root's read token in Gitea, run \texttt{docker logout git.ssw590-g1.tech} as root, and remove the key line from \texttt{/home/deploy/.ssh/authorized\_keys} (or the \texttt{deploy} account and its \texttt{sudo} rule).
-\item Stop the \texttt{jenkins-agent} container; delete the three \texttt{pricing} package versions in Gitea and the local images on the host (about 126~MB each).
+\item Stop the \texttt{jenkins-agent} container; delete the \texttt{pricing} package versions in Gitea (five: builds \#7, \#8, \#11, \#14, \#15) and the local images on the host (about 126~MB each).
 \item Keep Gitea, Jenkins, Caddy, the monitoring stack, the repositories with their history and records, and this manual's evidence: the earlier chapters depend on them.
 \end{enumerate}
 

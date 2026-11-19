@@ -13,3 +13,11 @@
   270 pages, no undefined or duplicate reference, no citation warning. One wide table remains in BD's region
   (Table DeliveryCredentials, about 58 pt too wide: `\texttt{gitea-registry-write}` / `/root/.docker/config.json`).
 - Nothing was pushed to the manual repository.
+
+## Update Nov 19, 2026 (after BD's course drill, evidence 243-246)
+- SD regions updated: traceability rows for builds #14 (drill, failed staging) and #15 (restore, rejected), two more full digests,
+  five registry versions (not three), row 3 notes that an unhealthy container also fails at the convergence step,
+  failed-deployment runbook with the configuration-commit path (restore PR, then re-apply the last good record), PR list with #19, #26, #28, #29.
+- Regenerate `devopsDelivery.tex` on the manual branch = new head + BD's current file + new tail (the BD region is untouched).
+- `0002-history-entry-drill-update.patch`: the 1.4 history entry mentions evidence 200-246, both drills and PRs #28/#29 (`git am` after 0001).
+- Test build with BD's current region and evidence 243-246: exit 0, 272 pages, no undefined/duplicate references, no overfull box in the chapter.
