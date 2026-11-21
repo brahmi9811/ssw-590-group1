@@ -28,7 +28,7 @@ G6 registry tokens, G7 pipeline shape and approvers.
 - [x] monitoring probe and correlation (219, 220, 236) · [x] limitations in the chapter
 - [x] manual: BD rows 4-7 written, SD regions merged, PR #2, official PDF built (Gitea Actions run #24, a953531, 275 pages), read by SD
 - [x] file: `assignment-8/IT-manual+build.24.a953531-grp1.pdf`
-- [ ] **Upload to Canvas (#8, due Tue Nov 24, 11:59 pm): BD**
+- [x] **Upload to Canvas (#8, due Tue Nov 24, 11:59 pm): BD** (uploaded Nov 20, 2026)
 
 ## After submission (server stays up until grading ends; teardown is BD's alone)
 - Trivy exceptions end Sun Nov 29, 7 PM New York: after that a delivery build blocks again until a reviewed pull request renews or removes them.
