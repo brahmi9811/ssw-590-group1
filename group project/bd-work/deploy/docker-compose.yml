@@ -1,0 +1,118 @@
+# Project server (final project). DRAFT, not yet run. One Compose project, one network.
+# Copy .env.example to .env on the server (untracked), type the values, then:
+#   docker compose config --quiet && docker compose pull && docker compose up -d --build
+# Use `docker compose stop/start`; never `down -v` (deletes Jenkins and Grafana state).
+# Only Caddy publishes ports (80, 443). Jenkins 8080, Grafana 3000, Prometheus 9090 stay private.
+services:
+  caddy:
+    image: caddy:${CADDY_VERSION:?pin a release}
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PIPELINE_DOMAIN: ${PIPELINE_DOMAIN:?}
+      LOAD_DOMAIN: ${LOAD_DOMAIN:?}
+      TEAM_IPS: ${TEAM_IPS:?}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data              # certificates and ACME account: persist
+      - caddy_config:/config
+    networks: [web]
+
+  jenkins:
+    build: ./jenkins
+    image: project/jenkins:${JENKINS_TAG:?}
+    container_name: jenkins
+    restart: unless-stopped
+    environment:
+      JAVA_OPTS: "-Xms256m -Xmx768m"
+      JENKINS_OPTS: "--httpPort=8080"
+    mem_limit: 1g
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    networks: [web]
+
+  # Inbound agent over WebSocket (no extra port). It runs the demo pipeline's build work,
+  # so the load shows on this host. It mounts the Docker socket: it is the trusted agent
+  # and nothing else may use its label (same rule as Assignment 8).
+  jenkins-agent:
+    image: ${AGENT_IMAGE:?build in T6}
+    container_name: jenkins-agent
+    restart: unless-stopped
+    environment:
+      JENKINS_URL: http://jenkins:8080/
+      JENKINS_WEB_SOCKET: "true"
+      JENKINS_AGENT_NAME: ${AGENT_NAME:-build-agent}
+      JENKINS_SECRET_FILE: /run/secrets/agent_secret
+    secrets: [agent_secret]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - agent_work:/home/jenkins/agent
+    depends_on: [jenkins]
+    networks: [web]
+
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_TAG:?}
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --storage.tsdb.retention.size=1GB
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    mem_limit: 256m
+    networks: [web]
+
+  grafana:
+    image: grafana/grafana:${GRAFANA_TAG:?}
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_SERVER_ROOT_URL: "https://${LOAD_DOMAIN}/"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+    secrets: [grafana_admin_password]
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    mem_limit: 384m
+    networks: [web]
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:${NODE_EXPORTER_TAG:?}
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host
+    command:
+      - --path.rootfs=/host
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+    volumes:
+      - /:/host:ro,rslave
+    mem_limit: 64m
+    networks: [web]
+
+networks:
+  web: {}
+
+secrets:
+  agent_secret:
+    file: ./secrets/agent_secret            # created on the server only; gitignored
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password  # created on the server only; gitignored
+
+volumes:
+  caddy_data:
+  caddy_config:
+  jenkins_home:
+  agent_work:
+  prometheus_data:
+  grafana_data:

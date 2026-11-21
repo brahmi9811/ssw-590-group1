@@ -1,0 +1,14 @@
+# Scrape configuration for the project server. The interval is 30 s as in Assignment 5; whether a shorter
+# one is needed for the live load view is decision D9 and is judged after the first rehearsal.
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: node                              # whole-host CPU, memory, disk, network
+    static_configs:
+      - targets: ["node-exporter:9100"]
